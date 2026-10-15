@@ -23,23 +23,31 @@
 
     <!-- ── 1. GLOBAL TOP NAVIGATION ───────────────────────────────────── -->
     <header class="top-nav">
-      <a class="brand" href="/" style="text-decoration:none;color:inherit">
+      <a class="brand" href="/" style="text-decoration:none;color:inherit" title="KrishiRakshak Home">
         <div class="logo-icon">
           <img src="assets/images/krishirakshak-symbol.png" alt="KrishiRakshak" class="top-nav-logo" width="32" height="32">
         </div>
         <div>
           <div class="brand-title">KrishiRakshak</div>
-          <p class="brand-subtitle">AI Crop Disease Diagnostic & Regional Surveillance Portal</p>
+          <p class="brand-subtitle">Agricultural Extension Officer Portal</p>
         </div>
       </a>
 
       <div class="nav-links">
-        <button id="navDiagnoseBtn" class="nav-link-btn" onclick="openDiagnosticModal()">📷 Check My Crop</button>
-        <a href="#surveillanceSection" class="nav-link-btn">🗺️ Regional Outbreaks</a>
+        <a href="/" class="nav-link-btn" title="Back to Public Overview">← Public Home</a>
+        <a href="#surveillanceSection" class="nav-link-btn">🗺️ Outbreak Map</a>
+        <a href="#reportsTableSection" class="nav-link-btn">📋 Field Reports</a>
+        <a href="#analyticsSection" class="nav-link-btn">📊 Disease Analytics</a>
+        <button id="navDiagnoseBtn" class="nav-link-btn" onclick="openDiagnosticModal()">📷 Check Crop</button>
         <span class="live-indicator">
-          <span class="pulse-dot"></span> <span id="navOutbreakStatus">Live Surveillance Active</span>
+          <span class="pulse-dot"></span> <span id="navOutbreakStatus">Surveillance Active</span>
         </span>
-        <button id="refreshBtn" class="btn btn-secondary">⟳ Refresh Data</button>
+        <button id="refreshBtn" class="btn btn-secondary">⟳ Refresh</button>
+        <div class="officer-badge-wrap" style="display:inline-flex;align-items:center;gap:8px;padding:4px 10px;background:rgba(199,183,95,0.12);border:1px solid rgba(199,183,95,0.25);border-radius:20px;font-size:12px;">
+          <span>🛡️</span>
+          <span id="officerNameBadge" style="color:var(--accent-warning,#c7b75f);font-weight:600;">Officer</span>
+          <button onclick="officerLogout()" class="btn-logout" style="background:none;border:none;color:var(--text-secondary);cursor:pointer;font-size:11px;padding-left:6px;border-left:1px solid rgba(255,255,255,0.15);" title="Sign out of Officer Portal">Sign Out</button>
+        </div>
       </div>
     </header>
 
@@ -126,7 +134,7 @@
       <!-- Disease Statistics Chart & Recent Scans Table -->
       <div class="dashboard-bottom-grid">
         <!-- Chart Panel -->
-        <section class="panel chart-panel">
+        <section id="analyticsSection" class="panel chart-panel">
           <div class="panel-header">
             <h3>📊 Top Diagnosed Crop Diseases</h3>
           </div>
@@ -136,7 +144,7 @@
         </section>
 
         <!-- Recent Scans Table -->
-        <section class="panel table-panel">
+        <section id="reportsTableSection" class="panel table-panel">
           <div class="panel-header">
             <h3>📋 Recent Field Reports</h3>
             <span id="scansCountBadge" class="badge">0 Scans</span>

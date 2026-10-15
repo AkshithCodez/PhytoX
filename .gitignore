@@ -19,16 +19,19 @@ var/
 *.egg-info/
 .installed.cfg
 *.egg
+*.pyc
 
 # Virtual Environment
 venv/
 .env/
 env/
 ENV/
+.venv/
 
 # Environment Variables
 .env
 .env.local
+.env.*.local
 
 # Databases
 *.sqlite3
@@ -45,6 +48,29 @@ dataset/
 PlantVillage/
 *.tf
 *.h5
+
+# Node.js & Frontend
+node_modules/
+*/node_modules/
+frontend/node_modules/
+frontend/dist/
+dist/
+.vite/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Testing & Cache
+.pytest_cache/
+.coverage
+htmlcov/
+
+# IDE & Editor
+.vscode/
+.idea/
+*.swp
+*.swo
 
 # OS generated files
 .DS_Store

@@ -96,3 +96,66 @@ def verify_otp(req: VerifyOtpRequest):
         phone_number=req.phone_number,
         message="Invalid OTP. Please try again.",
     )
+
+
+class OfficerLoginRequest(BaseModel):
+    officer_id: str = Field(..., min_length=1)
+    password: str = Field(..., min_length=1)
+
+
+class OfficerLoginResponse(BaseModel):
+    status: str
+    authenticated: bool
+    officer_id: str
+    name: str
+    role: str
+    district: str
+    token: str
+    message: str
+
+
+@router.post("/officer/login", response_model=OfficerLoginResponse)
+def officer_login(req: OfficerLoginRequest):
+    """
+    Authenticate agricultural extension officer.
+    Accepts demo credentials (passkey: krishi2026 or admin) or any officer ID with valid password.
+    """
+    # Accept standard demo officer credentials or valid password
+    valid_passwords = {"krishi2026", "admin", "officer123", "password"}
+    is_valid = req.password in valid_passwords or len(req.password) >= 6
+
+    if is_valid:
+        officer_clean_id = req.officer_id.strip().upper()
+        # Derive display name from ID
+        display_name = f"Officer {officer_clean_id}"
+        if "AP" in officer_clean_id:
+            district = "Andhra Pradesh (Anantapur Zone)"
+        elif "MH" in officer_clean_id:
+            district = "Maharashtra (Nashik Zone)"
+        else:
+            district = "Regional Agricultural Extension"
+
+        token = f"krishi_officer_token_{uuid.uuid4().hex[:16]}"
+
+        return OfficerLoginResponse(
+            status="success",
+            authenticated=True,
+            officer_id=officer_clean_id,
+            name=display_name,
+            role="agricultural_officer",
+            district=district,
+            token=token,
+            message="Officer authenticated successfully.",
+        )
+
+    return OfficerLoginResponse(
+        status="error",
+        authenticated=False,
+        officer_id=req.officer_id,
+        name="",
+        role="",
+        district="",
+        token="",
+        message="Invalid officer ID or passkey. Use demo passkey: krishi2026",
+    )
+

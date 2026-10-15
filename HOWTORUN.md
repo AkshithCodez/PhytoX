@@ -98,14 +98,23 @@ C:\src\flutter\bin\flutter.bat build apk --release
 
 ---
 
-## 🗺️ Viewing the Web Portals
+## 🗺️ Viewing the Integrated Web Portals
 
-The new unified web architecture serves all three portals directly from the FastAPI backend:
+The unified web architecture serves the complete application directly from the FastAPI backend on port 8000:
 
-1. Open your browser and navigate to: **[http://localhost:8000/](http://localhost:8000/)**
-2. **Public Landing Page**: Explains the system and provides entry points.
-3. **Farmer Portal**: Accessible via `http://localhost:8000/farmer.html`. Features language selection, OTP login, crop diagnosis, and nearby alerts.
-4. **Officer Portal**: Accessible via `http://localhost:8000/officer.html`. Displays the live epidemiological map and outbreak clusters.
+1. **Public Landing Page**: [http://localhost:8000/](http://localhost:8000/) — Editorial 3D scroll-driven story introducing KrishiRakshak with direct action triggers.
+2. **Unified Authentication Portal**: [http://localhost:8000/login](http://localhost:8000/login) — Role-based entry for Farmers (Phone + OTP) and Agricultural Officers (Extension passkey `krishi2026`).
+3. **Farmer Diagnostic Portal**:
+   - Home: [http://localhost:8000/farmer](http://localhost:8000/farmer)
+   - Diagnose Crop: [http://localhost:8000/farmer/predict](http://localhost:8000/farmer/predict)
+   - My Reports: [http://localhost:8000/farmer/history](http://localhost:8000/farmer/history)
+   - Nearby Disease Alerts: [http://localhost:8000/farmer/community](http://localhost:8000/farmer/community)
+4. **Officer Surveillance Portal**:
+   - Overview & Triage: [http://localhost:8000/officer](http://localhost:8000/officer)
+   - Live Outbreak Map: [http://localhost:8000/officer/map](http://localhost:8000/officer/map)
+   - Recent Field Reports: [http://localhost:8000/officer/reports](http://localhost:8000/officer/reports)
+   - Disease Analytics: [http://localhost:8000/officer/analytics](http://localhost:8000/officer/analytics)
+
 
 ---
 

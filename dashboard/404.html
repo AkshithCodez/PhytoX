@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0b100d">
+<title>KrishiRakshak — 404 Page Not Found</title>
+<link rel="icon" href="/assets/images/favicon.png" type="image/png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/landing.css">
+<style>
+  .not-found-wrap {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 32px 24px;
+    background: radial-gradient(circle at 50% 30%, #152219 0%, #0b100d 75%);
+  }
+  .not-found-card {
+    max-width: 540px;
+    background: rgba(19, 26, 21, 0.9);
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    padding: 48px 36px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+  }
+  .not-found-badge {
+    display: inline-block;
+    padding: 6px 14px;
+    background: rgba(199, 183, 95, 0.12);
+    color: var(--gold);
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    letter-spacing: 0.08em;
+  }
+  .not-found-card h1 {
+    font-size: clamp(38px, 4vw, 56px);
+    margin-bottom: 16px;
+  }
+  .not-found-card p {
+    font-size: 16px;
+    color: var(--muted);
+    margin-bottom: 32px;
+  }
+  .nav-options {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .nav-option-btn {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 20px;
+    background: #0f1612;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    color: var(--text);
+    font-weight: 500;
+    transition: all 0.2s;
+  }
+  .nav-option-btn:hover {
+    border-color: var(--gold);
+    color: var(--gold);
+    background: #141e18;
+  }
+</style>
+</head>
+<body>
+  <div class="not-found-wrap">
+    <div class="not-found-card">
+      <span class="not-found-badge">404 &bull; PATH NOT FOUND</span>
+      <h1>Uncharted Field</h1>
+      <p>The page or route you were looking for does not exist or has been relocated within the KrishiRakshak portal.</p>
+      
+      <div class="nav-options">
+        <a href="/" class="nav-option-btn">
+          <span>🌾 Public Story &amp; Overview</span>
+          <span>→</span>
+        </a>
+        <a href="/farmer" class="nav-option-btn">
+          <span>🌿 Farmer Diagnosis Portal</span>
+          <span>→</span>
+        </a>
+        <a href="/officer" class="nav-option-btn">
+          <span>🗺️ Officer Surveillance Portal</span>
+          <span>→</span>
+        </a>
+        <a href="/login" class="nav-option-btn">
+          <span>🔑 Account Sign In / Role Selection</span>
+          <span>→</span>
+        </a>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

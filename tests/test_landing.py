@@ -35,7 +35,7 @@ class LandingIntegration(unittest.TestCase):
         for url in ['/', '/index.html', '/officer.html', '/models/TomatoPlant_Final.glb', '/vendor/three/three.module.js', '/vendor/three/GLTFLoader.js', '/health', '/api/stats', '/api/scans', '/api/outbreaks']:
             with self.subTest(url=url):
                 self.assertEqual(self.client.get(url).status_code, 200)
-        self.assertIn('One diseased leaf.', self.client.get('/').text)
+        self.assertIn('KrishRakshak', self.client.get('/').text)
         self.assertNotIn('id="map"', self.client.get('/').text)
         self.assertIn('id="map"', self.client.get('/officer.html').text)
 

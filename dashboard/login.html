@@ -1,0 +1,537 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="KrishiRakshak — Portal Access & Authentication for Farmers and Agricultural Extension Officers.">
+<meta name="theme-color" content="#0b100d">
+<title>KrishiRakshak — Access Portal</title>
+<link rel="icon" href="assets/images/favicon.png" type="image/png">
+<link rel="apple-touch-icon" href="assets/images/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="landing.css?v=8">
+<style>
+  /* Login specific botanical dark styles */
+  .auth-page {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    background: radial-gradient(circle at 50% 20%, #16241a 0%, #0b100d 70%);
+  }
+  .auth-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 24px var(--gutter);
+  }
+  .auth-main {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 32px 20px 60px;
+  }
+  .auth-card {
+    width: 100%;
+    max-width: 520px;
+    background: rgba(19, 26, 21, 0.88);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    padding: clamp(24px, 5vw, 44px);
+    box-shadow: 0 24px 60px rgba(0,0,0,0.6);
+  }
+  .auth-header {
+    text-align: center;
+    margin-bottom: 28px;
+  }
+  .auth-header h1 {
+    font-size: clamp(28px, 3.2vw, 38px);
+    margin-bottom: 8px;
+    color: var(--text);
+  }
+  .auth-header p {
+    font-size: 14.5px;
+    color: var(--muted);
+  }
+  .role-tabs {
+    display: flex;
+    gap: 8px;
+    background: #0f1511;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 4px;
+    margin-bottom: 28px;
+  }
+  .role-tab {
+    flex: 1;
+    padding: 12px 16px;
+    text-align: center;
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--muted);
+    border-radius: 8px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .role-tab.active {
+    background: #1c261e;
+    color: var(--gold);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  }
+  .auth-pane { display: none; }
+  .auth-pane.active { display: block; }
+  .form-group {
+    margin-bottom: 20px;
+  }
+  .form-label {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--muted);
+    margin-bottom: 8px;
+    letter-spacing: 0.02em;
+  }
+  .input-row {
+    display: flex;
+    align-items: center;
+    background: #0d130f;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+  .input-row:focus-within {
+    border-color: var(--gold);
+  }
+  .input-prefix {
+    padding: 12px 14px;
+    background: #131b15;
+    color: var(--green3);
+    font-size: 14px;
+    font-weight: 600;
+    border-right: 1px solid var(--line);
+  }
+  .form-input {
+    width: 100%;
+    padding: 14px 16px;
+    background: transparent;
+    border: none;
+    color: var(--text);
+    font-size: 15px;
+    outline: none;
+  }
+  .form-input::placeholder { color: var(--faint); }
+  .btn-submit {
+    width: 100%;
+    padding: 14px;
+    background: var(--gold);
+    color: #0b100d;
+    font-weight: 600;
+    font-size: 15px;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 8px;
+  }
+  .btn-submit:hover:not(:disabled) {
+    background: #d8c973;
+    transform: translateY(-1px);
+  }
+  .btn-submit:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  .demo-actions {
+    margin-top: 18px;
+    padding-top: 18px;
+    border-top: 1px dashed var(--line);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    text-align: center;
+  }
+  .btn-demo {
+    padding: 10px 16px;
+    background: rgba(199, 183, 95, 0.12);
+    color: var(--gold);
+    border: 1px solid rgba(199, 183, 95, 0.3);
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-demo:hover {
+    background: rgba(199, 183, 95, 0.2);
+  }
+  .feedback-msg {
+    margin-top: 14px;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 13.5px;
+    display: none;
+  }
+  .feedback-msg.error {
+    display: block;
+    background: rgba(224, 82, 82, 0.15);
+    border: 1px solid rgba(224, 82, 82, 0.3);
+    color: #fca5a5;
+  }
+  .feedback-msg.success {
+    display: block;
+    background: rgba(126, 154, 114, 0.15);
+    border: 1px solid rgba(126, 154, 114, 0.3);
+    color: var(--green3);
+  }
+  .otp-container {
+    display: none;
+    margin-top: 16px;
+  }
+  .otp-container.visible { display: block; }
+  .otp-inputs {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin-bottom: 16px;
+  }
+  .otp-box {
+    width: 52px;
+    height: 56px;
+    text-align: center;
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--text);
+    background: #0d130f;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .otp-box:focus { border-color: var(--gold); }
+</style>
+</head>
+<body class="auth-page">
+
+  <!-- ── Top Header Navigation ──────────────────────────────────────── -->
+  <header class="auth-nav">
+    <a class="wordmark" href="/" aria-label="KrishiRakshak Home">
+      <img class="wordmark-symbol" src="assets/images/krishirakshak-symbol.png" alt="" width="32" height="32">
+      <span>KrishiRakshak<small>Rooted in awareness.</small></span>
+    </a>
+    <a class="button secondary" href="/" style="padding: 8px 16px; font-size: 13px;">
+      ← Return to Story
+    </a>
+  </header>
+
+  <!-- ── Main Card ─────────────────────────────────────────────────── -->
+  <main class="auth-main">
+    <div class="auth-card">
+
+      <div class="auth-header">
+        <h1 id="authTitle">Sign In to KrishiRakshak</h1>
+        <p id="authSubtitle">Select your role to access crop diagnosis or regional epidemiological surveillance.</p>
+      </div>
+
+      <!-- Role Switcher Tabs -->
+      <div class="role-tabs" role="tablist">
+        <button id="tabFarmer" class="role-tab active" role="tab" aria-selected="true" onclick="switchRole('farmer')">
+          <span>🌾</span> Farmer Portal
+        </button>
+        <button id="tabOfficer" class="role-tab" role="tab" aria-selected="false" onclick="switchRole('officer')">
+          <span>🛡️</span> Officer Portal
+        </button>
+      </div>
+
+      <!-- ── FARMER PANE ────────────────────────────────────────────── -->
+      <div id="paneFarmer" class="auth-pane active" role="tabpanel">
+        <div id="farmerPhoneStep">
+          <div class="form-group">
+            <label class="form-label" for="farmerPhone">Enter Mobile Number</label>
+            <div class="input-row">
+              <span class="input-prefix">+91</span>
+              <input type="tel" id="farmerPhone" class="form-input" placeholder="10-digit mobile number" maxlength="10" inputmode="numeric">
+            </div>
+          </div>
+          <button id="btnSendFarmerOtp" class="btn-submit" onclick="sendFarmerOtp()">
+            Send Verification Code
+          </button>
+          <div class="demo-actions">
+            <button class="btn-demo" onclick="useDemoFarmer()">
+              ⚡ One-Click Demo Farmer Access (9876543210)
+            </button>
+            <span style="font-size: 12px; color: var(--faint);">Demo code is <code>1234</code> for rapid testing</span>
+          </div>
+        </div>
+
+        <!-- Farmer OTP Step (revealed after sending) -->
+        <div id="farmerOtpStep" class="otp-container">
+          <label class="form-label" style="text-align: center;">Enter 4-Digit Verification Code</label>
+          <div class="otp-inputs">
+            <input type="text" maxlength="1" class="otp-box" id="fOtp0" inputmode="numeric">
+            <input type="text" maxlength="1" class="otp-box" id="fOtp1" inputmode="numeric">
+            <input type="text" maxlength="1" class="otp-box" id="fOtp2" inputmode="numeric">
+            <input type="text" maxlength="1" class="otp-box" id="fOtp3" inputmode="numeric">
+          </div>
+          <button id="btnVerifyFarmerOtp" class="btn-submit" onclick="verifyFarmerOtp()">
+            Verify &amp; Enter Farmer Portal
+          </button>
+          <div class="demo-actions">
+            <button class="btn-demo" onclick="fillFarmerDemoOtp()">
+              Fill Demo Code (1234)
+            </button>
+            <button style="background: none; border: none; color: var(--quiet); font-size: 12px; cursor: pointer;" onclick="resetFarmerAuthStep()">
+              ← Change Phone Number
+            </button>
+          </div>
+        </div>
+
+        <div id="farmerFeedback" class="feedback-msg"></div>
+      </div>
+
+      <!-- ── OFFICER PANE ───────────────────────────────────────────── -->
+      <div id="paneOfficer" class="auth-pane" role="tabpanel">
+        <form onsubmit="event.preventDefault(); submitOfficerLogin();">
+          <div class="form-group">
+            <label class="form-label" for="officerId">Officer ID / Extension Badge</label>
+            <div class="input-row">
+              <input type="text" id="officerId" class="form-input" placeholder="e.g. OFFICER-AP-01" value="OFFICER-AP-01">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="officerPassword">Security Passkey</label>
+            <div class="input-row">
+              <input type="password" id="officerPassword" class="form-input" placeholder="Enter officer passkey" value="krishi2026">
+            </div>
+          </div>
+
+          <button id="btnOfficerLogin" type="submit" class="btn-submit">
+            Authenticate &amp; Open Dashboard
+          </button>
+
+          <div class="demo-actions">
+            <button type="button" class="btn-demo" onclick="useDemoOfficer()">
+              ⚡ Demo Officer Login (Andhra Pradesh Lead)
+            </button>
+            <span style="font-size: 12px; color: var(--faint);">Passkey: <code>krishi2026</code></span>
+          </div>
+
+          <div id="officerFeedback" class="feedback-msg"></div>
+        </form>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- ── Footer ─────────────────────────────────────────────────────── -->
+  <footer style="padding: 24px; text-align: center; font-size: 13px; color: var(--faint);">
+    KrishiRakshak &bull; Unified Authentication &bull; <a href="/" style="color: var(--quiet);">Return to Public Site</a>
+  </footer>
+
+<script>
+  const urlParams = new URLSearchParams(window.location.search);
+  const requestedRole = urlParams.get('role');
+  const redirectTarget = urlParams.get('redirect') || '';
+
+  if (requestedRole === 'officer') {
+    switchRole('officer');
+  }
+
+  function switchRole(role) {
+    const isFarmer = role === 'farmer';
+    document.getElementById('tabFarmer').classList.toggle('active', isFarmer);
+    document.getElementById('tabOfficer').classList.toggle('active', !isFarmer);
+    document.getElementById('paneFarmer').classList.toggle('active', isFarmer);
+    document.getElementById('paneOfficer').classList.toggle('active', !isFarmer);
+    hideFeedback('farmer');
+    hideFeedback('officer');
+  }
+
+  function showFeedback(type, message, isError = true) {
+    const el = document.getElementById(type + 'Feedback');
+    el.textContent = message;
+    el.className = 'feedback-msg ' + (isError ? 'error' : 'success');
+  }
+
+  function hideFeedback(type) {
+    const el = document.getElementById(type + 'Feedback');
+    el.className = 'feedback-msg';
+    el.textContent = '';
+  }
+
+  /* Farmer Auth Logic */
+  async function sendFarmerOtp() {
+    const phoneInput = document.getElementById('farmerPhone');
+    const phone = phoneInput.value.trim().replace(/\D/g, '');
+    if (phone.length !== 10) {
+      showFeedback('farmer', 'Please enter a valid 10-digit mobile number.');
+      return;
+    }
+
+    const btn = document.getElementById('btnSendFarmerOtp');
+    btn.disabled = true;
+    btn.textContent = 'Sending OTP…';
+    hideFeedback('farmer');
+
+    try {
+      const res = await fetch('/api/auth/otp/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone_number: phone })
+      });
+      const data = await res.json();
+      document.getElementById('farmerPhoneStep').style.display = 'none';
+      document.getElementById('farmerOtpStep').classList.add('visible');
+      showFeedback('farmer', 'Verification code sent! (Demo OTP: ' + (data.demo_otp || '1234') + ')', false);
+      setupOtpInputListeners();
+      document.getElementById('fOtp0').focus();
+    } catch (e) {
+      showFeedback('farmer', 'Could not send verification code. Check network connection.');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Send Verification Code';
+    }
+  }
+
+  function setupOtpInputListeners() {
+    const boxes = [0, 1, 2, 3].map(i => document.getElementById('fOtp' + i));
+    boxes.forEach((box, i) => {
+      box.oninput = () => {
+        box.value = box.value.replace(/\D/g, '');
+        if (box.value && i < 3) boxes[i + 1].focus();
+        if (boxes.every(b => b.value)) verifyFarmerOtp();
+      };
+      box.onkeydown = (e) => {
+        if (e.key === 'Backspace' && !box.value && i > 0) boxes[i - 1].focus();
+      };
+    });
+  }
+
+  async function verifyFarmerOtp() {
+    const phone = document.getElementById('farmerPhone').value.trim().replace(/\D/g, '');
+    const code = [0, 1, 2, 3].map(i => document.getElementById('fOtp' + i).value).join('');
+    if (code.length !== 4) {
+      showFeedback('farmer', 'Please enter the 4-digit verification code.');
+      return;
+    }
+
+    const btn = document.getElementById('btnVerifyFarmerOtp');
+    btn.disabled = true;
+    btn.textContent = 'Verifying…';
+
+    try {
+      const res = await fetch('/api/auth/otp/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone_number: phone, otp: code })
+      });
+      const data = await res.json();
+      if (data.authenticated) {
+        showFeedback('farmer', 'Authenticated successfully! Redirecting…', false);
+        localStorage.setItem('krishi_farmer_auth', JSON.stringify({
+          phone: phone,
+          authenticated_at: new Date().toISOString()
+        }));
+        sessionStorage.setItem('krishi_farmer_session', phone);
+        setTimeout(() => {
+          window.location.href = redirectTarget || '/farmer';
+        }, 600);
+      } else {
+        showFeedback('farmer', data.message || 'Invalid verification code. Try demo code 1234.');
+      }
+    } catch (e) {
+      showFeedback('farmer', 'Authentication error. Please retry.');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Verify & Enter Farmer Portal';
+    }
+  }
+
+  function useDemoFarmer() {
+    document.getElementById('farmerPhone').value = '9876543210';
+    sendFarmerOtp().then(() => fillFarmerDemoOtp());
+  }
+
+  function fillFarmerDemoOtp() {
+    ['1', '2', '3', '4'].forEach((digit, i) => {
+      const box = document.getElementById('fOtp' + i);
+      if (box) box.value = digit;
+    });
+    verifyFarmerOtp();
+  }
+
+  function resetFarmerAuthStep() {
+    document.getElementById('farmerPhoneStep').style.display = 'block';
+    document.getElementById('farmerOtpStep').classList.remove('visible');
+    hideFeedback('farmer');
+  }
+
+  /* Officer Auth Logic */
+  async function submitOfficerLogin() {
+    const idInput = document.getElementById('officerId');
+    const passInput = document.getElementById('officerPassword');
+    const officerId = idInput.value.trim();
+    const passkey = passInput.value.trim();
+
+    if (!officerId || !passkey) {
+      showFeedback('officer', 'Please enter your Officer ID and security passkey.');
+      return;
+    }
+
+    const btn = document.getElementById('btnOfficerLogin');
+    btn.disabled = true;
+    btn.textContent = 'Authenticating…';
+    hideFeedback('officer');
+
+    try {
+      const res = await fetch('/api/auth/officer/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ officer_id: officerId, password: passkey })
+      });
+      const data = await res.json();
+      if (data.authenticated) {
+        showFeedback('officer', 'Officer authenticated! Opening surveillance portal…', false);
+        localStorage.setItem('krishi_officer_token', data.token);
+        localStorage.setItem('krishi_officer_user', JSON.stringify({
+          id: data.officer_id,
+          name: data.name,
+          role: data.role,
+          district: data.district
+        }));
+        sessionStorage.setItem('krishi_officer_session', data.token);
+        setTimeout(() => {
+          window.location.href = redirectTarget || '/officer';
+        }, 600);
+      } else {
+        showFeedback('officer', data.message || 'Invalid credentials.');
+      }
+    } catch (e) {
+      showFeedback('officer', 'Connection error. Check backend server.');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Authenticate & Open Dashboard';
+    }
+  }
+
+  function useDemoOfficer() {
+    document.getElementById('officerId').value = 'OFFICER-AP-01';
+    document.getElementById('officerPassword').value = 'krishi2026';
+    submitOfficerLogin();
+  }
+</script>
+
+</body>
+</html>

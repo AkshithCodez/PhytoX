@@ -395,6 +395,10 @@ async function runDiagnosis() {
     const res = await fetch(`${API_BASE}/api/diagnose`, { method: 'POST', body: fd });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
+    if (data.is_supported === false || data.success === false) {
+      showDiagnoseError(data.message || 'This photo could not be classified reliably. Please use a clear leaf photo of a supported crop.');
+      return;
+    }
     state.lastDiagnosis = data;
     renderDiagnosisResult(data);
   } catch (err) {
@@ -407,22 +411,29 @@ async function runDiagnosis() {
 
 function renderDiagnosisResult(data) {
   const section = document.getElementById('diagResultSection');
-  document.getElementById('resultCropBadge').textContent = (data.crop || 'CROP').toUpperCase();
-  document.getElementById('resultConfBadge').textContent = data.confidence
-    ? `${Math.round(data.confidence * 100)}% match` : '';
-  document.getElementById('resultDiseaseName').textContent = data.disease || 'Unknown';
-  document.getElementById('resultTreatment').textContent = data.treatment || 'Consult your local agricultural officer.';
+  const pred = data.prediction || data;
+  const crop = pred.crop || 'Crop';
+  const disease = pred.disease || 'Unknown';
+  const conf = pred.confidence !== undefined ? pred.confidence : 0;
+  const treatment = pred.treatment || 'Consult your local agricultural extension officer for guidance.';
+  const topCandidates = data.top_3 || data.top3 || [];
+
+  document.getElementById('resultCropBadge').textContent = crop.toUpperCase();
+  document.getElementById('resultConfBadge').textContent = conf
+    ? `${Math.round(conf * 100)}% match` : '';
+  document.getElementById('resultDiseaseName').textContent = disease;
+  document.getElementById('resultTreatment').textContent = treatment;
 
   // Top 3 alternatives
   const top3El = document.getElementById('resultTop3');
-  if (data.top3 && data.top3.length > 1) {
+  if (topCandidates && topCandidates.length > 1) {
     top3El.innerHTML = '';
     top3El.hidden = false;
-    data.top3.slice(0, 3).forEach(item => {
+    topCandidates.slice(0, 3).forEach(item => {
       const div = document.createElement('div');
       div.className = 'alt-item';
       const pct = Math.round((item.confidence || 0) * 100);
-      div.innerHTML = `<span>${item.disease}</span><div class="alt-bar-wrap"><div class="alt-bar" style="width:${pct}px"></div><span>${pct}%</span></div>`;
+      div.innerHTML = `<span>${item.crop ? item.crop + ' — ' : ''}${item.disease}</span><div class="alt-bar-wrap"><div class="alt-bar" style="width:${pct}px"></div><span>${pct}%</span></div>`;
       top3El.appendChild(div);
     });
   } else {
@@ -440,31 +451,45 @@ async function submitReport() {
   btn.textContent = t('common.loading');
 
   try {
-    let lat = null, lng = null;
+    let lat = 14.6819, lng = 77.6006;
     if ('geolocation' in navigator) {
       try {
         const pos = await new Promise((resolve, reject) =>
-          navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 5000 }));
+          navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 6000, enableHighAccuracy: true }));
         lat = pos.coords.latitude;
         lng = pos.coords.longitude;
-      } catch { /* user denied or timeout */ }
+      } catch { /* user denied or timeout - fallback to field coordinates */ }
     }
 
-    const fd = new FormData();
-    fd.append('file', state.selectedFile);
-    fd.append('disease', state.lastDiagnosis.disease || '');
-    fd.append('crop', state.lastDiagnosis.crop || '');
-    fd.append('confidence', state.lastDiagnosis.confidence || 0);
-    if (lat !== null) { fd.append('latitude', lat); fd.append('longitude', lng); }
-    fd.append('device_id', getDeviceId());
+    const pred = state.lastDiagnosis.prediction || state.lastDiagnosis;
+    const payload = {
+      device_id: getDeviceId(),
+      crop: pred.crop || state.selectedCrop || 'Tomato',
+      disease: pred.disease || 'Unknown',
+      confidence: Number(pred.confidence) || 0.85,
+      latitude: Number(lat),
+      longitude: Number(lng),
+      treatment: pred.treatment || 'Consult local agricultural officer for treatment.',
+      image_url: null
+    };
 
-    await fetch(`${API_BASE}/api/scans`, { method: 'POST', body: fd });
+    const res = await fetch(`${API_BASE}/api/scans`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      throw new Error(errData.detail || `Server returned ${res.status}`);
+    }
+
     document.getElementById('reportDone').hidden = false;
     btn.hidden = true;
-  } catch {
+  } catch (err) {
     btn.disabled = false;
     btn.textContent = t('farmer.diagnoseFlow.reportBtn');
-    showDiagnoseError(t('common.error'));
+    showDiagnoseError(`Could not submit report: ${err.message}`);
   }
 }
 
@@ -554,12 +579,31 @@ function getDeviceId() {
   return id;
 }
 
+window.farmerLogout = function() {
+  localStorage.removeItem('krishi_farmer_auth');
+  sessionStorage.removeItem('krishi_farmer_session');
+  state.sessionToken = null;
+  state.phone = '';
+  window.location.href = '/login?role=farmer';
+};
+
 // ── Boot ─────────────────────────────────────────────────────────
 async function boot() {
   // Initialize i18n — load persisted language or English
   const forced = new URLSearchParams(location.search).get('lang') || null;
   await initI18n(forced);
   applyTranslations();
+
+  // Restore authenticated farmer session if present
+  const storedAuth = localStorage.getItem('krishi_farmer_auth') || sessionStorage.getItem('krishi_farmer_session');
+  if (storedAuth) {
+    try {
+      state.sessionToken = storedAuth.startsWith('{') ? JSON.parse(storedAuth).phone : storedAuth;
+      state.phone = state.sessionToken;
+    } catch {
+      state.sessionToken = storedAuth;
+    }
+  }
 
   // Setup all screens
   await buildLangGrid();
@@ -573,14 +617,33 @@ async function boot() {
   document.getElementById('nearbyBackBtn').addEventListener('click', () => { showScreen('home'); syncBottomNav('home'); });
   document.getElementById('reportsBackBtn').addEventListener('click', () => { showScreen('home'); syncBottomNav('home'); });
 
+  // Route & action detection
+  const path = window.location.pathname.toLowerCase();
+  const action = (new URLSearchParams(window.location.search).get('action') || '').toLowerCase();
+
   // Decide starting screen
   if (!hasLanguageChoice()) {
     showScreen('lang');
   } else if (!state.sessionToken) {
     showScreen('phone');
   } else {
-    showScreen('home');
+    if (path.includes('/predict') || action === 'diagnose') {
+      showScreen('diagnose');
+      syncBottomNav('diagnose');
+    } else if (path.includes('/history') || action === 'reports') {
+      showScreen('reports');
+      syncBottomNav('reports');
+      loadMyReports();
+    } else if (path.includes('/community') || path.includes('/nearby') || action === 'nearby') {
+      showScreen('nearby');
+      syncBottomNav('nearby');
+      loadNearbyAlerts();
+    } else {
+      showScreen('home');
+      syncBottomNav('home');
+    }
   }
 }
 
 boot();
+

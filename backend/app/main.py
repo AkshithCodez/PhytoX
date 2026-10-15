@@ -57,10 +57,51 @@ def health_check():
     }
 
 
-# Mount Dashboard Web Assets (Landing page, 3D models, CSS, JS)
+# ── Clean Application Web Routes & Static Mounting ────────────────────────────
 import os
+from fastapi import Request
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 dashboard_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "dashboard"))
+
 if os.path.exists(dashboard_dir):
+    # Public Root: Landing Page
+    @app.get("/", response_class=FileResponse, include_in_schema=False)
+    async def serve_landing():
+        return FileResponse(os.path.join(dashboard_dir, "index.html"))
+
+    # Unified Login & Role Selection
+    @app.get("/login", response_class=FileResponse, include_in_schema=False)
+    async def serve_login():
+        return FileResponse(os.path.join(dashboard_dir, "login.html"))
+
+    # Farmer Application & Sub-routes
+    @app.get("/farmer", response_class=FileResponse, include_in_schema=False)
+    @app.get("/farmer/predict", response_class=FileResponse, include_in_schema=False)
+    @app.get("/farmer/history", response_class=FileResponse, include_in_schema=False)
+    @app.get("/farmer/community", response_class=FileResponse, include_in_schema=False)
+    @app.get("/farmer/nearby", response_class=FileResponse, include_in_schema=False)
+    async def serve_farmer():
+        return FileResponse(os.path.join(dashboard_dir, "farmer.html"))
+
+    # Officer Portal & Sub-routes
+    @app.get("/officer", response_class=FileResponse, include_in_schema=False)
+    @app.get("/officer/reports", response_class=FileResponse, include_in_schema=False)
+    @app.get("/officer/map", response_class=FileResponse, include_in_schema=False)
+    @app.get("/officer/analytics", response_class=FileResponse, include_in_schema=False)
+    async def serve_officer():
+        return FileResponse(os.path.join(dashboard_dir, "officer.html"))
+
+    # Custom 404 handler
+    @app.exception_handler(404)
+    async def not_found_handler(request: Request, exc):
+        if not request.url.path.startswith("/api/"):
+            not_found_page = os.path.join(dashboard_dir, "404.html")
+            if os.path.exists(not_found_page):
+                return FileResponse(not_found_page, status_code=404)
+        return JSONResponse({"detail": "Not Found"}, status_code=404)
+
+    # Static assets fallback (CSS, JS, 3D GLB models, images, vendor libraries)
     app.mount("/", StaticFiles(directory=dashboard_dir, html=True), name="dashboard")
+

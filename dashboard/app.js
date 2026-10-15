@@ -19,13 +19,58 @@ let currentSelectedFile = null;
 let currentSelectedCrop = '';
 let currentDiagnosisResult = null;
 
+/** Officer Authentication Guard & Session Management */
+function checkOfficerAuth() {
+  const token = localStorage.getItem('krishi_officer_token') || sessionStorage.getItem('krishi_officer_session');
+  if (!token) {
+    const returnUrl = encodeURIComponent(window.location.pathname + window.location.hash);
+    window.location.href = `/login?role=officer&redirect=${returnUrl}`;
+    return false;
+  }
+  const userJson = localStorage.getItem('krishi_officer_user');
+  if (userJson) {
+    try {
+      const user = JSON.parse(userJson);
+      const nameEl = document.getElementById('officerNameBadge');
+      if (nameEl) nameEl.textContent = user.name || user.id || 'Officer';
+    } catch { /* silent */ }
+  }
+  return true;
+}
+
+window.officerLogout = function() {
+  localStorage.removeItem('krishi_officer_token');
+  localStorage.removeItem('krishi_officer_user');
+  sessionStorage.removeItem('krishi_officer_session');
+  window.location.href = '/login?role=officer';
+};
+
+function handleSubRouteScroll() {
+  const path = window.location.pathname.toLowerCase();
+  const hash = window.location.hash;
+  setTimeout(() => {
+    if (path.includes('/map') || hash === '#map' || hash === '#surveillanceSection') {
+      const el = document.getElementById('map') || document.getElementById('surveillanceSection');
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else if (path.includes('/reports') || hash === '#reports' || hash === '#reportsTableSection') {
+      const el = document.getElementById('reportsTableSection');
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else if (path.includes('/analytics') || hash === '#analytics' || hash === '#analyticsSection') {
+      const el = document.getElementById('analyticsSection');
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, 150);
+}
+
 // Initialize when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
+  if (!checkOfficerAuth()) return;
   initMap();
   initChart();
   initCropChips();
   if (document.getElementById('map')) fetchAllData();
   initDiagnosticAccessibility();
+  handleSubRouteScroll();
 
   // Refresh Button
   const refreshBtn = document.getElementById('refreshBtn');
