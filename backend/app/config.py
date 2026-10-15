@@ -12,7 +12,7 @@ class Settings(BaseSettings):
     """Application settings loaded from environment variables."""
 
     # App
-    APP_NAME: str = "KrishiRakshak Backend"
+    APP_NAME: str = "PhytoX Backend"
     APP_VERSION: str = "1.0.0"
     DEBUG: bool = False
 

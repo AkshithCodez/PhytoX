@@ -29,13 +29,13 @@ class UnifiedRoutingIntegration(unittest.TestCase):
         # 1. Landing page
         res = self.client.get('/')
         self.assertEqual(res.status_code, 200)
-        self.assertIn('KrishRakshak', res.text)
+        self.assertIn('PhytoX', res.text)
         self.assertIn('id="root"', res.text)
 
         # 2. Login page
         res = self.client.get('/login')
         self.assertEqual(res.status_code, 200)
-        self.assertIn('Sign In to KrishiRakshak', res.text)
+        self.assertIn('Sign In to PhytoX', res.text)
         self.assertIn('tabOfficer', res.text)
 
         # 3. Farmer routes

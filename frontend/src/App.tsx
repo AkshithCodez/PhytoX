@@ -57,28 +57,15 @@ export const App: React.FC = () => {
       <div className="relative z-10 flex flex-col h-full">
         {/* Top bar navigation */}
         <nav className="flex items-center justify-between px-5 py-5 sm:px-8 sm:py-6 lg:px-12">
-          {/* Logo & Brand: KrishiRakshak Botanical Shield */}
-          <a href="/" className="flex items-center gap-2 group cursor-pointer">
-            <svg
-              viewBox="0 0 32 32"
-              className="h-6 w-6 text-[#010101] lg:text-white transition-colors"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-label="KrishiRakshak Shield Logo"
-            >
-              <path
-                d="M16 3C16 3 26 6 26 14C26 21.5 16 28 16 28C16 28 6 21.5 6 14C6 6 16 3 16 3Z"
-                className="fill-current/15"
-              />
-              <path d="M16 10V22" />
-              <path d="M16 14C18.5 12.5 21 13 21 13" />
-              <path d="M16 18C13.5 16.5 11 17 11 17" />
-            </svg>
-            <span className="text-lg font-semibold tracking-normal text-[#010101] lg:text-white transition-colors">
-              krishirakshak
+          {/* Logo & Brand: PhytoX */}
+          <a href="/" className="flex items-center gap-2.5 group cursor-pointer">
+            <img
+              src="/assets/images/phytox-emblem.png"
+              alt="PhytoX Emblem"
+              className="h-7 w-auto object-contain drop-shadow"
+            />
+            <span className="text-xl font-bold tracking-tight text-[#010101] lg:text-white transition-colors">
+              Phyto<span className="text-[#C6A66E]">X</span>
             </span>
           </a>
 
@@ -367,7 +354,7 @@ export const App: React.FC = () => {
 
                   {/* Quote */}
                   <p className="text-sm leading-relaxed text-[#010101]/80 lg:text-white/80 transition-colors">
-                    &ldquo;With KrishiRakshak, our field officers detected early tomato blight across 12 villages and halted the outbreak within 48 hours.&rdquo;
+                    &ldquo;With PhytoX, our field officers detected early tomato blight across 12 villages and halted the outbreak within 48 hours.&rdquo;
                   </p>
                 </div>
 

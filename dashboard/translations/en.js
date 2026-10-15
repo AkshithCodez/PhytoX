@@ -5,8 +5,8 @@
 export const en = {
   lang: { choose: 'Choose your language', name: 'English' },
   nav: {
-    brand: 'KrishiRakshak',
-    tagline: 'Rooted in awareness.',
+    brand: 'PhytoX',
+    tagline: 'Rooted in intelligence.',
     howItWorks: 'How it works',
     forFarmers: 'For farmers',
     forOfficers: 'For officers',
@@ -18,7 +18,7 @@ export const en = {
     headline1: 'From one diseased leaf',
     headline2: 'to an early regional',
     headlineEm: 'warning.',
-    sub: 'KrishiRakshak helps farmers identify crop disease and turns local reports into regional agricultural intelligence.',
+    sub: 'PhytoX helps farmers identify crop disease and turns local reports into regional agricultural intelligence.',
     ctaFarmer: 'Farmer Portal',
     ctaOfficer: 'Officer Portal',
     ctaLearn: 'See how it works',
