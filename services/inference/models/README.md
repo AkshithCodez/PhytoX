@@ -1,0 +1,5 @@
+# Model integration
+
+No model was supplied. The example manifest is an interface illustration, not a model configuration for production. Supply a trusted TorchScript model with a single `[1, number_of_labels]` logits tensor. Install `requirements-model.txt`, set absolute `MODEL_PATH` and `MODEL_MANIFEST`, and restart the service. Labels must exactly follow training output order; RGB, bilinear resizing, mean/std normalization must match training. Adapt the adapter if they do not.
+
+Record architecture, training data provenance/license, split strategy, per-class precision/recall, macro F1, calibration, field-image evaluation, and version here before release. No evaluation metrics are currently available. The adapter uses CPU evaluation mode and disables gradients. Confidence/margin thresholds and exposure checks are unvalidated heuristics. They do not establish that an image contains a plant. All predictions recommend review; low confidence/margin or image warnings cause abstention. No Grad-CAM, plant detector, calibrated OOD detector, or treatment recommendation is claimed.

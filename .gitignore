@@ -1,0 +1,14 @@
+node_modules/
+.next/
+.env*
+!.env.example
+!.env.test.example
+.venv/
+__pycache__/
+.pytest_cache/
+*.tsbuildinfo
+test-results/
+playwright-report/
+services/inference/models/*
+!services/inference/models/README.md
+!services/inference/models/manifest.example.json
