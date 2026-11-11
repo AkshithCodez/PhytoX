@@ -10,7 +10,7 @@ Requires Node.js 20.9+ (tested with Node 24) and Python 3.11+. From this directo
 
 ```powershell
 npm ci
-Copy-Item .env.example apps/web/.env.local
+if (!(Test-Path apps/web/.env.local)) { Copy-Item .env.example apps/web/.env.local }
 npm run dev
 ```
 
@@ -18,22 +18,24 @@ Open http://127.0.0.1:3000. Without credentials, the public website, language on
 
 To connect the application:
 
-1. Create a Supabase project. Apply `supabase/migrations/202610310001_initial.sql`, then `supabase/seed.sql` using the SQL editor or Supabase CLI. The seed contains administrative region names only, no accounts, predictions, or reports.
+1. Create a Supabase project. Apply all SQL files in `supabase/migrations/` in filename order, then `supabase/seed.sql` using the SQL editor or Supabase CLI. The seed contains administrative region names only, no accounts, predictions, or reports.
 2. Set the Supabase URL, publishable key, and **server-only** service-role key in `apps/web/.env.local`. Set `APP_ORIGIN` to the exact browser origin, including its port (for example `http://127.0.0.1:3000`). Never prefix the service-role key with `NEXT_PUBLIC_`.
 3. Configure Supabase Auth site URL and allow `/auth/callback` plus `/auth/callback?next=/auth/update-password` redirects for your origin. Enable email/password auth and email confirmation; configure a production email provider before launch.
 4. Register through the app. New users are always farmers. Provision officers and region assignments using the administrator procedure in `docs/DEPLOYMENT.md`.
-5. Start the inference service and configure the same strong `INFERENCE_API_KEY` in both services. Supply a trusted trained TorchScript model and matching manifest to enable analysis.
+5. Start the inference service and configure the same strong `INFERENCE_API_KEY` in both services. A model discovered beside this project has been imported locally and smoke-tested. Install `services/inference/requirements-onnx.txt` for that artifact. The tracked manifest identifies it; model weights remain excluded from Git.
 
 ```powershell
 python -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -r services/inference/requirements.txt
-Copy-Item services/inference/.env.example services/inference/.env
+if (!(Test-Path services/inference/.env)) { Copy-Item services/inference/.env.example services/inference/.env }
 .\.venv\Scripts\python.exe -m uvicorn app.main:app --app-dir services/inference --env-file services/inference/.env --host 127.0.0.1 --port 8000
 ```
 
-Without a model, `/health` succeeds, `/ready` reports false, and `/v1/predict` returns an explicit unavailable response. No model weights, labels, evaluation results, or credentials were supplied. See `services/inference/models/README.md` before configuring a model.
+For the locally imported model, run `.\.venv\Scripts\python.exe services/inference/scripts/configure_local.py` before starting the service. This prepares local environment files with a generated shared key and preserves existing settings. Without a configured model, `/health` succeeds, `/ready` reports false, and `/v1/predict` returns an explicit unavailable response. Supabase credentials and evaluation metrics are still unavailable. See `services/inference/models/README.md` for artifact provenance and limitations. A successful synthetic-image smoke test does not establish diagnostic accuracy.
 
 ## Checks
+
+Current audit findings and boundaries: [engineering audit](docs/ENGINEERING_AUDIT.md), [UI/UX review](docs/UI_UX_REVIEW.md), [integration setup](docs/INTEGRATION_STATUS.md), and [ML validation](docs/ML_VALIDATION.md). Apply every migration in order. The trusted abandoned-upload maintenance command and scheduling instructions are in [deployment operations](docs/DEPLOYMENT.md).
 
 ```powershell
 npm run typecheck

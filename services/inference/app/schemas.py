@@ -11,6 +11,8 @@ class Manifest(BaseModel):
     model_config = ConfigDict(extra='forbid')
     version: str = Field(min_length=1)
     architecture: str = Field(min_length=1)
+    runtime: Literal['torchscript', 'onnx'] = 'torchscript'
+    sha256: str | None = Field(default=None, pattern=r'^[a-f0-9]{64}$')
     input_size: int = Field(ge=32, le=1024)
     mean: list[float] = Field(min_length=3, max_length=3)
     std: list[float] = Field(min_length=3, max_length=3)

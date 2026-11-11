@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { context, route, checkDb, ApiError } from "@/lib/server";
+import { normalizeReportRelation } from "@/lib/relations";
 export const GET = route(async (request) => {
   const id = z.uuid().parse(new URL(request.url).pathname.split("/").at(-1));
   const { db } = await context();
@@ -18,5 +19,9 @@ export const GET = route(async (request) => {
           .createSignedUrl(data.image_path, 300)
       ).data?.signedUrl
     : null;
-  return NextResponse.json({ ...data, image_url });
+  return NextResponse.json({
+    ...data,
+    farmer_reports: normalizeReportRelation(data.farmer_reports),
+    image_url,
+  });
 });

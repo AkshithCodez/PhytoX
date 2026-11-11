@@ -2,22 +2,22 @@
 
 ## Decisions
 
-One Next.js App Router application, Supabase PostgreSQL/Auth/private Storage, and one internal FastAPI inference service. Ordinary requests use the authenticated user's JWT, so database RLS is a second authorization boundary. A server-only service-role client is used exclusively to finalize inference results; authenticated users cannot forge predictions using that RPC. Roles and officer region assignments are provisioned by a trusted database administrator, never by signup metadata.
+One Next.js App Router application, Supabase PostgreSQL/Auth/private Storage, and one internal FastAPI inference service. Ordinary requests use the authenticated user's JWT, so database RLS is a second authorization boundary. A server-only service-role client finalizes inference results; a separate trusted maintenance CLI uses the service role to expire interrupted processing and delete failed uploads. Authenticated users cannot invoke either trusted RPC. Roles and officer region assignments are provisioned by a trusted database administrator, never by signup metadata.
 
 Database design precedes feature queries. Diagnosis completion and report review use transactional database functions. Idempotency keys prevent duplicate diagnosis/report writes. Uploads use UUID paths and private signed reads. Failed inference never becomes a diagnosis success. Region insights aggregate verified reports only with a minimum cohort size; exact locations never enter farmer aggregates.
 
-No trained model, dataset, class mapping, evaluation results, Supabase credentials, or existing source was supplied. A versioned TorchScript adapter will require an explicit manifest and return unavailable until configured. Softmax and margins are uncertainty heuristics, not validated out-of-distribution detection. All predictions require expert interpretation.
+The initial project directory contained no source or model. After the project was relocated into a nested folder, a sibling `ml` directory was discovered containing a PyTorch checkpoint, ONNX export, ordered 38-class mapping, and preprocessing source. The ONNX export is now imported locally, fingerprinted, and tested through the real inference API. No evaluation dataset, evaluation metrics, or Supabase credentials are available. The adapter supports TorchScript and ONNX, requires an explicit manifest, and fails closed on load/contract/fingerprint errors. Softmax and margins are uncertainty heuristics, not validated out-of-distribution detection. All predictions require expert interpretation.
 
 ## Plan and checklist
 
-- [ ] Foundation: workspace, theme, contracts, migrations, configuration.
-- [ ] Public site and multilingual farmer onboarding.
-- [ ] Genuine authentication, recovery, profiles, server role guards.
-- [ ] Image upload → inference → saved result → report → history.
-- [ ] FastAPI image validation, adapter, uncertainty and tests.
-- [ ] Officer review, maps, filters, charts, signals, CSV exports.
-- [ ] Build, unit/service tests, browser responsive QA, authorization tests.
-- [ ] Deployment guide and honest validation report.
+- [x] Foundation: workspace, theme, contracts, migrations, configuration.
+- [x] Public site and multilingual farmer onboarding.
+- [x] Authentication, recovery, profiles, server role guards implemented; live Supabase validation remains pending.
+- [x] Image upload → inference → saved result → report → history implemented; live persistence remains pending Supabase.
+- [x] FastAPI image validation, real ONNX adapter execution, uncertainty and service tests.
+- [x] Officer review, maps, filters, charts, signals, CSV exports implemented.
+- [x] Browser responsive/accessibility verification and validation report; live external integration limitations recorded in `STATUS.md`.
+- [x] Deployment guide; external infrastructure has not been provisioned.
 
 ## Visual system
 

@@ -8,7 +8,7 @@ import {
   expect,
 } from "vitest";
 import { PGlite } from "@electric-sql/pglite";
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 const db = new PGlite();
 const f1 = "10000000-0000-4000-8000-000000000001",
   f2 = "10000000-0000-4000-8000-000000000002",
@@ -35,6 +35,9 @@ beforeAll(async () => {
     "utf8",
   ).replace("create extension if not exists pgcrypto;", "");
   await db.exec(migration);
+  for (const file of readdirSync("../../supabase/migrations").filter(f => f.endsWith(".sql") && f !== "202610310001_initial.sql").sort()) {
+    await db.exec(readFileSync(`../../supabase/migrations/${file}`, "utf8"));
+  }
   await db.exec(`insert into auth.users(id,raw_user_meta_data) values('${f1}','{"role":"admin"}'),('${f2}','{}'),('${off}','{}');
  insert into public.regions(id,name) values('${r1}','Test region A'),('${r2}','Test region B');
  update public.user_profiles set role='officer' where id='${off}';insert into public.officer_regions values('${off}','${r1}');
@@ -58,6 +61,67 @@ async function denied(sql: string, params: unknown[] = []) {
   await db.exec("rollback to savepoint forbidden;");
 }
 describe("PostgreSQL authorization boundaries", () => {
+  it("rejects maintenance from ordinary accounts and invalid batch sizes", async () => {
+    await as(f1);
+    await denied("select * from public.reconcile_stale_diagnoses()");
+    await db.exec("reset role; set local role service_role;");
+    await db.query("select set_config('request.jwt.claim.role','service_role',true)");
+    await denied("select * from public.reconcile_stale_diagnoses(0)");
+    await denied("select * from public.reconcile_stale_diagnoses(1001)");
+    await denied("select * from public.reconcile_stale_diagnoses(null)");
+  });
+  it("expires only stale processing and retries failed objects without touching completed images", async () => {
+    const inserted = await db.query<{id: string}>(`insert into public.diagnoses(owner_id,request_key,created_at) values
+      ('${f1}',gen_random_uuid(),now()-interval '20 minutes'),
+      ('${f1}',gen_random_uuid(),now()) returning id`);
+    const [old, recent] = inserted.rows.map(r => r.id);
+    const path = `${f1}/${old}/image`;
+    await db.query("insert into storage.objects(bucket_id,name) values('crop-images',$1)", [path]);
+    await db.exec("set local role service_role;");
+    await db.query("select set_config('request.jwt.claim.role','service_role',true)");
+    expect((await db.query("select * from public.reconcile_stale_diagnoses()")).rows).toEqual([{image_path:path}]);
+    expect((await db.query("select * from public.reconcile_stale_diagnoses()")).rows).toEqual([{image_path:path}]);
+    await db.exec("reset role;");
+    expect((await db.query("select status,error_code from public.diagnoses where id=$1",[old])).rows).toEqual([{status:'failed',error_code:'processing_expired'}]);
+    expect((await db.query("select status from public.diagnoses where id=$1",[recent])).rows).toEqual([{status:'processing'}]);
+    expect((await db.query("select status from public.diagnoses where id=$1",[d1])).rows).toEqual([{status:'complete'}]);
+    // Stand-in for successful Storage API deletion; production never deletes metadata with SQL.
+    await db.query("delete from storage.objects where name=$1",[path]);
+    await db.exec("set local role service_role;");
+    expect((await db.query("select * from public.reconcile_stale_diagnoses()")).rows).toEqual([]);
+  });
+  it("permits only the canonical single image path for a reservation", async () => {
+    await as(f1);
+    const reservation = await db.query<{ id: string }>(
+      "select (public.reserve_diagnosis(gen_random_uuid())).id",
+    );
+    const id = reservation.rows[0].id;
+    await denied("insert into storage.objects(bucket_id,name) values('crop-images',$1)", [
+      `${f1}/${id}/extra/image`,
+    ]);
+    await db.query("insert into storage.objects(bucket_id,name) values('crop-images',$1)", [
+      `${f1}/${id}/image`,
+    ]);
+  });
+  it("allows owners to remove failed uploads without exposing another owner's image", async () => {
+    await as(f1);
+    const reservation = await db.query<{ id: string }>(
+      "select (public.reserve_diagnosis(gen_random_uuid())).id",
+    );
+    const id = reservation.rows[0].id;
+    const path = `${f1}/${id}/image`;
+    await db.query("insert into storage.objects(bucket_id,name) values('crop-images',$1)", [path]);
+    await db.exec("reset role; set local role service_role;");
+    await db.query("select set_config('request.jwt.claim.role','service_role',true)");
+    await db.query("select public.finish_diagnosis($1,$2,null,'test_failure')", [id, f1]);
+    await db.exec("reset role;");
+    await as(f2);
+    expect((await db.query("select * from storage.objects where name=$1", [path])).rows).toHaveLength(0);
+    expect((await db.query("delete from storage.objects where name=$1 returning name", [path])).rows).toHaveLength(0);
+    await db.exec("reset role;");
+    await as(f1);
+    expect((await db.query("delete from storage.objects where name=$1 returning name", [path])).rows).toHaveLength(1);
+  });
   it("finalizes trusted inference and rolls back malformed predictions", async () => {
     await as(f1);
     const reservation = await db.query<{ id: string }>(

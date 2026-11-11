@@ -12,3 +12,4 @@ playwright-report/
 services/inference/models/*
 !services/inference/models/README.md
 !services/inference/models/manifest.example.json
+!services/inference/models/supplied.manifest.json

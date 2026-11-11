@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 const sizes = [
-  [320, 800],
+  [320, 720],
   [360, 800],
   [390, 844],
   [768, 1024],

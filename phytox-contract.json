@@ -1,0 +1,16 @@
+﻿{
+    "objective":  "Configure PhytoX Supabase environment and rotate inference key",
+    "allowed_write_scope":  [
+                                "PhytoX/apps/web/.env.local",
+                                "PhytoX/apps/web/.env.example",
+                                "PhytoX/services/inference/.env"
+                            ],
+    "acceptance_criteria":  [
+                                "Update web environment configuration",
+                                "Create safe environment example",
+                                "Rotate matching inference API keys",
+                                "Verify TypeScript and production build"
+                            ],
+    "budget":  "balanced",
+    "mode":  "implement"
+}

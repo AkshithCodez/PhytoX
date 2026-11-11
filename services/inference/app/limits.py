@@ -12,8 +12,8 @@ class PredictionRequestLimit:
             return await self.app(scope, receive, send)
         headers = dict(scope.get('headers', []))
         secret = os.getenv('INFERENCE_API_KEY')
-        provided = headers.get(b'x-api-key', b'').decode('latin1')
-        if not secret or not hmac.compare_digest(secret, provided):
+        provided = headers.get(b'x-api-key', b'')
+        if not secret or not hmac.compare_digest(secret.encode('utf-8'), provided):
             response = JSONResponse({'detail': {'code': 'service_unconfigured' if not secret else 'unauthorized'}}, status_code=503 if not secret else 401)
             return await response(scope, receive, send)
         chunks = []

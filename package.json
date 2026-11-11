@@ -11,5 +11,8 @@
     "typecheck": "npm run typecheck -w apps/web",
     "test": "npm run test -w apps/web",
     "test:e2e": "npm run test:e2e -w apps/web"
+  },
+  "devDependencies": {
+    "supabase": "^3.0.0"
   }
 }

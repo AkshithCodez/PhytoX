@@ -59,3 +59,9 @@ def test_body_limit_before_multipart(monkeypatch):
     client=TestClient(app)
     response=client.post('/v1/predict',headers={'x-api-key':'test-secret','content-type':'application/octet-stream'},content=b'x'*(9*1024*1024+1))
     assert response.status_code==413
+
+def test_non_ascii_api_key_is_rejected_without_server_error(monkeypatch):
+    monkeypatch.setenv('INFERENCE_API_KEY', 'test-secret')
+    response = TestClient(app).post('/v1/predict', headers={b'x-api-key': b'\xff'}, content=b'invalid body')
+    assert response.status_code == 401
+    assert response.json()['detail']['code'] == 'unauthorized'

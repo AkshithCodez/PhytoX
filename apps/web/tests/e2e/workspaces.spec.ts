@@ -2,6 +2,7 @@ import { test, expect } from "@playwright/test";
 import { mockApi, diagnosisId, reportId } from "./fixtures";
 const fixture = "http://127.0.0.1:5173";
 const sizes = [
+  [320, 720],
   [360, 800],
   [390, 844],
   [768, 1024],
@@ -22,6 +23,7 @@ for (const [width, height] of sizes)
       "/farmer",
       "/farmer/history",
       `/farmer/diagnosis/${diagnosisId}`,
+      `/farmer/report/${reportId}`,
       "/farmer/insights",
       "/farmer/settings",
       "/officer",
@@ -131,4 +133,32 @@ test("image validation and unavailable model do not invent a result", async ({
     page.getByRole("button", { name: "Analyze photograph" }),
   ).toBeDisabled();
   await expect(page.getByText("Analysis is not available yet")).toBeVisible();
+});
+
+test("mobile officer cases expose review actions and all navigation destinations", async ({
+  page,
+}) => {
+  await mockApi(page);
+  await page.setViewportSize({ width: 320, height: 720 });
+  await page.goto(fixture + "/officer/reports");
+  const card = page.locator(".report-card").first();
+  await expect(card).toBeVisible();
+  await expect(card.getByRole("link", { name: "Review report" })).toBeVisible();
+  await expect(page.locator(".report-desktop-table")).toBeHidden();
+  for (const link of await page
+    .getByRole("navigation", { name: "Mobile workspace" })
+    .getByRole("link")
+    .all()) {
+    await expect(link).toBeInViewport();
+  }
+  await card.getByRole("link", { name: "Review report" }).click();
+  await expect(
+    page
+      .getByRole("navigation", { name: "Mobile workspace" })
+      .getByRole("link", { name: "Reports", exact: true }),
+  ).toHaveAttribute("aria-current", "page");
+  await page.screenshot({
+    path: "test-results/screenshots/officer-review-320.png",
+    fullPage: true,
+  });
 });

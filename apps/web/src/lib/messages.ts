@@ -101,6 +101,10 @@ export const en = {
   reportStatus: "Report status",
   noReport: "Not reported",
   quality: "Image quality warnings",
+  qualityLowResolution: "Use a larger, clearer photograph so leaf details are visible.",
+  qualityUnderexposed: "The photograph is too dark. Retake it in natural light.",
+  qualityOverexposed: "The photograph is too bright. Retake it away from glare.",
+  qualityUnknown: "Image quality may affect this assessment. Retake a clear photograph.",
   modelVersion: "Model version",
   guidance:
     "Keep the original photograph and note when symptoms started. Ask a local agricultural expert to assess the crop before choosing treatment.",
@@ -229,6 +233,10 @@ export const te: Record<MessageKey, string> = {
   reportStatus: "నివేదిక స్థితి",
   noReport: "నివేదించలేదు",
   quality: "చిత్ర నాణ్యత హెచ్చరికలు",
+  qualityLowResolution: "ఆకు వివరాలు కనిపించేలా పెద్ద, స్పష్టమైన ఫోటోను ఉపయోగించండి.",
+  qualityUnderexposed: "ఫోటో చాలా చీకటిగా ఉంది. సహజ కాంతిలో మళ్లీ తీయండి.",
+  qualityOverexposed: "ఫోటో చాలా ప్రకాశవంతంగా ఉంది. కాంతి ప్రతిబింబం లేని చోట మళ్లీ తీయండి.",
+  qualityUnknown: "చిత్ర నాణ్యత అంచనాను ప్రభావితం చేయవచ్చు. స్పష్టమైన ఫోటోను మళ్లీ తీయండి.",
   modelVersion: "మోడల్ వెర్షన్",
   guidance:
     "అసలు ఫోటోను భద్రపరచి లక్షణాలు మొదలైన తేదీ రాయండి. చికిత్స ముందు స్థానిక వ్యవసాయ నిపుణుడిని సంప్రదించండి.",
@@ -357,6 +365,10 @@ export const hi: Record<MessageKey, string> = {
   reportStatus: "रिपोर्ट की स्थिति",
   noReport: "रिपोर्ट नहीं की गई",
   quality: "तस्वीर की गुणवत्ता चेतावनियाँ",
+  qualityLowResolution: "बड़ी और स्पष्ट तस्वीर लें ताकि पत्ते का विवरण दिखाई दे।",
+  qualityUnderexposed: "तस्वीर बहुत अंधेरी है। प्राकृतिक रोशनी में दोबारा लें।",
+  qualityOverexposed: "तस्वीर बहुत चमकीली है। चकाचौंध से दूर दोबारा लें।",
+  qualityUnknown: "तस्वीर की गुणवत्ता आकलन को प्रभावित कर सकती है। स्पष्ट तस्वीर दोबारा लें।",
   modelVersion: "मॉडल संस्करण",
   guidance:
     "मूल तस्वीर रखें और लक्षण शुरू होने की तारीख लिखें। उपचार चुनने से पहले स्थानीय कृषि विशेषज्ञ से सलाह लें।",

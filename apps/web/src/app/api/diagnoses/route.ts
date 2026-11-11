@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { context, route, checkDb } from "@/lib/server";
 import { analyze } from "@/services/diagnosis";
+import { normalizeReportRelation } from "@/lib/relations";
 export const GET = route(async (request) => {
   const { db, user } = await context();
   const url = new URL(request.url);
@@ -27,6 +28,7 @@ export const GET = route(async (request) => {
   const items = await Promise.all(
     (data ?? []).map(async (d) => ({
       ...d,
+      farmer_reports: normalizeReportRelation(d.farmer_reports),
       image_url: d.image_path
         ? (
             await db.storage

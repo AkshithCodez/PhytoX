@@ -13,9 +13,13 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.0",
+    "@react-three/drei": "^10.7.9",
+    "@react-three/fiber": "^9.8.2",
     "@supabase/ssr": "^0.8.0",
     "@supabase/supabase-js": "^2.80.0",
     "@tailwindcss/postcss": "^4.1.0",
+    "@types/three": "^0.187.0",
+    "gsap": "^3.15.1",
     "leaflet": "^1.9.4",
     "leaflet.markercluster": "^1.5.3",
     "lucide-react": "^0.468.0",
@@ -28,6 +32,7 @@
     "server-only": "^0.0.1",
     "sharp": "^0.35.5",
     "tailwindcss": "^4.1.0",
+    "three": "^0.187.0",
     "zod": "^4.1.0"
   },
   "devDependencies": {

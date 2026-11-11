@@ -15,7 +15,12 @@ export function LocaleProvider({ children }: { children: React.ReactNode }) {
     [chosen, setChosen] = useState(false),
     [ready, setReady] = useState(false);
   useEffect(() => {
-    const saved = localStorage.getItem("phytox-language");
+    let saved: string | null = null;
+    try {
+      saved = localStorage.getItem("phytox-language");
+    } catch {
+      // Storage can be disabled by browser privacy settings; keep onboarding usable.
+    }
     if (saved === "en" || saved === "te" || saved === "hi") {
       setLang(saved);
       setChosen(true);
@@ -25,7 +30,11 @@ export function LocaleProvider({ children }: { children: React.ReactNode }) {
   function setLanguage(value: Language) {
     setLang(value);
     setChosen(true);
-    localStorage.setItem("phytox-language", value);
+    try {
+      localStorage.setItem("phytox-language", value);
+    } catch {
+      // The selection still applies for this page session.
+    }
   }
   useEffect(() => {
     document.documentElement.lang = language;

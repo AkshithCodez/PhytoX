@@ -33,7 +33,7 @@ async def predict(file: UploadFile = File(...), x_api_key: str | None = Header(d
     secret = os.getenv('INFERENCE_API_KEY')
     if not secret:
         raise HTTPException(503, detail={'code': 'service_unconfigured'})
-    if not x_api_key or not hmac.compare_digest(secret, x_api_key):
+    if not x_api_key or not hmac.compare_digest(secret.encode('utf-8'), x_api_key.encode('latin1')):
         raise HTTPException(401, detail={'code': 'unauthorized'})
     raw = await file.read(MAX_BYTES + 1)
     await file.close()

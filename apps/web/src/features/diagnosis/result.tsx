@@ -12,6 +12,18 @@ import {
 import { useResource } from "@/lib/client";
 import type { Diagnosis, PredictionResult, Report } from "@/lib/contracts";
 import { ReportForm } from "@/features/reporting/report-form";
+export function QualityWarnings({ warnings }: { warnings: string[] }) {
+  const { t } = useLocale();
+  const keys = {
+    low_resolution: "qualityLowResolution",
+    underexposed: "qualityUnderexposed",
+    overexposed: "qualityOverexposed",
+  } as const;
+  if (!warnings.length) return null;
+  return <Notice tone="warning"><strong>{t("quality")}</strong><ul>
+    {[...new Set(warnings)].map((warning) => <li key={warning}>{t(keys[warning as keyof typeof keys] ?? "qualityUnknown")}</li>)}
+  </ul></Notice>;
+}
 export function PredictionSummary({ result }: { result: PredictionResult }) {
   const { t } = useLocale();
   return (
@@ -42,11 +54,7 @@ export function PredictionSummary({ result }: { result: PredictionResult }) {
           ))}
         </details>
       )}
-      {result.quality_warnings.length > 0 && (
-        <Notice tone="warning">
-          {t("quality")}: {result.quality_warnings.join(", ")}
-        </Notice>
-      )}
+      <QualityWarnings warnings={result.quality_warnings} />
       <dl className="detail-grid">
         <div>
           <dt>{t("modelVersion")}</dt>

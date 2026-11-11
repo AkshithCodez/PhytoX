@@ -30,6 +30,10 @@ export function Shell({
   const path = usePathname(),
     { t } = useLocale();
   const [error, setError] = useState("");
+  const isActive = (href: string) =>
+    href === "/farmer" || href === "/officer"
+      ? path === href
+      : path === href || path.startsWith(`${href}/`);
   const links = officer
     ? ([
         ["/officer", "Overview", LayoutDashboard],
@@ -58,15 +62,8 @@ export function Shell({
               <Link
                 key={href}
                 href={href}
-                className={
-                  (
-                    href === "/farmer" || href === "/officer"
-                      ? path === href
-                      : path.startsWith(href)
-                  )
-                    ? "active"
-                    : ""
-                }
+                className={isActive(href) ? "active" : ""}
+                aria-current={isActive(href) ? "page" : undefined}
               >
                 <Icon size={20} />
                 <span>{label}</span>
@@ -119,7 +116,8 @@ export function Shell({
             <Link
               key={href}
               href={href}
-              className={path === href ? "active" : ""}
+              className={isActive(href) ? "active" : ""}
+              aria-current={isActive(href) ? "page" : undefined}
             >
               <Icon size={21} />
               <span>{label}</span>

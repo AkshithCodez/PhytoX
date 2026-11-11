@@ -41,11 +41,19 @@ The checked build uses Webpack (`next build --webpack`) because this Windows env
 
 Use Python 3.11+, install the locked service dependencies, and add the CPU or GPU PyTorch distribution appropriate to your host via `requirements-model.txt`. Keep the inference host private where possible; otherwise use TLS, a strong service key, ingress rate limits, and resource limits. Set `MODEL_PATH` and `MODEL_MANIFEST` to trusted artifacts mounted read-only. Do not accept serialized models from users. `/ready` is false until both the adapter and service key are configured.
 
-The included Dockerfile runs a non-root CPU service. It does not include PyTorch or model weights; extend it with your tested runtime and mount model files. Requests are capped before multipart parsing. CPU inference is serialized per adapter, with two concurrent requests admitted per worker. Use one worker initially to avoid duplicating model memory. Add structured metrics/alerts and load testing before scaling.
+The included Dockerfile runs a non-root CPU service with ONNX Runtime. It does not include model weights; mount the model and manifest read-only. For TorchScript, extend it with your tested PyTorch runtime. Requests are capped before multipart parsing. CPU inference is serialized per adapter, with two concurrent requests admitted per worker. Use one worker initially to avoid duplicating model memory. Add structured metrics/alerts and load testing before scaling.
 
 ## Partial failures and cleanup
 
-Inference errors mark the diagnosis failed and attempt to remove the uploaded image. An interrupted server process or ambiguous upload failure can leave a `processing` record and private image. A deployment maintenance job should reconcile records older than the maximum processing window and remove abandoned images. Do not mark an active request failed. This scheduler is not deployed by this repository.
+Inference errors mark the diagnosis failed and attempt to remove the uploaded image. Apply all migrations in filename order, including `202611050002_processing_recovery.sql`. Its service-role-only RPC locks and expires processing records older than 15 minutes, leaves recent/completed records intact, and returns canonical failed-image paths. Storage API deletion removes bytes; SQL does not delete storage metadata. Failed deletions remain eligible for retry.
+
+Run from the repository root with Node 20.9+:
+
+```powershell
+node --env-file=apps/web/.env.local apps/web/scripts/reconcile.mjs
+```
+
+Schedule every five minutes on a trusted worker with the Supabase URL and service-role key injected through a secret manager. Each run expires up to 100 records and retries up to 100 image deletions. Monitor backlog and nonzero exit codes. The command logs counts only and exposes no public maintenance endpoint. Automated tests cover local database and command behavior; the scheduler and live Storage validation remain deployment tasks. If processing moves to long-running asynchronous jobs, review the 15-minute grace period first.
 
 History remains honest about incomplete/failed analyses. Successful results and predictions are saved together in a database transaction. Review status, review notes, and audit entries are also transactional. Repeated diagnosis request keys and repeated report submissions cannot create duplicate records.
 

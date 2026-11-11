@@ -86,7 +86,7 @@ export default function ReportMap({ reports }: { reports: Report[] }) {
       </div>
       <p className="filter-caption">
         Reports without shared coordinates use their region center. {unlocated}{" "}
-        reports have no mappable location. Use the report table below as a
+        reports have no mappable location. Use the report list below as a
         keyboard-accessible alternative.
       </p>
     </>

@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
-import { mockApi } from "./fixtures";
+import { mockApi, diagnosisId, reportId } from "./fixtures";
 test("public page has no automated WCAG A/AA violations", async ({ page }) => {
   await page.goto("/");
   const result = await new AxeBuilder({ page })
@@ -8,6 +8,25 @@ test("public page has no automated WCAG A/AA violations", async ({ page }) => {
     .analyze();
   expect(result.violations).toEqual([]);
 });
+
+for (const path of [
+  "/officer",
+  "/officer/reports",
+  `/officer/reports/${reportId}`,
+  `/farmer/diagnosis/${diagnosisId}`,
+]) {
+  test(`workspace accessibility ${path} (fixture API)`, async ({ page }) => {
+    await mockApi(page);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto(`http://127.0.0.1:5173${path}`);
+    await expect(page.locator("h1")).toBeVisible();
+    await expect(page.getByText("Loading…", { exact: true })).toHaveCount(0);
+    const result = await new AxeBuilder({ page })
+      .withTags(["wcag2a", "wcag2aa", "wcag21aa"])
+      .analyze();
+    expect(result.violations).toEqual([]);
+  });
+}
 test("farmer scanner has no automated WCAG A/AA violations", async ({
   page,
 }) => {

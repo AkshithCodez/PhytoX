@@ -254,38 +254,71 @@ export function OfficerWorkspace({ view }: { view: View }) {
 }
 export function ReportsTable({ reports }: { reports: Report[] }) {
   return (
-    <div className="data-table-wrap">
-      <table className="data-table">
-        <caption className="sr-only">Authorized crop observations</caption>
-        <thead>
-          <tr>
-            <th>Crop / prediction</th>
-            <th>Region</th>
-            <th>Submitted</th>
-            <th>Status</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          {reports.map((r) => (
-            <tr key={r.id}>
-              <td>
-                <strong>{r.crop}</strong>
-                <br />
-                {r.disease}
-              </td>
-              <td>{r.regions?.name ?? "Unknown"}</td>
-              <td>{new Date(r.created_at).toLocaleDateString()}</td>
-              <td>
-                <Badge status={r.status} />
-              </td>
-              <td>
-                <Link href={`/officer/reports/${r.id}`}>Review report →</Link>
-              </td>
+    <>
+      <div className="report-cards" aria-label="Authorized crop observations">
+        {reports.map((r) => (
+          <article className="panel report-card" key={r.id}>
+            <div className="report-card-heading">
+              <h3>{r.crop}</h3>
+              <Badge status={r.status} />
+            </div>
+            <p>{r.disease}</p>
+            <dl>
+              <div>
+                <dt>Region</dt>
+                <dd>{r.regions?.name ?? "Unknown"}</dd>
+              </div>
+              <div>
+                <dt>Submitted</dt>
+                <dd>
+                  <time dateTime={r.created_at}>
+                    {new Date(r.created_at).toLocaleDateString()}
+                  </time>
+                </dd>
+              </div>
+            </dl>
+            <Link
+              className="button secondary full"
+              href={`/officer/reports/${r.id}`}
+            >
+              Review report →
+            </Link>
+          </article>
+        ))}
+      </div>
+      <div className="data-table-wrap report-desktop-table">
+        <table className="data-table">
+          <caption className="sr-only">Authorized crop observations</caption>
+          <thead>
+            <tr>
+              <th>Crop / prediction</th>
+              <th>Region</th>
+              <th>Submitted</th>
+              <th>Status</th>
+              <th>Action</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+          </thead>
+          <tbody>
+            {reports.map((r) => (
+              <tr key={r.id}>
+                <td>
+                  <strong>{r.crop}</strong>
+                  <br />
+                  {r.disease}
+                </td>
+                <td>{r.regions?.name ?? "Unknown"}</td>
+                <td>{new Date(r.created_at).toLocaleDateString()}</td>
+                <td>
+                  <Badge status={r.status} />
+                </td>
+                <td>
+                  <Link href={`/officer/reports/${r.id}`}>Review report →</Link>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </>
   );
 }

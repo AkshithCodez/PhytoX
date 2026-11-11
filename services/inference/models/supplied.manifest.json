@@ -1,0 +1,175 @@
+{
+  "version": "local-onnx-fde9536ff18a",
+  "architecture": "PyTorch MobileNetV2 export with 1280-512-38 classifier",
+  "runtime": "onnx",
+  "sha256": "fde9536ff18a419b69895a3624679638e797ef51018536fb0a9babdd56a907b4",
+  "input_size": 224,
+  "mean": [
+    0.485,
+    0.456,
+    0.406
+  ],
+  "std": [
+    0.229,
+    0.224,
+    0.225
+  ],
+  "labels": [
+    {
+      "crop": "Apple",
+      "disease": "Apple scab"
+    },
+    {
+      "crop": "Apple",
+      "disease": "Black rot"
+    },
+    {
+      "crop": "Apple",
+      "disease": "Cedar apple rust"
+    },
+    {
+      "crop": "Apple",
+      "disease": "healthy"
+    },
+    {
+      "crop": "Blueberry",
+      "disease": "healthy"
+    },
+    {
+      "crop": "Cherry (including sour)",
+      "disease": "Powdery mildew"
+    },
+    {
+      "crop": "Cherry (including sour)",
+      "disease": "healthy"
+    },
+    {
+      "crop": "Corn (maize)",
+      "disease": "Cercospora leaf spot Gray leaf spot"
+    },
+    {
+      "crop": "Corn (maize)",
+      "disease": "Common rust"
+    },
+    {
+      "crop": "Corn (maize)",
+      "disease": "Northern Leaf Blight"
+    },
+    {
+      "crop": "Corn (maize)",
+      "disease": "healthy"
+    },
+    {
+      "crop": "Grape",
+      "disease": "Black rot"
+    },
+    {
+      "crop": "Grape",
+      "disease": "Esca (Black Measles)"
+    },
+    {
+      "crop": "Grape",
+      "disease": "Leaf blight (Isariopsis Leaf Spot)"
+    },
+    {
+      "crop": "Grape",
+      "disease": "healthy"
+    },
+    {
+      "crop": "Orange",
+      "disease": "Haunglongbing (Citrus greening)"
+    },
+    {
+      "crop": "Peach",
+      "disease": "Bacterial spot"
+    },
+    {
+      "crop": "Peach",
+      "disease": "healthy"
+    },
+    {
+      "crop": "Pepper, bell",
+      "disease": "Bacterial spot"
+    },
+    {
+      "crop": "Pepper, bell",
+      "disease": "healthy"
+    },
+    {
+      "crop": "Potato",
+      "disease": "Early blight"
+    },
+    {
+      "crop": "Potato",
+      "disease": "Late blight"
+    },
+    {
+      "crop": "Potato",
+      "disease": "healthy"
+    },
+    {
+      "crop": "Raspberry",
+      "disease": "healthy"
+    },
+    {
+      "crop": "Soybean",
+      "disease": "healthy"
+    },
+    {
+      "crop": "Squash",
+      "disease": "Powdery mildew"
+    },
+    {
+      "crop": "Strawberry",
+      "disease": "Leaf scorch"
+    },
+    {
+      "crop": "Strawberry",
+      "disease": "healthy"
+    },
+    {
+      "crop": "Tomato",
+      "disease": "Bacterial spot"
+    },
+    {
+      "crop": "Tomato",
+      "disease": "Early blight"
+    },
+    {
+      "crop": "Tomato",
+      "disease": "Late blight"
+    },
+    {
+      "crop": "Tomato",
+      "disease": "Leaf Mold"
+    },
+    {
+      "crop": "Tomato",
+      "disease": "Septoria leaf spot"
+    },
+    {
+      "crop": "Tomato",
+      "disease": "Spider mites Two-spotted spider mite"
+    },
+    {
+      "crop": "Tomato",
+      "disease": "Target Spot"
+    },
+    {
+      "crop": "Tomato",
+      "disease": "Tomato Yellow Leaf Curl Virus"
+    },
+    {
+      "crop": "Tomato",
+      "disease": "Tomato mosaic virus"
+    },
+    {
+      "crop": "Tomato",
+      "disease": "healthy"
+    }
+  ],
+  "confidence_threshold": 0.7,
+  "margin_threshold": 0.15,
+  "preprocessing": "rgb_resize_bilinear",
+  "output": "logits"
+}

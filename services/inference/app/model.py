@@ -3,6 +3,8 @@ import json
 import os
 import warnings
 import threading
+import hashlib
+from pathlib import Path
 import numpy as np
 from PIL import Image, ImageOps, UnidentifiedImageError, ImageStat
 from .schemas import Manifest, Prediction, PredictionResponse
@@ -62,15 +64,36 @@ class ModelAdapter:
         self.lock = threading.Lock()
 
     def load(self):
+        self.model = None
+        self.manifest = None
+        self.reason = 'model_unconfigured'
         path, manifest_path = os.getenv('MODEL_PATH'), os.getenv('MODEL_MANIFEST')
         if not path or not manifest_path:
             return
         try:
-            import torch
             with open(manifest_path, encoding='utf-8') as file:
                 self.manifest = Manifest.model_validate(json.load(file))
-            # Only trusted, operator-supplied TorchScript artifacts. Never user uploads.
-            self.model = torch.jit.load(path, map_location='cpu').eval()
+            if self.manifest.sha256 and hashlib.sha256(Path(path).read_bytes()).hexdigest() != self.manifest.sha256:
+                raise ValueError('Model fingerprint does not match its manifest')
+            if self.manifest.runtime == 'onnx':
+                import onnxruntime as ort
+                options = ort.SessionOptions()
+                options.intra_op_num_threads = 2
+                options.inter_op_num_threads = 1
+                model = ort.InferenceSession(path, sess_options=options, providers=['CPUExecutionProvider'])
+                inputs, outputs = model.get_inputs(), model.get_outputs()
+                expected = [3, self.manifest.input_size, self.manifest.input_size]
+                def accepts_single_batch(shape):
+                    return bool(shape) and (shape[0] == 1 or shape[0] is None or isinstance(shape[0], str))
+                if len(inputs) != 1 or inputs[0].type != 'tensor(float)' or inputs[0].shape[1:] != expected or not accepts_single_batch(inputs[0].shape):
+                    raise ValueError('Unsupported ONNX input contract')
+                if len(outputs) != 1 or outputs[0].type != 'tensor(float)' or outputs[0].shape[1:] != [len(self.manifest.labels)] or not accepts_single_batch(outputs[0].shape):
+                    raise ValueError('ONNX output does not match class mapping')
+                self.model = model
+            else:
+                import torch
+                # Only trusted operator-supplied TorchScript artifacts, never user uploads.
+                self.model = torch.jit.load(path, map_location='cpu').eval()
             self.reason = 'ready'
         except Exception:
             self.model = None
@@ -81,15 +104,20 @@ class ModelAdapter:
         return self.model is not None and self.manifest is not None
 
     def predict(self, image, quality):
-        import torch
         if not self.ready:
             raise RuntimeError('Model unavailable')
         size = self.manifest.input_size
         pixels = np.array(image.resize((size, size), Image.Resampling.BILINEAR), dtype=np.float32) / 255.0
         pixels = (pixels - np.array(self.manifest.mean, dtype=np.float32)) / np.array(self.manifest.std, dtype=np.float32)
-        tensor = torch.from_numpy(pixels.transpose(2, 0, 1).copy()).unsqueeze(0)
-        with self.lock, torch.inference_mode():
-            output = self.model(tensor)
-        if not isinstance(output, torch.Tensor):
-            raise ValueError('Expected one logits tensor')
-        return postprocess(output.detach().cpu().numpy(), self.manifest, quality)
+        batch = pixels.transpose(2, 0, 1).copy()[None, ...]
+        if self.manifest.runtime == 'onnx':
+            with self.lock:
+                output = self.model.run(None, {self.model.get_inputs()[0].name: batch})[0]
+        else:
+            import torch
+            with self.lock, torch.inference_mode():
+                output = self.model(torch.from_numpy(batch))
+            if not isinstance(output, torch.Tensor):
+                raise ValueError('Expected one logits tensor')
+            output = output.detach().cpu().numpy()
+        return postprocess(output, self.manifest, quality)
