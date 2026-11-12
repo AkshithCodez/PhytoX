@@ -9,18 +9,21 @@ import {
   type MutableRefObject,
 } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { useTexture } from "@react-three/drei";
+import { Environment, useGLTF, useTexture } from "@react-three/drei";
 import * as THREE from "three";
 import {
-  createBotanicalLeafGeometry,
+  cloneTunedMaterial,
   createMistTexture,
-  createMossCushionBlob,
   createMossHummockGeometry,
-  createSculptedBoulder,
   createSeededRandom,
   createTerrainGeometry,
-  createVelvetHairGeometry,
+  extractMeshPart,
+  getTerrainHeight,
+  sampleRockMossAnchors,
+  type SurfaceAnchor,
 } from "./scene-helpers";
+
+useGLTF.setDecoderPath("/draco/");
 
 export interface EcoTechSceneProps {
   scrollProgressRef: MutableRefObject<number>;
@@ -69,16 +72,16 @@ const SKY_FRAGMENT_SHADER = `
 
   void main() {
     vec3 darkVoid = vec3(0.066, 0.114, 0.075); // #111D13
-    vec2 cloudUv = vUv * vec2(3.2, 2.2) + vec2(uTime * 0.008, 0.0);
-    float clouds = fbm(cloudUv + fbm(cloudUv * 0.7) * 0.6);
+    vec2 cloudUv = vUv * vec2(3.1, 2.0) + vec2(uTime * 0.006, 0.0);
+    float clouds = fbm(cloudUv + fbm(cloudUv * 0.65) * 0.55);
 
-    vec3 stormUpper = vec3(0.41, 0.45, 0.41);
-    vec3 overcastMid = vec3(0.68, 0.71, 0.68);
-    vec3 mistHorizon = vec3(0.83, 0.86, 0.83);
+    vec3 stormUpper = vec3(0.42, 0.45, 0.42);
+    vec3 overcastMid = vec3(0.67, 0.70, 0.67);
+    vec3 mistHorizon = vec3(0.84, 0.86, 0.84);
 
-    float verticalGrad = smoothstep(0.14, 0.9, vUv.y);
+    float verticalGrad = smoothstep(0.14, 0.92, vUv.y);
     vec3 skyBase = mix(mistHorizon, stormUpper, verticalGrad);
-    vec3 skyColor = mix(skyBase, overcastMid, clouds * 0.52);
+    vec3 skyColor = mix(skyBase, overcastMid, clouds * 0.5);
 
     vec3 finalColor = mix(darkVoid, skyColor, smoothstep(0.0, 1.0, uMist));
     gl_FragColor = vec4(finalColor, 1.0);
@@ -121,245 +124,216 @@ function SkyBackdrop({ mistRef }: { mistRef: MutableRefObject<number> }) {
 
   return (
     <mesh ref={meshRef} material={material} position={[0, 0, -22]} renderOrder={-10}>
-      <planeGeometry args={[76, 48]} />
+      <planeGeometry args={[84, 52]} />
     </mesh>
   );
 }
 
-/**
- * Fine clustered 3D moss sprigs anchoring into upper boulder pockets & cushions.
- */
-function BoulderMossTufts({
-  anchors,
-  countCap = 900,
-}: {
-  anchors: Array<{ pos: THREE.Vector3; normal: THREE.Vector3; scale: number }>;
-  countCap?: number;
-}) {
-  const instRef = useRef<THREE.InstancedMesh>(null);
-  const sprigGeo = useMemo(() => createBotanicalLeafGeometry(0.058, 0.019, 0.02, 0.005), []);
-  const mat = useMemo(
-    () =>
-      new THREE.MeshStandardMaterial({
-        color: "#ffffff",
-        roughness: 0.78,
-        metalness: 0.02,
-        side: THREE.DoubleSide,
-      }),
-    []
-  );
-
-  const count = Math.min(anchors.length, countCap);
-
-  useEffect(() => {
-    const mesh = instRef.current;
-    if (!mesh || count === 0) return;
-
-    const dummy = new THREE.Object3D();
-    const up = new THREE.Vector3(0, 1, 0);
-    const quat = new THREE.Quaternion();
-    const rand = createSeededRandom(4409);
-    const palette = [
-      new THREE.Color("#456f28"),
-      new THREE.Color("#5b8c32"),
-      new THREE.Color("#73a840"),
-      new THREE.Color("#36591e"),
-      new THREE.Color("#8ebc4d"),
-    ];
-
-    for (let i = 0; i < count; i++) {
-      const a = anchors[i % anchors.length];
-      dummy.position.copy(a.pos).addScaledVector(a.normal, -0.01);
-      quat.setFromUnitVectors(up, a.normal);
-      dummy.quaternion.copy(quat);
-      dummy.rotateY(rand() * Math.PI * 2);
-      dummy.rotateX((rand() - 0.5) * 0.75);
-      const s = a.scale * (0.65 + rand() * 0.75);
-      dummy.scale.set(s, s, s);
-      dummy.updateMatrix();
-      mesh.setMatrixAt(i, dummy.matrix);
-      mesh.setColorAt(i, palette[Math.floor(rand() * palette.length)]);
-    }
-    mesh.instanceMatrix.needsUpdate = true;
-    if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
-  }, [anchors, count]);
-
-  useEffect(() => {
-    return () => {
-      sprigGeo.dispose();
-      mat.dispose();
-    };
-  }, [sprigGeo, mat]);
-
-  if (count === 0) return null;
-
-  return <instancedMesh ref={instRef} args={[sprigGeo, mat, count]} castShadow receiveShadow />;
+interface MossBatchVariant {
+  geometry: THREE.BufferGeometry;
+  material: THREE.Material;
 }
 
 /**
- * Detailed Compound Fern Cluster (Scene 3 Hero foreground left + midground companion).
+ * Instanced photogrammetry bryophyte moss tufts seeded onto cushion mounds or rock crevices.
  */
-function CompoundFernCluster({
-  position,
-  scale = 1,
+function MossColonyInstanced({
+  anchors,
+  variants,
+  baseScale = 2.4,
+  yScaleRatio = 0.6,
+  seed = 4409,
+  maxInstances = 750,
+  sink = 0.014,
+  paletteHex = ["#d6e3be", "#c2d4a4", "#e5edd6", "#b2c693"],
 }: {
-  position: [number, number, number];
-  scale?: number;
+  anchors: SurfaceAnchor[];
+  variants: MossBatchVariant[];
+  baseScale?: number;
+  yScaleRatio?: number;
+  seed?: number;
+  maxInstances?: number;
+  sink?: number;
+  paletteHex?: string[];
 }) {
-  const fernSpec = useMemo(() => {
-    const rand = createSeededRandom(8821);
-    const frondConfigs = [
-      { yaw: -0.22, tilt: 0.42, height: 1.08, lean: 0.62, pairs: 15 },
-      { yaw: 0.34, tilt: 0.36, height: 1.18, lean: 0.56, pairs: 16 },
-      { yaw: -0.78, tilt: 0.52, height: 0.96, lean: 0.68, pairs: 14 },
-      { yaw: 0.88, tilt: 0.48, height: 1.0, lean: 0.6, pairs: 14 },
-      { yaw: 0.08, tilt: 0.66, height: 0.84, lean: 0.72, pairs: 12 },
-      { yaw: -1.32, tilt: 0.6, height: 0.88, lean: 0.68, pairs: 12 },
-    ];
+  const count = Math.min(anchors.length, maxInstances);
+  const inst0 = useRef<THREE.InstancedMesh>(null);
+  const inst1 = useRef<THREE.InstancedMesh>(null);
+  const inst2 = useRef<THREE.InstancedMesh>(null);
 
-    const stems: THREE.BufferGeometry[] = [];
-    const pinnaeMatrices: THREE.Matrix4[] = [];
-    const pinnaeColors: THREE.Color[] = [];
+  const perBatch = useMemo(() => {
+    const groups: SurfaceAnchor[][] = [[], [], []];
+    for (let i = 0; i < count; i++) {
+      groups[i % variants.length].push(anchors[i]);
+    }
+    return groups;
+  }, [anchors, count, variants.length]);
+
+  useEffect(() => {
+    const refs = [inst0.current, inst1.current, inst2.current];
     const dummy = new THREE.Object3D();
+    const up = new THREE.Vector3(0, 1, 0);
+    const q = new THREE.Quaternion();
+    const rand = createSeededRandom(seed);
+    const colors = paletteHex.map((hex) => new THREE.Color(hex));
 
-    frondConfigs.forEach((cfg) => {
-      const cos = Math.cos(cfg.yaw);
-      const sin = Math.sin(cfg.yaw);
-      const p0 = new THREE.Vector3(0, 0, 0);
-      const p1 = new THREE.Vector3(sin * 0.14, cfg.height * 0.44, cos * 0.14);
-      const p2 = new THREE.Vector3(sin * cfg.lean * 0.68, cfg.height * 0.88, cos * cfg.lean * 0.68);
-      const p3 = new THREE.Vector3(
-        sin * cfg.lean,
-        cfg.height * (0.95 - cfg.tilt * 0.18),
-        cos * cfg.lean
-      );
+    perBatch.forEach((group, gIdx) => {
+      const mesh = refs[gIdx];
+      if (!mesh || group.length === 0) return;
 
-      const curve = new THREE.CatmullRomCurve3([p0, p1, p2, p3]);
-      stems.push(new THREE.TubeGeometry(curve, 18, 0.014, 6, false));
-
-      for (let i = 0; i < cfg.pairs; i++) {
-        const t = 0.24 + (i / (cfg.pairs - 1)) * 0.72;
-        const point = curve.getPoint(t);
-        const tangent = curve.getTangent(t).normalize();
-        const sizeEnvelope = Math.sin(Math.pow((i + 1) / cfg.pairs, 0.72) * Math.PI * 0.92);
-        const leafScale = 0.5 + sizeEnvelope * 1.1;
-
-        for (const side of [-1, 1]) {
-          dummy.position.copy(point);
-          dummy.lookAt(point.clone().add(tangent));
-          dummy.rotateX(Math.PI * 0.48);
-          dummy.rotateZ(side * (1.1 - t * 0.22));
-          dummy.rotateY(side * 0.24 + (rand() - 0.5) * 0.12);
-          dummy.scale.set(leafScale * 0.8, leafScale * 1.12, leafScale);
-          dummy.updateMatrix();
-          pinnaeMatrices.push(dummy.matrix.clone());
-
-          const shade = new THREE.Color("#629a35").lerp(
-            new THREE.Color("#8ec148"),
-            t * 0.58 + rand() * 0.18
-          );
-          pinnaeColors.push(shade);
-        }
+      for (let i = 0; i < group.length; i++) {
+        const a = group[i];
+        dummy.position.copy(a.pos).addScaledVector(a.normal, -sink);
+        q.setFromUnitVectors(up, a.normal);
+        dummy.quaternion.copy(q);
+        dummy.rotateY(rand() * Math.PI * 2);
+        dummy.rotateX((rand() - 0.5) * 0.42);
+        dummy.rotateZ((rand() - 0.5) * 0.36);
+        const s = a.scale * baseScale * (0.78 + rand() * 0.52);
+        dummy.scale.set(s * 1.15, s * yScaleRatio * (0.82 + rand() * 0.36), s * 1.15);
+        dummy.updateMatrix();
+        mesh.setMatrixAt(i, dummy.matrix);
+        mesh.setColorAt(i, colors[Math.floor(rand() * colors.length)]);
       }
+      mesh.instanceMatrix.needsUpdate = true;
+      if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
     });
+  }, [perBatch, baseScale, yScaleRatio, seed, sink, paletteHex]);
 
-    // Smooth lance-shaped arching foreground crop/fern blades at base
-    const broadAngles = [-0.45, 0.15, 0.72, -0.95, 1.15];
-    const broadMatrices: THREE.Matrix4[] = [];
-    broadAngles.forEach((a, idx) => {
-      dummy.position.set(Math.sin(a) * 0.1, 0.05 + idx * 0.035, Math.cos(a) * 0.1);
-      dummy.rotation.set(0.95 + idx * 0.05, a, (idx - 2) * 0.18);
-      dummy.scale.set(1.18, 1.28, 1.18);
-      dummy.updateMatrix();
-      broadMatrices.push(dummy.matrix.clone());
-    });
-
-    return { stems, pinnaeMatrices, pinnaeColors, broadMatrices };
-  }, []);
-
-  const pinnaGeo = useMemo(() => createBotanicalLeafGeometry(0.145, 0.025, 0.026, 0.005), []);
-  const broadGeo = useMemo(() => createBotanicalLeafGeometry(0.44, 0.068, 0.14, 0.015), []);
-
-  const stemMat = useMemo(
-    () =>
-      new THREE.MeshStandardMaterial({
-        color: "#436b28",
-        roughness: 0.55,
-      }),
-    []
-  );
-  const leafMat = useMemo(
-    () =>
-      new THREE.MeshStandardMaterial({
-        color: "#ffffff",
-        roughness: 0.52,
-        metalness: 0.02,
-        emissive: new THREE.Color("#18300b"),
-        emissiveIntensity: 0.2,
-        side: THREE.DoubleSide,
-      }),
-    []
-  );
-  const broadMat = useMemo(
-    () =>
-      new THREE.MeshStandardMaterial({
-        color: "#4d822a",
-        roughness: 0.46,
-        emissive: new THREE.Color("#142909"),
-        emissiveIntensity: 0.16,
-        side: THREE.DoubleSide,
-      }),
-    []
-  );
-
-  const pinnaInstRef = useRef<THREE.InstancedMesh>(null);
-  const broadInstRef = useRef<THREE.InstancedMesh>(null);
-
-  useEffect(() => {
-    const pMesh = pinnaInstRef.current;
-    if (pMesh) {
-      fernSpec.pinnaeMatrices.forEach((m, i) => {
-        pMesh.setMatrixAt(i, m);
-        pMesh.setColorAt(i, fernSpec.pinnaeColors[i]);
-      });
-      pMesh.instanceMatrix.needsUpdate = true;
-      if (pMesh.instanceColor) pMesh.instanceColor.needsUpdate = true;
-    }
-
-    const bMesh = broadInstRef.current;
-    if (bMesh) {
-      fernSpec.broadMatrices.forEach((m, i) => {
-        bMesh.setMatrixAt(i, m);
-      });
-      bMesh.instanceMatrix.needsUpdate = true;
-    }
-  }, [fernSpec]);
-
-  useEffect(() => {
-    return () => {
-      fernSpec.stems.forEach((g) => g.dispose());
-      pinnaGeo.dispose();
-      broadGeo.dispose();
-      stemMat.dispose();
-      leafMat.dispose();
-      broadMat.dispose();
-    };
-  }, [fernSpec, pinnaGeo, broadGeo, stemMat, leafMat, broadMat]);
+  if (count === 0) return null;
 
   return (
-    <group position={position} rotation={[0, 0.22, 0]} scale={scale}>
-      {fernSpec.stems.map((geo, i) => (
-        <mesh key={i} geometry={geo} material={stemMat} castShadow />
-      ))}
-      <instancedMesh
-        ref={pinnaInstRef}
-        args={[pinnaGeo, leafMat, fernSpec.pinnaeMatrices.length]}
+    <>
+      {variants.map((v, idx) => {
+        const group = perBatch[idx];
+        if (!group || group.length === 0) return null;
+        const ref = idx === 0 ? inst0 : idx === 1 ? inst1 : inst2;
+        return (
+          <instancedMesh
+            key={idx}
+            ref={ref}
+            args={[v.geometry, v.material, group.length]}
+            receiveShadow
+          />
+        );
+      })}
+    </>
+  );
+}
+
+/**
+ * Photogrammetry evergreen bush cluster composed of multi-angled woody shrub_04 sprays.
+ */
+function PhotogrammetryShrubCluster({
+  position,
+  geometry,
+  material,
+  stemCount = 16,
+  spread = 0.52,
+  scaleRange = [1.55, 2.35],
+  seed = 901,
+}: {
+  position: [number, number, number];
+  geometry: THREE.BufferGeometry;
+  material: THREE.Material;
+  stemCount?: number;
+  spread?: number;
+  scaleRange?: [number, number];
+  seed?: number;
+}) {
+  const instRef = useRef<THREE.InstancedMesh>(null);
+
+  useEffect(() => {
+    const mesh = instRef.current;
+    if (!mesh) return;
+    const dummy = new THREE.Object3D();
+    const rand = createSeededRandom(seed);
+    const shades = [
+      new THREE.Color("#e8efe0"),
+      new THREE.Color("#d5e2ca"),
+      new THREE.Color("#f0f5ea"),
+      new THREE.Color("#c7d8bb"),
+    ];
+
+    for (let i = 0; i < stemCount; i++) {
+      const yaw = (i / stemCount) * Math.PI * 2 + (rand() - 0.5) * 0.35;
+      const radial = rand() * spread;
+      dummy.position.set(
+        Math.cos(yaw) * radial,
+        (rand() - 0.3) * 0.14,
+        Math.sin(yaw) * radial * 0.72
+      );
+      // shrub_04 twigs grow obliquely along -X/+Y; tilt upward into natural bushy fan
+      dummy.rotation.set(
+        (rand() - 0.5) * 0.45,
+        yaw,
+        -0.72 + (rand() - 0.5) * 0.38
+      );
+      const s = THREE.MathUtils.lerp(scaleRange[0], scaleRange[1], rand());
+      dummy.scale.set(s, s, s);
+      dummy.updateMatrix();
+      mesh.setMatrixAt(i, dummy.matrix);
+      mesh.setColorAt(i, shades[Math.floor(rand() * shades.length)]);
+    }
+    mesh.instanceMatrix.needsUpdate = true;
+    if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
+  }, [stemCount, spread, scaleRange, seed]);
+
+  return (
+    <group position={position}>
+      <instancedMesh ref={instRef} args={[geometry, material, stemCount]} castShadow receiveShadow />
+    </group>
+  );
+}
+
+/**
+ * Multi-rosette woodland fern clump using alpha-masked photogrammetry fern_02 scans.
+ */
+function PhotogrammetryFernCluster({
+  position,
+  parts,
+  material,
+  scale = 1,
+  rotationY = 0.25,
+}: {
+  position: [number, number, number];
+  parts: {
+    a: THREE.BufferGeometry;
+    b: THREE.BufferGeometry;
+    c: THREE.BufferGeometry;
+    d: THREE.BufferGeometry;
+  };
+  material: THREE.Material;
+  scale?: number | [number, number, number];
+  rotationY?: number;
+}) {
+  return (
+    <group position={position} rotation={[0, rotationY, 0]} scale={scale}>
+      <mesh geometry={parts.b} material={material} position={[0, 0, 0]} scale={1.06} castShadow receiveShadow />
+      <mesh
+        geometry={parts.c}
+        material={material}
+        position={[0.14, -0.01, -0.1]}
+        rotation={[0.05, 1.35, -0.04]}
+        scale={0.94}
         castShadow
         receiveShadow
       />
-      <instancedMesh
-        ref={broadInstRef}
-        args={[broadGeo, broadMat, fernSpec.broadMatrices.length]}
+      <mesh
+        geometry={parts.a}
+        material={material}
+        position={[-0.16, -0.01, 0.14]}
+        rotation={[-0.06, -1.1, 0.04]}
+        scale={1.08}
+        castShadow
+        receiveShadow
+      />
+      <mesh
+        geometry={parts.d}
+        material={material}
+        position={[0.12, 0.0, 0.2]}
+        rotation={[0.04, 2.3, 0.03]}
+        scale={0.95}
         castShadow
         receiveShadow
       />
@@ -368,15 +342,16 @@ function CompoundFernCluster({
 }
 
 /**
- * Scene 4 Detailed Observation Station Mast with accurately bolted sensor struts.
+ * Scene 4 Weather & Agricultural Micro-Climate Observation Mast.
  */
 function ObservationMast({ position }: { position: [number, number, number] }) {
   const metalMat = useMemo(
     () =>
       new THREE.MeshStandardMaterial({
-        color: "#bfc5bf",
-        metalness: 0.72,
-        roughness: 0.3,
+        color: "#c8ceca",
+        metalness: 0.78,
+        roughness: 0.28,
+        envMapIntensity: 1.25,
       }),
     []
   );
@@ -384,17 +359,19 @@ function ObservationMast({ position }: { position: [number, number, number] }) {
     () =>
       new THREE.MeshStandardMaterial({
         color: "#2b302c",
-        metalness: 0.55,
-        roughness: 0.45,
+        metalness: 0.58,
+        roughness: 0.42,
+        envMapIntensity: 0.9,
       }),
     []
   );
   const plateMat = useMemo(
     () =>
       new THREE.MeshStandardMaterial({
-        color: "#e6ebe6",
-        metalness: 0.1,
-        roughness: 0.35,
+        color: "#ecefed",
+        metalness: 0.08,
+        roughness: 0.34,
+        envMapIntensity: 0.9,
       }),
     []
   );
@@ -416,14 +393,14 @@ function ObservationMast({ position }: { position: [number, number, number] }) {
 
   return (
     <group position={position}>
-      {/* Main Vertical Anodized Pole */}
+      {/* Main Vertical Anodized Mast Pole */}
       <mesh position={[0, 1.35, 0]} material={metalMat} castShadow>
-        <cylinderGeometry args={[0.042, 0.048, 3.8, 16]} />
+        <cylinderGeometry args={[0.042, 0.048, 3.8, 18]} />
       </mesh>
 
       {/* Top Whip Antenna & Cap */}
       <mesh position={[0, 3.85, 0]} material={metalMat}>
-        <cylinderGeometry args={[0.011, 0.014, 1.3, 10]} />
+        <cylinderGeometry args={[0.011, 0.014, 1.3, 12]} />
       </mesh>
       <mesh position={[0, 3.24, 0]} material={darkMetalMat}>
         <cylinderGeometry args={[0.048, 0.048, 0.05, 16]} />
@@ -431,10 +408,10 @@ function ObservationMast({ position }: { position: [number, number, number] }) {
 
       {/* Upper & Center Collar Clamps */}
       <mesh position={[0, 2.72, 0]} material={metalMat}>
-        <cylinderGeometry args={[0.068, 0.068, 0.08, 16]} />
+        <cylinderGeometry args={[0.068, 0.068, 0.08, 18]} />
       </mesh>
       <mesh position={[0, 2.02, 0]} material={metalMat}>
-        <cylinderGeometry args={[0.075, 0.075, 0.16, 16]} />
+        <cylinderGeometry args={[0.075, 0.075, 0.16, 18]} />
       </mesh>
 
       {/* Horizontal Cross-Arm Tube */}
@@ -444,18 +421,18 @@ function ObservationMast({ position }: { position: [number, number, number] }) {
         material={metalMat}
         castShadow
       >
-        <cylinderGeometry args={[0.032, 0.032, 1.85, 14]} />
+        <cylinderGeometry args={[0.032, 0.032, 1.85, 16]} />
       </mesh>
 
       {/* Right Pyranometer Sensor Boom Tip */}
       <mesh position={[1.18, 2.02, 0]} rotation={[0, 0, Math.PI / 2]} material={plateMat}>
-        <cylinderGeometry args={[0.022, 0.03, 0.24, 12]} />
+        <cylinderGeometry args={[0.022, 0.03, 0.24, 14]} />
       </mesh>
       <mesh position={[1.29, 2.04, 0]} material={darkMetalMat}>
-        <cylinderGeometry args={[0.025, 0.025, 0.04, 12]} />
+        <cylinderGeometry args={[0.025, 0.025, 0.04, 14]} />
       </mesh>
 
-      {/* Twin Louvered Radiation Shields with Exact Bolted Support Struts */}
+      {/* Twin Louvered Radiation Shields with Bolted Struts */}
       {sensors.map((sensor, sIdx) => {
         const dx = sensor.x - sensor.armX;
         const dy = sensor.y - 2.02;
@@ -466,19 +443,19 @@ function ObservationMast({ position }: { position: [number, number, number] }) {
 
         return (
           <group key={sIdx}>
-            {/* Clamp Ring on Cross-Arm */}
-            <mesh position={[sensor.armX, 2.02, 0]} rotation={[0, 0, Math.PI / 2]} material={darkMetalMat}>
-              <cylinderGeometry args={[0.044, 0.044, 0.06, 12]} />
+            <mesh
+              position={[sensor.armX, 2.02, 0]}
+              rotation={[0, 0, Math.PI / 2]}
+              material={darkMetalMat}
+            >
+              <cylinderGeometry args={[0.044, 0.044, 0.06, 14]} />
             </mesh>
-
-            {/* Exact Diagonal Strut from Cross-Arm to Sensor Base */}
             <mesh position={[midX, midY, 0]} rotation={[0, 0, angleZ]} material={metalMat}>
               <boxGeometry args={[0.036, len, 0.055]} />
             </mesh>
-
             <group position={[sensor.x, sensor.y, 0]} scale={sensor.scale}>
               <mesh position={[0, 0.16, 0]} material={darkMetalMat}>
-                <cylinderGeometry args={[0.105, 0.105, 0.34, 18]} />
+                <cylinderGeometry args={[0.105, 0.105, 0.34, 20]} />
               </mesh>
               <mesh position={[0, 0.35, 0]} material={plateMat} castShadow>
                 <cylinderGeometry args={[0.11, 0.155, 0.04, 24]} />
@@ -493,9 +470,9 @@ function ObservationMast({ position }: { position: [number, number, number] }) {
         );
       })}
 
-      {/* Lower Guy-Wire Collar & 3 Guy Tension Wires */}
+      {/* Lower Guy-Wire Collar & Anchored Tension Cables */}
       <mesh position={[0, 1.05, 0]} material={metalMat}>
-        <cylinderGeometry args={[0.06, 0.06, 0.07, 14]} />
+        <cylinderGeometry args={[0.06, 0.06, 0.07, 16]} />
       </mesh>
       {[
         { rotY: 0.25, tilt: 0.26 },
@@ -513,96 +490,9 @@ function ObservationMast({ position }: { position: [number, number, number] }) {
 }
 
 /**
- * Dense Rounded Ovate Leaf Crown Behind Scene 4 Station Outcrop.
+ * Full Photorealistic 3D World rendered inside <Canvas>. Zero React setState inside useFrame.
  */
-function ShrubFoliageCrown({
-  position,
-  leafCount = 860,
-  radius = 1.65,
-  seed = 901,
-}: {
-  position: [number, number, number];
-  leafCount?: number;
-  radius?: number;
-  seed?: number;
-}) {
-  const instRef = useRef<THREE.InstancedMesh>(null);
-  const leafGeo = useMemo(() => createBotanicalLeafGeometry(0.24, 0.078, 0.055, 0.012), []);
-  const leafMat = useMemo(
-    () =>
-      new THREE.MeshStandardMaterial({
-        color: "#ffffff",
-        roughness: 0.44,
-        metalness: 0.02,
-        emissive: new THREE.Color("#162b0b"),
-        emissiveIntensity: 0.16,
-        side: THREE.DoubleSide,
-      }),
-    []
-  );
-
-  useEffect(() => {
-    const mesh = instRef.current;
-    if (!mesh) return;
-    const dummy = new THREE.Object3D();
-    const rand = createSeededRandom(seed);
-    const palette = [
-      new THREE.Color("#456f27"),
-      new THREE.Color("#5f8e34"),
-      new THREE.Color("#7ba840"),
-      new THREE.Color("#33551c"),
-      new THREE.Color("#8ebc4d"),
-    ];
-
-    for (let i = 0; i < leafCount; i++) {
-      const u = rand();
-      const v = rand();
-      const theta = u * Math.PI * 2;
-      const phi = Math.acos(2 * v - 1);
-      const r = radius * (0.42 + Math.pow(rand(), 0.42) * 0.58);
-
-      const x = r * Math.sin(phi) * Math.cos(theta);
-      const y = Math.abs(r * Math.cos(phi)) * 0.85;
-      const z = r * Math.sin(phi) * Math.sin(theta) * 0.72;
-
-      dummy.position.set(x, y, z);
-      dummy.rotation.set(
-        (rand() - 0.5) * 1.6,
-        rand() * Math.PI * 2,
-        (rand() - 0.5) * 1.4
-      );
-      const s = 0.65 + rand() * 0.72;
-      dummy.scale.set(s, s, s);
-      dummy.updateMatrix();
-      mesh.setMatrixAt(i, dummy.matrix);
-      mesh.setColorAt(i, palette[Math.floor(rand() * palette.length)]);
-    }
-    mesh.instanceMatrix.needsUpdate = true;
-    if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
-  }, [leafCount, radius, seed]);
-
-  useEffect(() => {
-    return () => {
-      leafGeo.dispose();
-      leafMat.dispose();
-    };
-  }, [leafGeo, leafMat]);
-
-  return (
-    <group position={position}>
-      <instancedMesh ref={instRef} args={[leafGeo, leafMat, leafCount]} castShadow receiveShadow />
-    </group>
-  );
-}
-
-/**
- * Full 3D World rendered inside <Canvas>. Zero React setState inside useFrame.
- */
-function EcoWorld({
-  scrollProgressRef,
-  mousePosRef,
-  reducedMotion,
-}: EcoTechSceneProps) {
+function EcoWorld({ scrollProgressRef, mousePosRef, reducedMotion }: EcoTechSceneProps) {
   const { camera, scene } = useThree();
   const mistRef = useRef(0);
   const smoothedScroll = useRef(0);
@@ -620,301 +510,377 @@ function EcoWorld({
   const keyLightRef = useRef<THREE.DirectionalLight>(null);
   const backLightRef = useRef<THREE.DirectionalLight>(null);
   const hemiLightRef = useRef<THREE.HemisphereLight>(null);
+  const keyTarget = useMemo(() => new THREE.Object3D(), []);
 
-  const [rockTex, mossTex, soilTex] = useTexture([
-    "/images/rock-albedo.jpg",
+  useEffect(() => {
+    scene.add(keyTarget);
+    if (keyLightRef.current) {
+      keyLightRef.current.target = keyTarget;
+    }
+    return () => {
+      scene.remove(keyTarget);
+    };
+  }, [scene, keyTarget]);
+
+  // Load 6 compressed CC0 photogrammetry GLBs
+  const boulderGltf = useGLTF("/models/boulder_01.glb");
+  const mossRocks1Gltf = useGLTF("/models/rock_moss_set_01.glb");
+  const mossRocks2Gltf = useGLTF("/models/rock_moss_set_02.glb");
+  const fernGltf = useGLTF("/models/fern_02.glb");
+  const mossGltf = useGLTF("/models/moss_01.glb");
+  const shrubGltf = useGLTF("/models/shrub_04.glb");
+
+  // Load full PBR texture sets (Diffuse + OpenGL Normal + Roughness + AO)
+  const [
+    groundCol,
+    groundNor,
+    groundRough,
+    groundAo,
+    mossyCol,
+    mossyNor,
+    mossyRough,
+    mossyAo,
+  ] = useTexture([
+    "/textures/rocks_ground_02/rocks_ground_02_col_1k.jpg",
+    "/textures/rocks_ground_02/rocks_ground_02_nor_gl_1k.jpg",
+    "/textures/rocks_ground_02/rocks_ground_02_rough_1k.jpg",
+    "/textures/rocks_ground_02/rocks_ground_02_ao_1k.jpg",
     "/images/moss-albedo.jpg",
-    "/images/soil-albedo.jpg",
+    "/textures/mossy_rock/mossy_rock_nor_gl_1k.jpg",
+    "/textures/mossy_rock/mossy_rock_rough_1k.jpg",
+    "/textures/mossy_rock/mossy_rock_ao_1k.jpg",
   ]);
 
   useEffect(() => {
-    [rockTex, mossTex, soilTex].forEach((tex) => {
+    [groundCol, mossyCol].forEach((tex) => {
+      tex.colorSpace = THREE.SRGBColorSpace;
+    });
+    [
+      groundCol,
+      groundNor,
+      groundRough,
+      groundAo,
+      mossyCol,
+      mossyNor,
+      mossyRough,
+      mossyAo,
+    ].forEach((tex) => {
       tex.wrapS = THREE.RepeatWrapping;
       tex.wrapT = THREE.RepeatWrapping;
-      tex.colorSpace = THREE.SRGBColorSpace;
+      tex.channel = 0;
       tex.anisotropy = 8;
       tex.needsUpdate = true;
     });
-  }, [rockTex, mossTex, soilTex]);
+    [mossyCol, mossyNor, mossyRough, mossyAo].forEach((tex) => {
+      tex.repeat.set(2.2, 2.2);
+      tex.needsUpdate = true;
+    });
+  }, [groundCol, groundNor, groundRough, groundAo, mossyCol, mossyNor, mossyRough, mossyAo]);
 
-  const assets = useMemo(() => {
-    const mainBoulder = createSculptedBoulder(1.42, {
-      seed: 17,
-      segments: 34,
-      scale: [1.18, 0.94, 1.05],
-      cragStrength: 0.24,
-      fracturePlanes: 6,
-      uvScale: 2.0,
-      mossBias: 0.25,
-    });
-    // Plush textured 3D moss caps hugging main rock crest & saddle
-    const mossCapMain = createMossCushionBlob(0.85, [1.35, 0.48, 1.05], 11);
-    const mossCapLeft = createMossCushionBlob(0.62, [1.15, 0.45, 0.92], 23);
-    const mossCapRight = createMossCushionBlob(0.58, [1.1, 0.52, 0.95], 37);
-    const mossCapFront = createMossCushionBlob(0.45, [1.2, 0.36, 0.85], 49);
-    const satMossCap = createMossCushionBlob(0.32, [1.05, 0.45, 0.95], 63);
+  // Extract centered/grounded photogrammetry geometries + calibrate materials
+  const sceneAssets = useMemo(() => {
+    const boulderCore = extractMeshPart(boulderGltf.scene, "boulder_01", "center");
 
-    const sat1 = createSculptedBoulder(0.46, {
-      seed: 33,
-      segments: 18,
-      scale: [1.14, 0.86, 0.95],
-      cragStrength: 0.22,
-      fracturePlanes: 5,
-      mossBias: -0.05,
-    });
-    const sat2 = createSculptedBoulder(0.56, {
-      seed: 51,
-      segments: 18,
-      scale: [1.28, 0.8, 1.02],
-      cragStrength: 0.2,
-      fracturePlanes: 5,
-      mossBias: 0.14,
-    });
-    const sat3 = createSculptedBoulder(0.24, {
-      seed: 89,
-      segments: 14,
-      scale: [0.92, 1.2, 0.95],
-      cragStrength: 0.2,
-      fracturePlanes: 4,
-      mossBias: 0.0,
-    });
+    const r1_01 = extractMeshPart(mossRocks1Gltf.scene, "rock_moss_set_01_rock01", "center");
+    const r1_02 = extractMeshPart(mossRocks1Gltf.scene, "rock_moss_set_01_rock02", "center");
+    const r1_03 = extractMeshPart(mossRocks1Gltf.scene, "rock_moss_set_01_rock03", "center");
+    const r1_04 = extractMeshPart(mossRocks1Gltf.scene, "rock_moss_set_01_rock04", "center");
+    const r1_05 = extractMeshPart(mossRocks1Gltf.scene, "rock_moss_set_01_rock05", "center");
 
-    const portalLeft = createSculptedBoulder(1.3, {
-      seed: 112,
-      segments: 16,
-      scale: [1.0, 1.45, 1.2],
-      mossBias: 0.35,
+    const r2_07 = extractMeshPart(mossRocks2Gltf.scene, "rock_moss_set_02_rock07", "center");
+    const r2_08 = extractMeshPart(mossRocks2Gltf.scene, "rock_moss_set_02_rock08", "center");
+    const r2_09 = extractMeshPart(mossRocks2Gltf.scene, "rock_moss_set_02_rock09", "center");
+    const r2_12 = extractMeshPart(mossRocks2Gltf.scene, "rock_moss_set_02_rock12", "base");
+
+    const fernA = extractMeshPart(fernGltf.scene, "fern_02_a", "base");
+    const fernB = extractMeshPart(fernGltf.scene, "fern_02_b", "base");
+    const fernC = extractMeshPart(fernGltf.scene, "fern_02_c", "base");
+    const fernD = extractMeshPart(fernGltf.scene, "fern_02_d", "base");
+
+    const mossA = extractMeshPart(mossGltf.scene, "moss_01_a_LOD0", "base");
+    const mossB = extractMeshPart(mossGltf.scene, "moss_01_b_LOD0", "base");
+    const mossI = extractMeshPart(mossGltf.scene, "moss_01_i_LOD0", "base");
+
+    const shrubPart = extractMeshPart(shrubGltf.scene, "shrub_04", "base");
+
+    // Sample organic crevice moss anchors directly on hero rock core + upper mossy cap
+    const heroAnchorsCore = sampleRockMossAnchors(boulderCore.geometry, {
+      seed: 109,
+      maxCount: 340,
+      minNormalY: 0.16,
+      frontBiasZ: 0.28,
+      patchThreshold: -0.06,
     });
-    const portalRight = createSculptedBoulder(1.3, {
-      seed: 129,
-      segments: 16,
-      scale: [1.0, 1.45, 1.2],
-      mossBias: 0.35,
+    const heroAnchorsCap = sampleRockMossAnchors(r1_01.geometry, {
+      seed: 211,
+      maxCount: 240,
+      minNormalY: 0.22,
+      frontBiasZ: 0.22,
+      patchThreshold: -0.1,
+    });
+    const sat2Anchors = sampleRockMossAnchors(r2_09.geometry, {
+      seed: 317,
+      maxCount: 110,
+      minNormalY: 0.36,
+      frontBiasZ: 0.12,
+      patchThreshold: -0.02,
     });
 
-    const terrainGeo = createTerrainGeometry(28, 18, 96, 68, 313);
-    const frontMoss = createMossHummockGeometry(3.2, 2.2, 0.62, 505);
-    const horizonMoss1 = createMossHummockGeometry(3.4, 1.6, 0.42, 607);
-    const horizonMoss2 = createMossHummockGeometry(2.6, 1.4, 0.36, 709);
+    // Diorama B terrain & mossy hummock cushions
+    const terrainGeo = createTerrainGeometry(30, 20, 120, 84, 313);
+    const frontMoss = createMossHummockGeometry(3.2, 2.2, 0.56, 505);
+    const horizonMoss1 = createMossHummockGeometry(3.4, 1.6, 0.38, 607);
+    const horizonMoss2 = createMossHummockGeometry(2.6, 1.4, 0.34, 709);
 
-    const stationBluffLeft = createSculptedBoulder(1.35, {
-      seed: 811,
-      segments: 20,
-      scale: [1.55, 0.82, 1.25],
-      mossBias: 0.32,
+    // Calibrated PBR Materials
+    const boulderMat = cloneTunedMaterial(boulderCore.material, {
+      colorHex: "#9e9882",
+      roughnessScale: 0.96,
+      envMapIntensity: 0.72,
+      normalScale: 1.55,
+      aoMapIntensity: 1.25,
+      doubleSided: false,
     });
-    const stationBluffRight = createSculptedBoulder(1.65, {
-      seed: 823,
-      segments: 22,
-      scale: [1.85, 0.95, 1.3],
-      mossBias: 0.38,
+    const mossRock1Mat = cloneTunedMaterial(r1_01.material, {
+      colorHex: "#a8aa90",
+      roughnessScale: 0.94,
+      envMapIntensity: 0.72,
+      normalScale: 1.45,
+      aoMapIntensity: 1.15,
+      doubleSided: false,
     });
-    const mastPlinthRock = createSculptedBoulder(1.1, {
-      seed: 857,
-      segments: 18,
-      scale: [1.85, 0.65, 1.25],
-      mossBias: 0.42,
+    const mossRock2Mat = cloneTunedMaterial(r2_07.material, {
+      colorHex: "#a3a18f",
+      roughnessScale: 0.95,
+      envMapIntensity: 0.7,
+      normalScale: 1.35,
+      aoMapIntensity: 1.15,
+      doubleSided: false,
     });
 
-    const pebbleGeo = createSculptedBoulder(0.085, {
-      seed: 951,
-      segments: 8,
-      scale: [1.35, 0.65, 1.15],
-      cragStrength: 0.18,
-      fracturePlanes: 3,
-      mossBias: -0.4,
-    }).geometry;
+    const fernMat = cloneTunedMaterial(fernB.material, {
+      colorHex: "#b2d178",
+      alphaTest: 0.22,
+      roughnessScale: 0.78,
+      envMapIntensity: 0.95,
+      emissiveHex: "#1c360b",
+      emissiveIntensity: 0.2,
+      normalScale: 1.15,
+      aoMapIntensity: 0.75,
+      doubleSided: true,
+    });
 
-    const velvetHairGeo = createVelvetHairGeometry(0.044, 0.0038);
+    const mossClumpMat = cloneTunedMaterial(mossA.material, {
+      colorHex: "#aed16a",
+      alphaTest: 0.16,
+      roughnessScale: 0.85,
+      envMapIntensity: 0.88,
+      emissiveHex: "#1e3a0d",
+      emissiveIntensity: 0.22,
+      normalScale: 1.2,
+      aoMapIntensity: 0.78,
+      doubleSided: true,
+    });
+
+    const shrubMat = cloneTunedMaterial(shrubPart.material, {
+      colorHex: "#dce8cc",
+      alphaTest: 0.32,
+      roughnessScale: 0.8,
+      envMapIntensity: 0.95,
+      emissiveHex: "#162b0b",
+      emissiveIntensity: 0.14,
+      normalScale: 1.15,
+      aoMapIntensity: 0.8,
+      doubleSided: true,
+    });
+
+    const terrainMat = new THREE.MeshStandardMaterial({
+      map: groundCol,
+      normalMap: groundNor,
+      normalScale: new THREE.Vector2(1.22, 1.22),
+      roughnessMap: groundRough,
+      aoMap: groundAo,
+      aoMapIntensity: 0.82,
+      vertexColors: true,
+      roughness: 0.95,
+      metalness: 0.02,
+      envMapIntensity: 0.56,
+    });
+
+    const hummockBaseMat = new THREE.MeshStandardMaterial({
+      map: mossyCol,
+      normalMap: mossyNor,
+      normalScale: new THREE.Vector2(1.3, 1.3),
+      roughnessMap: mossyRough,
+      aoMap: mossyAo,
+      aoMapIntensity: 0.88,
+      color: "#7ea346",
+      roughness: 0.9,
+      metalness: 0.02,
+      envMapIntensity: 0.72,
+    });
+
     const mistTex = createMistTexture();
-
-    return {
-      mainBoulder,
-      mossCapMain,
-      mossCapLeft,
-      mossCapRight,
-      mossCapFront,
-      satMossCap,
-      sat1,
-      sat2,
-      sat3,
-      portalLeft,
-      portalRight,
-      terrainGeo,
-      frontMoss,
-      horizonMoss1,
-      horizonMoss2,
-      stationBluffLeft,
-      stationBluffRight,
-      mastPlinthRock,
-      pebbleGeo,
-      velvetHairGeo,
-      mistTex,
-    };
-  }, []);
-
-  const materials = useMemo(() => {
-    const rockMat = new THREE.MeshStandardMaterial({
-      map: rockTex,
-      bumpMap: rockTex,
-      bumpScale: 0.05,
-      vertexColors: true,
-      roughness: 0.88,
-      metalness: 0.03,
-    });
-    const mossyRockMat = new THREE.MeshStandardMaterial({
-      map: rockTex,
-      bumpMap: rockTex,
-      bumpScale: 0.055,
-      vertexColors: true,
-      roughness: 0.85,
-      metalness: 0.03,
-    });
-    const soilMat = new THREE.MeshStandardMaterial({
-      map: soilTex,
-      bumpMap: soilTex,
-      bumpScale: 0.055,
-      vertexColors: true,
-      roughness: 0.94,
-      metalness: 0.02,
-    });
-    const mossMat = new THREE.MeshStandardMaterial({
-      map: mossTex,
-      bumpMap: mossTex,
-      bumpScale: 0.05,
-      roughness: 0.92,
-      metalness: 0.02,
-      color: "#d9ebc2",
-    });
-    const fuzzMat = new THREE.MeshStandardMaterial({
-      color: "#ffffff",
-      roughness: 0.72,
-      emissive: new THREE.Color("#2b4a16"),
-      emissiveIntensity: 0.28,
-      side: THREE.DoubleSide,
-    });
-    const pebbleMat = new THREE.MeshStandardMaterial({
-      map: soilTex,
-      roughness: 0.85,
-      color: "#9d9282",
-    });
     const mistSpriteMat = new THREE.SpriteMaterial({
-      map: assets.mistTex,
+      map: mistTex,
       transparent: true,
-      opacity: 0.36,
+      opacity: 0.34,
       depthWrite: false,
     });
 
     return {
-      rockMat,
-      mossyRockMat,
-      soilMat,
-      mossMat,
-      fuzzMat,
-      pebbleMat,
+      boulderCore,
+      r1_01,
+      r1_02,
+      r1_03,
+      r1_04,
+      r1_05,
+      r2_07,
+      r2_08,
+      r2_09,
+      r2_12,
+      fernParts: {
+        a: fernA.geometry,
+        b: fernB.geometry,
+        c: fernC.geometry,
+        d: fernD.geometry,
+      },
+      mossVariants: [
+        { geometry: mossA.geometry, material: mossClumpMat },
+        { geometry: mossB.geometry, material: mossClumpMat },
+        { geometry: mossI.geometry, material: mossClumpMat },
+      ] as MossBatchVariant[],
+      shrubGeo: shrubPart.geometry,
+      heroAnchorsCore,
+      heroAnchorsCap,
+      sat2Anchors,
+      terrainGeo,
+      frontMoss,
+      horizonMoss1,
+      horizonMoss2,
+      boulderMat,
+      mossRock1Mat,
+      mossRock2Mat,
+      fernMat,
+      mossClumpMat,
+      shrubMat,
+      terrainMat,
+      hummockBaseMat,
+      mistTex,
       mistSpriteMat,
     };
-  }, [rockTex, mossTex, soilTex, assets.mistTex]);
-
-  const pebbleInstRef = useRef<THREE.InstancedMesh>(null);
-  const fuzzInstRef = useRef<THREE.InstancedMesh>(null);
-  const pebbleCount = 80;
-  const fuzzCount = Math.min(assets.frontMoss.fuzzAnchors.length, 1500);
-
-  useEffect(() => {
-    const pMesh = pebbleInstRef.current;
-    if (pMesh) {
-      const dummy = new THREE.Object3D();
-      const rand = createSeededRandom(301);
-      for (let i = 0; i < pebbleCount; i++) {
-        const px = -2.2 + rand() * 7.8;
-        const pz = -2.4 + rand() * 4.0;
-        dummy.position.set(px, -0.02 + rand() * 0.08, pz);
-        dummy.rotation.set(rand() * 0.6, rand() * Math.PI * 2, rand() * 0.6);
-        const s = 0.45 + rand() * 1.35;
-        dummy.scale.set(s, s * (0.62 + rand() * 0.38), s);
-        dummy.updateMatrix();
-        pMesh.setMatrixAt(i, dummy.matrix);
-      }
-      pMesh.instanceMatrix.needsUpdate = true;
-    }
-
-    const fMesh = fuzzInstRef.current;
-    if (fMesh && fuzzCount > 0) {
-      const dummy = new THREE.Object3D();
-      const up = new THREE.Vector3(0, 1, 0);
-      const q = new THREE.Quaternion();
-      const rand = createSeededRandom(557);
-      const greens = [
-        new THREE.Color("#73a840"),
-        new THREE.Color("#9bc95f"),
-        new THREE.Color("#5c8a2f"),
-        new THREE.Color("#aed86f"),
-      ];
-      for (let i = 0; i < fuzzCount; i++) {
-        const a = assets.frontMoss.fuzzAnchors[i % assets.frontMoss.fuzzAnchors.length];
-        dummy.position.copy(a.pos);
-        q.setFromUnitVectors(up, a.normal);
-        dummy.quaternion.copy(q);
-        dummy.rotateY(rand() * Math.PI * 2);
-        dummy.rotateX((rand() - 0.5) * 0.25);
-        const s = a.scale * (0.85 + rand() * 0.6);
-        dummy.scale.set(s, s, s);
-        dummy.updateMatrix();
-        fMesh.setMatrixAt(i, dummy.matrix);
-        fMesh.setColorAt(i, greens[Math.floor(rand() * greens.length)]);
-      }
-      fMesh.instanceMatrix.needsUpdate = true;
-      if (fMesh.instanceColor) fMesh.instanceColor.needsUpdate = true;
-    }
-  }, [assets, fuzzCount]);
+  }, [
+    boulderGltf,
+    mossRocks1Gltf,
+    mossRocks2Gltf,
+    fernGltf,
+    mossGltf,
+    shrubGltf,
+    groundCol,
+    groundNor,
+    groundRough,
+    groundAo,
+    mossyCol,
+    mossyNor,
+    mossyRough,
+    mossyAo,
+  ]);
 
   useEffect(() => {
     return () => {
-      assets.mainBoulder.geometry.dispose();
-      assets.mossCapMain.dispose();
-      assets.mossCapLeft.dispose();
-      assets.mossCapRight.dispose();
-      assets.mossCapFront.dispose();
-      assets.satMossCap.dispose();
-      assets.sat1.geometry.dispose();
-      assets.sat2.geometry.dispose();
-      assets.sat3.geometry.dispose();
-      assets.portalLeft.geometry.dispose();
-      assets.portalRight.geometry.dispose();
-      assets.terrainGeo.dispose();
-      assets.frontMoss.geometry.dispose();
-      assets.horizonMoss1.geometry.dispose();
-      assets.horizonMoss2.geometry.dispose();
-      assets.stationBluffLeft.geometry.dispose();
-      assets.stationBluffRight.geometry.dispose();
-      assets.mastPlinthRock.geometry.dispose();
-      assets.pebbleGeo.dispose();
-      assets.velvetHairGeo.dispose();
-      assets.mistTex.dispose();
+      sceneAssets.boulderCore.geometry.dispose();
+      sceneAssets.r1_01.geometry.dispose();
+      sceneAssets.r1_02.geometry.dispose();
+      sceneAssets.r1_03.geometry.dispose();
+      sceneAssets.r1_04.geometry.dispose();
+      sceneAssets.r1_05.geometry.dispose();
+      sceneAssets.r2_07.geometry.dispose();
+      sceneAssets.r2_08.geometry.dispose();
+      sceneAssets.r2_09.geometry.dispose();
+      sceneAssets.r2_12.geometry.dispose();
+      sceneAssets.fernParts.a.dispose();
+      sceneAssets.fernParts.b.dispose();
+      sceneAssets.fernParts.c.dispose();
+      sceneAssets.fernParts.d.dispose();
+      sceneAssets.mossVariants.forEach((v) => v.geometry.dispose());
+      sceneAssets.shrubGeo.dispose();
+      sceneAssets.terrainGeo.dispose();
+      sceneAssets.frontMoss.geometry.dispose();
+      sceneAssets.horizonMoss1.geometry.dispose();
+      sceneAssets.horizonMoss2.geometry.dispose();
+      sceneAssets.mistTex.dispose();
 
-      Object.values(materials).forEach((m) => m.dispose());
+      sceneAssets.boulderMat.dispose();
+      sceneAssets.mossRock1Mat.dispose();
+      sceneAssets.mossRock2Mat.dispose();
+      sceneAssets.fernMat.dispose();
+      sceneAssets.mossClumpMat.dispose();
+      sceneAssets.shrubMat.dispose();
+      sceneAssets.terrainMat.dispose();
+      sceneAssets.hummockBaseMat.dispose();
+      sceneAssets.mistSpriteMat.dispose();
     };
-  }, [assets, materials]);
+  }, [sceneAssets]);
+
+  // Scatter photogrammetry scree stones embedded naturally into Scene 3 soil terrain
+  const stoneInstRef = useRef<THREE.InstancedMesh>(null);
+  const stoneCount = 72;
+
+  useEffect(() => {
+    const sMesh = stoneInstRef.current;
+    if (!sMesh) return;
+    const dummy = new THREE.Object3D();
+    const rand = createSeededRandom(301);
+    const tints = [
+      new THREE.Color("#dedad0"),
+      new THREE.Color("#c8c2b6"),
+      new THREE.Color("#b5ae9f"),
+      new THREE.Color("#e8e4da"),
+    ];
+    for (let i = 0; i < stoneCount; i++) {
+      const px = -2.4 + rand() * 8.2;
+      const pz = -2.8 + rand() * 5.0;
+      const groundY = getTerrainHeight(px, pz);
+      dummy.position.set(px, groundY - 0.03, pz);
+      dummy.rotation.set((rand() - 0.5) * 0.4, rand() * Math.PI * 2, (rand() - 0.5) * 0.4);
+      const s = 0.065 + rand() * 0.16;
+      dummy.scale.set(s, s * (0.65 + rand() * 0.45), s);
+      dummy.updateMatrix();
+      sMesh.setMatrixAt(i, dummy.matrix);
+      sMesh.setColorAt(i, tints[Math.floor(rand() * tints.length)]);
+    }
+    sMesh.instanceMatrix.needsUpdate = true;
+    if (sMesh.instanceColor) sMesh.instanceColor.needsUpdate = true;
+  }, []);
 
   const tmpVoidFog = useMemo(() => new THREE.Color("#111d13"), []);
   const tmpMistFog = useMemo(() => new THREE.Color("#c4cac3"), []);
   const tmpCurFog = useMemo(() => new THREE.Color(), []);
 
   useFrame(({ clock }, rawDelta) => {
-    const dt = Math.min(rawDelta, 0.05);
+    const dt = Math.min(rawDelta, 0.14);
     const time = clock.getElapsedTime();
     const targetP = scrollProgressRef.current;
 
-    smoothedScroll.current = reducedMotion
-      ? targetP
-      : THREE.MathUtils.lerp(smoothedScroll.current, targetP, Math.min(1, dt * 8));
+    const jumpDelta = Math.abs(targetP - smoothedScroll.current);
+    smoothedScroll.current =
+      reducedMotion || jumpDelta > 0.35
+        ? targetP
+        : THREE.MathUtils.lerp(smoothedScroll.current, targetP, Math.min(1, dt * 11));
     const p = smoothedScroll.current;
 
     const targetMX = reducedMotion ? 0 : mousePosRef.current.x;
     const targetMY = reducedMotion ? 0 : mousePosRef.current.y;
-    smoothedMouse.current.x = THREE.MathUtils.lerp(smoothedMouse.current.x, targetMX, Math.min(1, dt * 5));
-    smoothedMouse.current.y = THREE.MathUtils.lerp(smoothedMouse.current.y, targetMY, Math.min(1, dt * 5));
+    smoothedMouse.current.x = THREE.MathUtils.lerp(
+      smoothedMouse.current.x,
+      targetMX,
+      Math.min(1, dt * 5)
+    );
+    smoothedMouse.current.y = THREE.MathUtils.lerp(
+      smoothedMouse.current.y,
+      targetMY,
+      Math.min(1, dt * 5)
+    );
     const mx = smoothedMouse.current.x;
     const my = smoothedMouse.current.y;
 
@@ -924,30 +890,35 @@ function EcoWorld({
         : 0;
 
     // -------------------------------------------------------------------------
-    // Mist Atmosphere Blend (0 in Scenes 1-2 -> 1 in Scenes 3-5)
+    // Mist Atmosphere & HDRI Environment Intensity Blend
     // -------------------------------------------------------------------------
     const mistBlend = THREE.MathUtils.smoothstep(p, 0.28, 0.41);
     mistRef.current = mistBlend;
+    scene.environmentIntensity = THREE.MathUtils.lerp(0.38, 0.96, mistBlend);
 
     if (scene.fog instanceof THREE.FogExp2) {
       tmpCurFog.copy(tmpVoidFog).lerp(tmpMistFog, mistBlend);
       scene.fog.color.copy(tmpCurFog);
-      scene.fog.density = THREE.MathUtils.lerp(0.03, 0.045, mistBlend);
+      scene.fog.density = THREE.MathUtils.lerp(0.028, 0.044, mistBlend);
     }
 
+    // Reposition directional shadow frustum cleanly between Diorama A and Diorama B
     if (keyLightRef.current) {
-      keyLightRef.current.intensity = THREE.MathUtils.lerp(2.75, 1.95, mistBlend);
-      keyLightRef.current.position.set(
-        THREE.MathUtils.lerp(4.5, 2.0, mistBlend),
-        THREE.MathUtils.lerp(5.5, 9.0, mistBlend),
-        THREE.MathUtils.lerp(5.0, 3.0, mistBlend)
-      );
+      keyLightRef.current.intensity = THREE.MathUtils.lerp(2.75, 1.85, mistBlend);
+      if (mistBlend < 0.45) {
+        keyTarget.position.set(0.25, 0.0, 0.0);
+        keyLightRef.current.position.set(4.5, 5.5, 4.8);
+      } else {
+        keyTarget.position.set(2.4, -8.5, 0.0);
+        keyLightRef.current.position.set(4.5, 0.5, 3.8);
+      }
+      keyTarget.updateMatrixWorld();
     }
     if (backLightRef.current) {
-      backLightRef.current.intensity = THREE.MathUtils.lerp(1.1, 2.5, mistBlend);
+      backLightRef.current.intensity = THREE.MathUtils.lerp(0.85, 1.9, mistBlend);
     }
     if (hemiLightRef.current) {
-      hemiLightRef.current.intensity = THREE.MathUtils.lerp(0.68, 1.48, mistBlend);
+      hemiLightRef.current.intensity = THREE.MathUtils.lerp(0.26, 0.86, mistBlend);
     }
 
     // -------------------------------------------------------------------------
@@ -962,7 +933,7 @@ function EcoWorld({
       const plungeT = THREE.MathUtils.smoothstep(p, 0.28, 0.44);
 
       const idleFloat = reducedMotion ? 0 : Math.sin(time * 0.65) * 0.04;
-      const idleRot = reducedMotion ? 0 : Math.sin(time * 0.25) * 0.045;
+      const idleRot = reducedMotion ? 0 : Math.sin(time * 0.25) * 0.042;
 
       mainRockRef.current.position.set(
         THREE.MathUtils.lerp(0.32, 0.0, visionT),
@@ -970,25 +941,37 @@ function EcoWorld({
         THREE.MathUtils.lerp(0.0, 0.25, visionT) - plungeT * 1.4
       );
       mainRockRef.current.rotation.set(
-        0.16 - visionT * 0.08,
-        -0.22 + visionT * 0.4 + idleRot,
-        -0.06 + visionT * 0.06
+        0.12 - visionT * 0.06,
+        -0.18 + visionT * 0.36 + idleRot,
+        -0.05 + visionT * 0.05
       );
       const baseScale = THREE.MathUtils.lerp(1.0, 1.14, visionT) * (1 - plungeT * 0.2);
       mainRockRef.current.scale.setScalar(baseScale);
 
       if (sat1Ref.current) {
-        sat1Ref.current.position.set(-2.55 - visionT * 3.1, -0.78 - visionT * 1.1 + idleFloat * 1.3, 0.55);
+        sat1Ref.current.position.set(
+          -2.58 - visionT * 3.1,
+          -0.78 - visionT * 1.1 + idleFloat * 1.3,
+          0.55
+        );
         sat1Ref.current.rotation.y = 0.5 + time * (reducedMotion ? 0 : 0.07);
         sat1Ref.current.scale.setScalar(Math.max(0.001, 1 - visionT * 0.45));
       }
       if (sat2Ref.current) {
-        sat2Ref.current.position.set(2.68 + visionT * 3.1, -1.02 - visionT * 1.0 - idleFloat, 0.42);
+        sat2Ref.current.position.set(
+          2.68 + visionT * 3.1,
+          -1.02 - visionT * 1.0 - idleFloat,
+          0.42
+        );
         sat2Ref.current.rotation.y = -0.7 - time * (reducedMotion ? 0 : 0.05);
         sat2Ref.current.scale.setScalar(Math.max(0.001, 1 - visionT * 0.45));
       }
       if (sat3Ref.current) {
-        sat3Ref.current.position.set(2.1 + visionT * 2.5, 1.38 + visionT * 1.8 + idleFloat, -1.1);
+        sat3Ref.current.position.set(
+          2.1 + visionT * 2.5,
+          1.38 + visionT * 1.8 + idleFloat,
+          -1.1
+        );
         sat3Ref.current.rotation.y = time * (reducedMotion ? 0 : 0.08);
         sat3Ref.current.scale.setScalar(Math.max(0.001, 1 - visionT * 0.6));
       }
@@ -998,19 +981,20 @@ function EcoWorld({
     // Diorama B Visibility + Mist Drift (Scenes 3 -> 5)
     // -------------------------------------------------------------------------
     if (dioramaBGroupRef.current) {
-      dioramaBGroupRef.current.visible = p > 0.26;
+      dioramaBGroupRef.current.visible = p > 0.26 && p < 0.98;
     }
     if (mistSpritesRef.current && dioramaBGroupRef.current?.visible) {
       mistSpritesRef.current.children.forEach((child, idx) => {
         if (!reducedMotion) {
           child.position.x =
-            (idx % 3 === 0 ? -0.9 : idx === 1 ? 1.5 : 5.1) + Math.sin(time * 0.22 + idx) * 0.55;
+            (idx % 3 === 0 ? -0.9 : idx === 1 ? 1.5 : 5.1) +
+            Math.sin(time * 0.22 + idx) * 0.55;
         }
       });
     }
 
     // -------------------------------------------------------------------------
-    // Camera Flight Path Matched Cleanly to Runway Anchors (0..1 = 0..460vh)
+    // Camera Flight Path Matched to Runway Anchors (0..1 = 0..460vh)
     // -------------------------------------------------------------------------
     let camX = 0;
     let camY = 0.06;
@@ -1020,7 +1004,6 @@ function EcoWorld({
     let lookZ = 0;
 
     if (p < 0.28) {
-      // Scene 1 -> Scene 2 Vision peak (p=0.22)
       const t = THREE.MathUtils.smoothstep(p, 0.0, 0.22);
       camX = 0.0;
       camY = THREE.MathUtils.lerp(0.06, 0.04, t);
@@ -1029,31 +1012,28 @@ function EcoWorld({
       lookY = 0.02;
       lookZ = 0;
     } else if (p < 0.44) {
-      // Portal Plunge down onto Scene 3 Macro Fern & Velvet Moss
       const t = THREE.MathUtils.smoothstep(p, 0.28, 0.44);
-      camX = THREE.MathUtils.lerp(0.0, -0.05, t);
-      camY = THREE.MathUtils.lerp(0.04, -7.82, t);
-      camZ = THREE.MathUtils.lerp(5.45, 3.55 + portraitBoost * 0.85, t);
-      lookX = THREE.MathUtils.lerp(0.0, 0.18, t);
-      lookY = THREE.MathUtils.lerp(0.02, -8.35, t);
-      lookZ = THREE.MathUtils.lerp(0.0, -0.2, t);
+      camX = THREE.MathUtils.lerp(0.0, -0.08, t);
+      camY = THREE.MathUtils.lerp(0.04, -8.16, t);
+      camZ = THREE.MathUtils.lerp(5.45, 3.22 + portraitBoost * 0.85, t);
+      lookX = THREE.MathUtils.lerp(0.0, 0.16, t);
+      lookY = THREE.MathUtils.lerp(0.02, -8.18, t);
+      lookZ = THREE.MathUtils.lerp(0.0, -0.15, t);
     } else if (p < 0.66) {
-      // Scene 3 Macro Fern Hold (0.44..0.56) -> Pan Right to Station Mast (0.56..0.66)
       const panT = THREE.MathUtils.smoothstep(p, 0.56, 0.66);
-      camX = THREE.MathUtils.lerp(-0.05, 5.1, panT);
-      camY = THREE.MathUtils.lerp(-7.82, -6.88, panT);
-      camZ = THREE.MathUtils.lerp(3.55 + portraitBoost * 0.85, 3.9 + portraitBoost * 0.9, panT);
-      lookX = THREE.MathUtils.lerp(0.18, 5.18, panT);
-      lookY = THREE.MathUtils.lerp(-8.35, -6.78, panT);
-      lookZ = THREE.MathUtils.lerp(-0.2, 0.0, panT);
+      camX = THREE.MathUtils.lerp(-0.08, 5.1, panT);
+      camY = THREE.MathUtils.lerp(-8.16, -6.92, panT);
+      camZ = THREE.MathUtils.lerp(3.22 + portraitBoost * 0.85, 3.88 + portraitBoost * 0.9, panT);
+      lookX = THREE.MathUtils.lerp(0.16, 5.18, panT);
+      lookY = THREE.MathUtils.lerp(-8.18, -6.82, panT);
+      lookZ = THREE.MathUtils.lerp(-0.15, 0.0, panT);
     } else {
-      // Scene 4 Hold (0.66..0.78) -> Gentle rise framing top louvers as white Scene 5 slides up
       const endT = THREE.MathUtils.smoothstep(p, 0.78, 0.94);
       camX = THREE.MathUtils.lerp(5.1, 5.15, endT);
-      camY = THREE.MathUtils.lerp(-6.88, -6.58, endT);
-      camZ = 3.9 + portraitBoost * 0.9;
+      camY = THREE.MathUtils.lerp(-6.92, -6.62, endT);
+      camZ = 3.88 + portraitBoost * 0.9;
       lookX = 5.18;
-      lookY = THREE.MathUtils.lerp(-6.78, -6.42, endT);
+      lookY = THREE.MathUtils.lerp(-6.82, -6.46, endT);
       lookZ = 0.0;
     }
 
@@ -1062,98 +1042,193 @@ function EcoWorld({
     camera.lookAt(lookTarget.current);
   });
 
+  // Ground-anchored Diorama B elevations
+  const heroFernY = getTerrainHeight(-0.98, 1.38) - 0.03;
+  const bgFernY = getTerrainHeight(-1.88, -0.58) - 0.02;
+  const frontMossY = getTerrainHeight(1.18, 1.48) - 0.04;
+  const horizonMoss1Y = getTerrainHeight(1.75, -1.8) - 0.03;
+  const horizonMoss2Y = getTerrainHeight(3.1, -2.2) - 0.03;
+  const mastBaseY = getTerrainHeight(5.2, 0.12) + 0.02;
+
   return (
     <>
-      <fogExp2 attach="fog" args={["#111d13", 0.03]} />
+      <fogExp2 attach="fog" args={["#111d13", 0.028]} />
 
-      <hemisphereLight ref={hemiLightRef} args={["#e6ece4", "#243526", 0.68]} />
+      {/* Natural Overcast IBL HDRI for photorealistic rock, moss, leaf, and aluminum reflections */}
+      <Environment files="/hdri/belfast_open_field_1k.hdr" background={false} />
+
+      <hemisphereLight ref={hemiLightRef} args={["#e4ebe3", "#243324", 0.45]} />
       <directionalLight
         ref={keyLightRef}
-        position={[4.5, 5.5, 5.0]}
-        intensity={2.75}
-        color="#fff6e3"
+        position={[4.5, 5.5, 4.8]}
+        intensity={2.45}
+        color="#fff6e6"
         castShadow
-        shadow-mapSize={[1024, 1024]}
+        shadow-mapSize={[512, 512]}
+        shadow-bias={-0.0005}
+        shadow-camera-near={0.5}
+        shadow-camera-far={24}
+        shadow-camera-left={-7}
+        shadow-camera-right={7}
+        shadow-camera-top={7}
+        shadow-camera-bottom={-7}
       />
       <directionalLight
         ref={backLightRef}
         position={[-4.5, 3.0, -5.0]}
-        intensity={1.1}
-        color="#dfebd6"
+        intensity={0.95}
+        color="#d8e6ce"
       />
-      <directionalLight position={[0, -4.0, 2.5]} intensity={0.45} color="#3b5e3f" />
+      <directionalLight position={[0, -4.0, 2.5]} intensity={0.35} color="#345038" />
 
       <SkyBackdrop mistRef={mistRef} />
 
       {/* ===================================================================== */}
-      {/* DIORAMA A: SCENE 1 HERO & SCENE 2 VISION BOULDERS                    */}
+      {/* DIORAMA A: SCENE 1 HERO & SCENE 2 VISION PHOTOGRAMMETRY BOULDERS      */}
       {/* ===================================================================== */}
       <group ref={dioramaAGroupRef}>
         <group ref={mainRockRef} position={[0.32, -0.04, 0]}>
+          {/* Fractured eroded photogrammetry crag core */}
+          <group rotation={[0.18, 0.56, -0.14]} scale={[2.02, 1.92, 1.62]}>
+            <mesh
+              geometry={sceneAssets.boulderCore.geometry}
+              material={sceneAssets.boulderMat}
+              castShadow
+              receiveShadow
+            />
+            <MossColonyInstanced
+              anchors={sceneAssets.heroAnchorsCore}
+              variants={sceneAssets.mossVariants}
+              baseScale={2.2}
+              yScaleRatio={0.68}
+              seed={4409}
+              maxInstances={220}
+              sink={0.01}
+              paletteHex={["#d8eba8", "#c2de8a", "#e6f2c2", "#a8c96e"]}
+            />
+          </group>
+
+          {/* Upper-back mossy rock shelf interlocking over rear ridge */}
+          <group position={[-0.08, 0.6, -0.16]} rotation={[0.2, -0.45, -0.15]} scale={[0.7, 0.64, 0.58]}>
+            <mesh
+              geometry={sceneAssets.r1_01.geometry}
+              material={sceneAssets.mossRock1Mat}
+              castShadow
+              receiveShadow
+            />
+            <MossColonyInstanced
+              anchors={sceneAssets.heroAnchorsCap}
+              variants={sceneAssets.mossVariants}
+              baseScale={3.5}
+              yScaleRatio={0.68}
+              seed={5113}
+              maxInstances={160}
+              sink={0.015}
+              paletteHex={["#d8eba8", "#c2de8a", "#e6f2c2", "#a8c96e"]}
+            />
+          </group>
+
+          {/* Right flank outcrop */}
           <mesh
-            geometry={assets.mainBoulder.geometry}
-            material={materials.mossyRockMat}
+            geometry={sceneAssets.r1_03.geometry}
+            material={sceneAssets.mossRock1Mat}
+            position={[0.64, -0.12, -0.14]}
+            rotation={[0.35, 0.78, -0.45]}
+            scale={[0.58, 0.54, 0.58]}
             castShadow
             receiveShadow
           />
-          {/* Plush sculpted 3D velvet moss cushions covering top/right crest */}
+
+          {/* Lower front dark mineral stratum */}
           <mesh
-            geometry={assets.mossCapMain}
-            material={materials.mossMat}
-            position={[0.16, 0.98, 0.08]}
-            rotation={[0.08, -0.25, -0.18]}
+            geometry={sceneAssets.r2_07.geometry}
+            material={sceneAssets.mossRock2Mat}
+            position={[-0.36, -0.4, 0.26]}
+            rotation={[-0.25, 0.42, 0.18]}
+            scale={[0.52, 0.48, 0.5]}
+            castShadow
+            receiveShadow
+          />
+
+          {/* Lush photogrammetry fern rosettes tucked naturally inside hero rock crevices */}
+          <mesh
+            geometry={sceneAssets.fernParts.b}
+            material={sceneAssets.fernMat}
+            position={[0.42, -0.22, 0.84]}
+            rotation={[0.5, 0.25, -0.28]}
+            scale={0.78}
             castShadow
             receiveShadow
           />
           <mesh
-            geometry={assets.mossCapLeft}
-            material={materials.mossMat}
-            position={[-0.58, 0.85, 0.22]}
-            rotation={[0.15, 0.4, 0.35]}
+            geometry={sceneAssets.fernParts.a}
+            material={sceneAssets.fernMat}
+            position={[-0.26, 0.78, 0.22]}
+            rotation={[0.16, -0.6, 0.22]}
+            scale={0.72}
             castShadow
             receiveShadow
           />
           <mesh
-            geometry={assets.mossCapRight}
-            material={materials.mossMat}
-            position={[0.92, 0.42, 0.28]}
-            rotation={[0.25, -0.5, -0.62]}
+            geometry={sceneAssets.fernParts.c}
+            material={sceneAssets.fernMat}
+            position={[0.38, 0.76, 0.04]}
+            rotation={[0.2, 0.85, -0.28]}
+            scale={0.68}
             castShadow
             receiveShadow
           />
           <mesh
-            geometry={assets.mossCapFront}
-            material={materials.mossMat}
-            position={[0.35, -0.1, 1.05]}
-            rotation={[0.85, 0.1, -0.25]}
+            geometry={sceneAssets.fernParts.d}
+            material={sceneAssets.fernMat}
+            position={[-0.65, 0.42, 0.35]}
+            rotation={[0.32, -1.1, 0.36]}
+            scale={0.62}
             castShadow
             receiveShadow
           />
-          <BoulderMossTufts anchors={assets.mainBoulder.mossAnchors} countCap={900} />
         </group>
 
-        {/* Satellite Rock 1: Warm Sandstone Bottom-Left */}
-        <group ref={sat1Ref} position={[-2.55, -0.78, 0.55]}>
-          <mesh geometry={assets.sat1.geometry} material={materials.rockMat} castShadow receiveShadow />
+        {/* Satellite Rock 1: Eroded Mossy Sandstone Bottom-Left */}
+        <group ref={sat1Ref} position={[-2.58, -0.78, 0.55]}>
+          <mesh
+            geometry={sceneAssets.r1_04.geometry}
+            material={sceneAssets.mossRock1Mat}
+            rotation={[0.25, 0.7, -0.15]}
+            scale={0.44}
+            castShadow
+            receiveShadow
+          />
         </group>
 
-        {/* Satellite Rock 2: Moss-Capped Boulder Bottom-Right */}
+        {/* Satellite Rock 2: Moss-Touched Boulder Bottom-Right */}
         <group ref={sat2Ref} position={[2.68, -1.02, 0.42]}>
-          <mesh geometry={assets.sat2.geometry} material={materials.mossyRockMat} castShadow receiveShadow />
-          <mesh
-            geometry={assets.satMossCap}
-            material={materials.mossMat}
-            position={[0.08, 0.32, 0.05]}
-            rotation={[0.1, 0.3, -0.15]}
-          />
+          <group rotation={[0.1, -0.4, 0.08]} scale={[0.58, 0.6, 0.56]}>
+            <mesh
+              geometry={sceneAssets.r2_09.geometry}
+              material={sceneAssets.mossRock2Mat}
+              castShadow
+              receiveShadow
+            />
+            <MossColonyInstanced
+              anchors={sceneAssets.sat2Anchors}
+              variants={sceneAssets.mossVariants}
+              baseScale={4.5}
+              seed={6029}
+              maxInstances={85}
+              sink={0.015}
+            />
+          </group>
         </group>
 
-        {/* Satellite Rock 3: Small Hovering Fragment Upper-Right */}
+        {/* Satellite Rock 3: Floating Fragment Upper-Right */}
         <mesh
           ref={sat3Ref}
-          geometry={assets.sat3.geometry}
-          material={materials.rockMat}
+          geometry={sceneAssets.r2_08.geometry}
+          material={sceneAssets.mossRock2Mat}
           position={[2.1, 1.38, -1.1]}
+          rotation={[0.4, 0.9, -0.2]}
+          scale={0.35}
           castShadow
         />
       </group>
@@ -1162,98 +1237,182 @@ function EcoWorld({
       {/* TRANSITION PORTAL WALLS                                              */}
       {/* ===================================================================== */}
       <mesh
-        geometry={assets.portalLeft.geometry}
-        material={materials.mossyRockMat}
+        geometry={sceneAssets.r1_02.geometry}
+        material={sceneAssets.mossRock1Mat}
         position={[-2.85, -4.3, 2.35]}
-        rotation={[0.2, 0.5, -0.25]}
+        rotation={[0.3, 0.6, -0.45]}
+        scale={[1.05, 1.35, 1.0]}
       />
       <mesh
-        geometry={assets.portalRight.geometry}
-        material={materials.mossyRockMat}
+        geometry={sceneAssets.r1_05.geometry}
+        material={sceneAssets.mossRock1Mat}
         position={[2.85, -4.3, 2.35]}
-        rotation={[-0.15, -0.5, 0.22]}
+        rotation={[-0.25, -0.55, 0.42]}
+        scale={[1.05, 1.35, 1.0]}
       />
 
       {/* ===================================================================== */}
       {/* DIORAMA B: SCENE 3 MACRO FERN + SCENE 4 OBSERVATION STATION           */}
       {/* ===================================================================== */}
       <group ref={dioramaBGroupRef} position={[0, -9.05, 0]}>
+        {/* Full PBR Scree & Rocky Forest Soil Terrain */}
         <mesh
-          geometry={assets.terrainGeo}
-          material={materials.soilMat}
+          geometry={sceneAssets.terrainGeo}
+          material={sceneAssets.terrainMat}
           position={[3.5, 0, -0.4]}
           receiveShadow
         />
 
+        {/* Instanced Photogrammetry Scree Stones Embedded Along Terrain Elevation */}
         <instancedMesh
-          ref={pebbleInstRef}
-          args={[assets.pebbleGeo, materials.pebbleMat, pebbleCount]}
+          ref={stoneInstRef}
+          args={[sceneAssets.r2_12.geometry, sceneAssets.mossRock2Mat, stoneCount]}
+          castShadow
           receiveShadow
         />
 
-        {/* Scene 3 Hero Compound Fern Cluster squarely inside bottom-left frame */}
-        <CompoundFernCluster position={[-0.92, -0.18, 1.32]} scale={0.92} />
-        {/* Smaller Misty Background Fern */}
-        <CompoundFernCluster position={[-1.95, 0.0, -0.55]} scale={0.68} />
+        {/* Scene 3 Hero Woodland Fern Cluster Grounded Flush in Foreground-Left Soil */}
+        <PhotogrammetryFernCluster
+          position={[-0.96, heroFernY + 0.05, 1.48]}
+          parts={sceneAssets.fernParts}
+          material={sceneAssets.fernMat}
+          scale={[1.42, 2.25, 1.42]}
+          rotationY={0.28}
+        />
+        {/* Misty Background Companion Fern */}
+        <PhotogrammetryFernCluster
+          position={[-1.88, bgFernY + 0.03, -0.58]}
+          parts={sceneAssets.fernParts}
+          material={sceneAssets.fernMat}
+          scale={[1.05, 1.55, 1.05]}
+          rotationY={-0.75}
+        />
 
-        {/* Foreground Right Velvet Cushion Moss Mound + 1,500 Fine Velvet Hairs */}
-        <group position={[1.15, -0.02, 1.48]}>
-          <mesh geometry={assets.frontMoss.geometry} material={materials.mossMat} receiveShadow castShadow />
-          {fuzzCount > 0 && (
-            <instancedMesh
-              ref={fuzzInstRef}
-              args={[assets.velvetHairGeo, materials.fuzzMat, fuzzCount]}
-            />
-          )}
+        {/* Foreground Right Velvet Cushion Moss Mound + 750 Soft Cushion moss_01 Clumps */}
+        <group position={[1.18, frontMossY, 1.48]}>
+          <mesh
+            geometry={sceneAssets.frontMoss.geometry}
+            material={sceneAssets.hummockBaseMat}
+            receiveShadow
+            castShadow
+          />
+          <MossColonyInstanced
+            anchors={sceneAssets.frontMoss.mossAnchors}
+            variants={sceneAssets.mossVariants}
+            baseScale={2.35}
+            yScaleRatio={0.46}
+            seed={557}
+            maxInstances={750}
+            sink={0.012}
+            paletteHex={["#d8eba8", "#c2de8a", "#e6f2c2", "#b4d478"]}
+          />
         </group>
 
         {/* Midground-Right Horizon Moss Cushion Mounds */}
-        <mesh
-          geometry={assets.horizonMoss1.geometry}
-          material={materials.mossMat}
-          position={[1.75, 0.14, -1.8]}
-          receiveShadow
-        />
-        <mesh
-          geometry={assets.horizonMoss2.geometry}
-          material={materials.mossMat}
-          position={[3.1, 0.24, -2.2]}
-          receiveShadow
-        />
+        <group position={[1.75, horizonMoss1Y, -1.8]}>
+          <mesh
+            geometry={sceneAssets.horizonMoss1.geometry}
+            material={sceneAssets.hummockBaseMat}
+            receiveShadow
+          />
+          <MossColonyInstanced
+            anchors={sceneAssets.horizonMoss1.mossAnchors}
+            variants={sceneAssets.mossVariants}
+            baseScale={2.5}
+            yScaleRatio={0.46}
+            seed={659}
+            maxInstances={220}
+            sink={0.012}
+            paletteHex={["#d8eba8", "#c2de8a", "#e6f2c2", "#b4d478"]}
+          />
+        </group>
+        <group position={[3.1, horizonMoss2Y, -2.2]}>
+          <mesh
+            geometry={sceneAssets.horizonMoss2.geometry}
+            material={sceneAssets.hummockBaseMat}
+            receiveShadow
+          />
+          <MossColonyInstanced
+            anchors={sceneAssets.horizonMoss2.mossAnchors}
+            variants={sceneAssets.mossVariants}
+            baseScale={2.4}
+            yScaleRatio={0.46}
+            seed={761}
+            maxInstances={160}
+            sink={0.012}
+            paletteHex={["#d8eba8", "#c2de8a", "#e6f2c2", "#b4d478"]}
+          />
+        </group>
 
-        {/* Scene 4 Rocky Fieldstone Outcrops & Solid Mast Anchor Plinth */}
+        {/* Scene 4 Photogrammetry Rock Outcrops & Solid Mast Anchor Plinth */}
         <mesh
-          geometry={assets.stationBluffLeft.geometry}
-          material={materials.mossyRockMat}
-          position={[4.45, 0.85, -1.25]}
-          rotation={[0.05, 0.35, 0.1]}
+          geometry={sceneAssets.r1_02.geometry}
+          material={sceneAssets.mossRock1Mat}
+          position={[4.25, getTerrainHeight(4.25, -1.25) + 0.18, -1.25]}
+          rotation={[0.08, 0.42, 0.12]}
+          scale={[1.08, 1.18, 0.96]}
           castShadow
           receiveShadow
         />
         <mesh
-          geometry={assets.stationBluffRight.geometry}
-          material={materials.mossyRockMat}
-          position={[7.55, 0.95, -0.8]}
-          rotation={[0.08, -0.4, -0.1]}
+          geometry={sceneAssets.r1_01.geometry}
+          material={sceneAssets.mossRock1Mat}
+          position={[7.2, getTerrainHeight(7.2, -0.85) + 0.2, -0.85]}
+          rotation={[0.1, -0.48, -0.12]}
+          scale={[1.15, 1.25, 1.05]}
           castShadow
           receiveShadow
         />
         <mesh
-          geometry={assets.mastPlinthRock.geometry}
-          material={materials.mossyRockMat}
-          position={[5.2, -0.1, 0.2]}
-          rotation={[0.04, 0.2, 0.0]}
+          geometry={sceneAssets.boulderCore.geometry}
+          material={sceneAssets.boulderMat}
+          position={[6.25, getTerrainHeight(6.25, -1.05) + 0.1, -1.05]}
+          rotation={[0.22, 1.15, -0.08]}
+          scale={[1.25, 1.15, 1.1]}
+          castShadow
+          receiveShadow
+        />
+        <mesh
+          geometry={sceneAssets.r1_05.geometry}
+          material={sceneAssets.mossRock1Mat}
+          position={[5.2, mastBaseY - 0.18, 0.12]}
+          rotation={[0.05, 0.24, 0.0]}
+          scale={[0.96, 0.82, 0.88]}
           castShadow
           receiveShadow
         />
 
-        {/* Layered Botanical Shrub Crowns Behind & Around Station */}
-        <ShrubFoliageCrown position={[4.75, 1.42, -1.5]} leafCount={860} radius={1.65} seed={901} />
-        <ShrubFoliageCrown position={[3.65, 0.68, -1.75]} leafCount={360} radius={1.2} seed={907} />
-        <ShrubFoliageCrown position={[6.8, 0.88, -1.95]} leafCount={380} radius={1.2} seed={919} />
+        {/* Lean Photogrammetry Evergreen Shrub Clusters Flanking & Framing Station */}
+        <PhotogrammetryShrubCluster
+          position={[4.85, mastBaseY + 1.05, -1.42]}
+          geometry={sceneAssets.shrubGeo}
+          material={sceneAssets.shrubMat}
+          stemCount={12}
+          spread={0.62}
+          scaleRange={[2.25, 3.15]}
+          seed={901}
+        />
+        <PhotogrammetryShrubCluster
+          position={[3.72, mastBaseY + 0.52, -1.55]}
+          geometry={sceneAssets.shrubGeo}
+          material={sceneAssets.shrubMat}
+          stemCount={8}
+          spread={0.48}
+          scaleRange={[1.75, 2.55]}
+          seed={907}
+        />
+        <PhotogrammetryShrubCluster
+          position={[6.55, mastBaseY + 0.58, -1.65]}
+          geometry={sceneAssets.shrubGeo}
+          material={sceneAssets.shrubMat}
+          stemCount={9}
+          spread={0.55}
+          scaleRange={[1.9, 2.65]}
+          seed={919}
+        />
 
-        {/* Scene 4 Observation Station Mast Planted Solidly into Plinth */}
-        <ObservationMast position={[5.2, 0.12, 0.12]} />
+        {/* Scene 4 Observation Station Mast Planted Solidly into Stone Plinth */}
+        <ObservationMast position={[5.2, mastBaseY - 0.06, 0.12]} />
 
         {/* Low Ground Atmospheric Mist */}
         <group ref={mistSpritesRef}>
@@ -1263,7 +1422,7 @@ function EcoWorld({
             { pos: [5.1, 0.95, 2.1] as [number, number, number], scale: [6.0, 2.2, 1] as [number, number, number] },
             { pos: [6.4, 1.45, -0.2] as [number, number, number], scale: [5.4, 2.1, 1] as [number, number, number] },
           ].map((m, idx) => (
-            <sprite key={idx} position={m.pos} scale={m.scale} material={materials.mistSpriteMat} />
+            <sprite key={idx} position={m.pos} scale={m.scale} material={sceneAssets.mistSpriteMat} />
           ))}
         </group>
       </group>
@@ -1277,7 +1436,9 @@ function checkWebGLSupport(): boolean {
     const canvas = document.createElement("canvas");
     return Boolean(
       window.WebGLRenderingContext &&
-        (canvas.getContext("webgl2") || canvas.getContext("webgl") || canvas.getContext("experimental-webgl"))
+        (canvas.getContext("webgl2") ||
+          canvas.getContext("webgl") ||
+          canvas.getContext("experimental-webgl"))
     );
   } catch {
     return false;
@@ -1321,13 +1482,13 @@ export function EcoTechScene(props: EcoTechSceneProps) {
     >
       <Canvas
         shadows
-        dpr={isMobile ? [1, 1.5] : [1, 2]}
+        dpr={isMobile ? 1 : [1, 1.5]}
         camera={{ fov: 40, near: 0.1, far: 80, position: [0, 0.06, 6.15] }}
         gl={{
           antialias: true,
           powerPreference: "high-performance",
-          toneMapping: THREE.ACESFilmicToneMapping,
-          toneMappingExposure: 1.05,
+          toneMapping: THREE.AgXToneMapping,
+          toneMappingExposure: 1.02,
         }}
       >
         <Suspense fallback={null}>

@@ -126,6 +126,54 @@
 .hotspot-pulse {
   animation: radar-pulse 2.4s cubic-bezier(0.24, 0, 0.38, 1) infinite;
 }
+.hdr-cinema[data-mode="dark"] {
+  color: #ffffff;
+  background: transparent;
+}
+.hdr-cinema[data-mode="mist"] {
+  color: #ffffff;
+  background: linear-gradient(to bottom, rgba(23, 31, 24, 0.55), transparent);
+}
+.hdr-cinema[data-mode="light"] {
+  color: #111813;
+  background: #ffffff;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+.hdr-cinema a,
+.hdr-cinema span {
+  transition: none;
+}
+.hdr-cinema[data-mode="light"] .hdr-brand-mark {
+  background: #163f30;
+  color: #b7f36b;
+  border-color: transparent;
+}
+.hdr-cinema:not([data-mode="light"]) .hdr-brand-mark {
+  background: rgba(255, 255, 255, 0.15);
+  color: #b7f36b;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+.hdr-cinema[data-mode="light"] .hdr-nav-link {
+  color: rgba(17, 24, 19, 0.78);
+}
+.hdr-cinema[data-mode="light"] .hdr-nav-link:hover {
+  color: #111813;
+}
+.hdr-cinema:not([data-mode="light"]) .hdr-nav-link {
+  color: rgba(255, 255, 255, 0.82);
+}
+.hdr-cinema:not([data-mode="light"]) .hdr-nav-link:hover {
+  color: #ffffff;
+}
+.hdr-cinema[data-mode="light"] .hdr-portal-arrow {
+  background: #111813;
+  color: #b7f36b;
+}
+.hdr-cinema:not([data-mode="light"]) .hdr-portal-arrow {
+  background: #f5f7f4;
+  color: #111d13;
+}
 @media (prefers-reduced-motion: reduce) {
   .hotspot-pulse {
     animation: none;

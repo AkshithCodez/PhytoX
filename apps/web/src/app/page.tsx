@@ -94,6 +94,7 @@ export default function Home() {
   const rootRef = useRef<HTMLDivElement>(null);
   const runwayRef = useRef<HTMLDivElement>(null);
   const solutionsRef = useRef<HTMLElement>(null);
+  const headerRef = useRef<HTMLElement>(null);
 
   const scene1Ref = useRef<HTMLDivElement>(null);
   const reticleRef = useRef<HTMLDivElement>(null);
@@ -105,10 +106,10 @@ export default function Home() {
   const scrollProgressRef = useRef(0);
   const mousePosRef = useRef({ x: 0, y: 0 });
 
-  const [headerMode, setHeaderMode] = useState<"dark" | "mist" | "light">("dark");
   const [reducedMotion, setReducedMotion] = useState(false);
   const [openPillar, setOpenPillar] = useState<string | null>(null);
   const [activeHotspot, setActiveHotspot] = useState<string | null>(null);
+  const [hoveredHotspot, setHoveredHotspot] = useState<string | null>(null);
 
   useEffect(() => {
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -151,12 +152,12 @@ export default function Home() {
         ? solutionsRef.current.getBoundingClientRect().top
         : Infinity;
 
-      if (solutionsTop <= 76) {
-        setHeaderMode((prev) => (prev === "light" ? prev : "light"));
-      } else if (p >= 0.33) {
-        setHeaderMode((prev) => (prev === "mist" ? prev : "mist"));
-      } else {
-        setHeaderMode((prev) => (prev === "dark" ? prev : "dark"));
+      if (headerRef.current) {
+        const nextMode =
+          solutionsTop <= 80 || p >= 0.985 ? "light" : p >= 0.33 ? "mist" : "dark";
+        if (headerRef.current.getAttribute("data-mode") !== nextMode) {
+          headerRef.current.setAttribute("data-mode", nextMode);
+        }
       }
     }
 
@@ -192,22 +193,29 @@ export default function Home() {
       };
     }
     window.addEventListener("scroll", syncFromWindowScroll, { passive: true });
+    window.addEventListener("scrollend", syncFromWindowScroll, { passive: true });
     window.addEventListener("mousemove", onMouseMove, { passive: true });
+
+    let observer: IntersectionObserver | null = null;
+    if (solutionsRef.current && typeof IntersectionObserver !== "undefined") {
+      observer = new IntersectionObserver(
+        () => {
+          syncFromWindowScroll();
+        },
+        { rootMargin: "-80px 0px 0px 0px", threshold: [0, 0.01] }
+      );
+      observer.observe(solutionsRef.current);
+    }
 
     return () => {
       mq.removeEventListener("change", onMq);
       window.removeEventListener("scroll", syncFromWindowScroll);
+      window.removeEventListener("scrollend", syncFromWindowScroll);
       window.removeEventListener("mousemove", onMouseMove);
+      observer?.disconnect();
       ctx.revert();
     };
   }, []);
-
-  const headerTextClass =
-    headerMode === "light"
-      ? "text-[#111813] bg-white border-b border-black/10 shadow-xs"
-      : headerMode === "mist"
-        ? "text-white bg-gradient-to-b from-[#171f18]/55 to-transparent"
-        : "text-white bg-transparent";
 
   return (
     <div
@@ -223,23 +231,17 @@ export default function Home() {
 
       {/* Minimal Floating HUD Header matching reference composition */}
       <header
-        className={`fixed top-0 left-0 right-0 z-50 ${headerTextClass}`}
+        ref={headerRef}
+        data-mode="dark"
+        className="hdr-cinema fixed top-0 left-0 right-0 z-50"
       >
         <div className="max-w-[1440px] mx-auto px-5 md:px-10 h-[72px] flex items-center justify-between gap-4">
           <Link
             href="/"
-            className={`inline-flex items-center gap-2.5 text-[18px] font-semibold tracking-tight whitespace-nowrap transition-none ${
-              headerMode === "light" ? "text-[#111813]" : "text-white"
-            }`}
+            className="inline-flex items-center gap-2.5 text-[18px] font-semibold tracking-tight whitespace-nowrap"
             aria-label="PhytoX home"
           >
-            <span
-              className={`w-7 h-7 rounded-[6px] inline-flex items-center justify-center ${
-                headerMode === "light"
-                  ? "bg-[#163f30] text-[#b7f36b]"
-                  : "bg-white/15 text-[#b7f36b] border border-white/15"
-              }`}
-            >
+            <span className="hdr-brand-mark w-7 h-7 rounded-[6px] inline-flex items-center justify-center">
               <Sprout size={15} strokeWidth={2.2} />
             </span>
             <span>PhytoX</span>
@@ -249,44 +251,19 @@ export default function Home() {
             aria-label="Primary navigation"
             className="hidden md:flex items-center gap-7 text-[11px] font-mono tracking-[0.12em] uppercase"
           >
-            <a
-              href="#vision"
-              className={`transition-opacity hover:opacity-100 ${
-                headerMode === "light" ? "text-[#111813]/75 hover:text-[#111813]" : "text-white/80"
-              }`}
-            >
+            <a href="#vision" className="hdr-nav-link">
               Vision
             </a>
-            <a
-              href="#methodology"
-              className={`transition-opacity hover:opacity-100 ${
-                headerMode === "light" ? "text-[#111813]/75 hover:text-[#111813]" : "text-white/80"
-              }`}
-            >
+            <a href="#methodology" className="hdr-nav-link">
               Methodology
             </a>
-            <a
-              href="#telemetry"
-              className={`transition-opacity hover:opacity-100 ${
-                headerMode === "light" ? "text-[#111813]/75 hover:text-[#111813]" : "text-white/80"
-              }`}
-            >
+            <a href="#telemetry" className="hdr-nav-link">
               Telemetry
             </a>
-            <a
-              href="#solutions"
-              className={`transition-opacity hover:opacity-100 ${
-                headerMode === "light" ? "text-[#111813]/75 hover:text-[#111813]" : "text-white/80"
-              }`}
-            >
+            <a href="#solutions" className="hdr-nav-link">
               Solutions
             </a>
-            <Link
-              href="/auth/login?portal=officer"
-              className={`transition-opacity hover:opacity-100 ${
-                headerMode === "light" ? "text-[#111813]/75 hover:text-[#111813]" : "text-white/80"
-              }`}
-            >
+            <Link href="/auth/login?portal=officer" className="hdr-nav-link">
               Officer Login
             </Link>
           </nav>
@@ -294,28 +271,16 @@ export default function Home() {
           <div className="flex items-center gap-3">
             <Link
               href="/language"
-              className={`hidden sm:inline-flex text-[10.5px] font-mono tracking-[0.12em] uppercase px-2 py-1 rounded-[4px] transition-colors ${
-                headerMode === "light"
-                  ? "text-[#111813]/70 hover:text-[#111813]"
-                  : "text-white/75 hover:text-white"
-              }`}
+              className="hdr-nav-link hidden sm:inline-flex text-[10.5px] font-mono tracking-[0.12em] uppercase px-2 py-1 rounded-[4px]"
             >
               EN · తె · हिं
             </Link>
             <Link
               href="/farmer"
-              className={`inline-flex items-center gap-2.5 text-[11px] font-mono font-medium tracking-[0.12em] uppercase whitespace-nowrap group transition-none ${
-                headerMode === "light" ? "text-[#111813]" : "text-white"
-              }`}
+              className="inline-flex items-center gap-2.5 text-[11px] font-mono font-medium tracking-[0.12em] uppercase whitespace-nowrap group"
             >
               <span>Farmer Portal</span>
-              <span
-                className={`w-[22px] h-[22px] rounded-[4px] inline-flex items-center justify-center transition-transform group-hover:translate-x-0.5 ${
-                  headerMode === "light"
-                    ? "bg-[#111813] text-[#b7f36b]"
-                    : "bg-[#f5f7f4] text-[#111d13]"
-                }`}
-              >
+              <span className="hdr-portal-arrow w-[22px] h-[22px] rounded-[4px] inline-flex items-center justify-center">
                 <ChevronRight size={13} strokeWidth={2.5} />
               </span>
             </Link>
@@ -473,20 +438,28 @@ export default function Home() {
               {/* 3 Spatial Lime Target Hotspots matching reference composition */}
               <div className="relative h-[calc(100%-150px)] w-full">
                 {SPATIAL_HOTSPOTS.map((spot) => {
-                  const isOpen = activeHotspot === spot.id;
+                  const isPinned = activeHotspot === spot.id;
+                  const isOpen = isPinned || hoveredHotspot === spot.id;
                   return (
                     <div
                       key={spot.id}
-                      className={`absolute ${spot.posClass} flex items-center gap-2.5`}
+                      className={`absolute ${spot.posClass} ${isOpen ? "z-30" : "z-10"} flex items-start gap-2.5`}
                     >
                       <button
                         type="button"
-                        onClick={() =>
-                          setActiveHotspot((prev) => (prev === spot.id ? null : spot.id))
+                        onClick={() => {
+                          if (isPinned) {
+                            setActiveHotspot(null);
+                            setHoveredHotspot(null);
+                          } else {
+                            setActiveHotspot(spot.id);
+                          }
+                        }}
+                        onMouseEnter={() => setHoveredHotspot(spot.id)}
+                        onMouseLeave={() =>
+                          setHoveredHotspot((prev) => (prev === spot.id ? null : prev))
                         }
-                        onMouseEnter={() => setActiveHotspot(spot.id)}
-                        onMouseLeave={() => setActiveHotspot(null)}
-                        aria-expanded={isOpen}
+                        aria-expanded={isPinned}
                         aria-label={`${spot.label}: ${spot.detail}`}
                         className="w-6 h-6 rounded-full bg-[#c4f56b] text-[#111d13] inline-flex items-center justify-center shadow-md hotspot-pulse shrink-0 focus-visible:outline-2 focus-visible:outline-white"
                       >

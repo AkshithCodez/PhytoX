@@ -85,190 +85,34 @@ export function ridged3(
   return value;
 }
 
-export interface BoulderOptions {
-  seed?: number;
-  segments?: number;
-  scale?: [number, number, number];
-  cragStrength?: number;
-  fracturePlanes?: number;
-  uvScale?: number;
-  mossBias?: number;
-}
-
-export interface SculptedBoulderResult {
-  geometry: THREE.BufferGeometry;
-  mossAnchors: Array<{ pos: THREE.Vector3; normal: THREE.Vector3; scale: number }>;
+export interface SurfaceAnchor {
+  pos: THREE.Vector3;
+  normal: THREE.Vector3;
+  scale: number;
 }
 
 /**
- * Generates an angular fractured sandstone boulder (no repeating sine ribs)
- * using spherized cube topology, tilted flat fracture cuts, FBM crag massing,
- * and crevice moss anchoring.
+ * Deterministic terrain elevation in Diorama B coordinates
+ * (terrain mesh is centered at x = 3.5, z = -0.4).
  */
-export function createSculptedBoulder(
-  radius: number,
-  options: BoulderOptions = {}
-): SculptedBoulderResult {
-  const {
-    seed = 7,
-    segments = 32,
-    scale = [1.18, 0.94, 1.04],
-    cragStrength = 0.22,
-    fracturePlanes = 5,
-    uvScale = 2.0,
-    mossBias = 0.2,
-  } = options;
-
-  const randPlane = createSeededRandom(seed * 131 + 19);
-  const planes: Array<{ normal: THREE.Vector3; offset: number; strength: number }> = [];
-  for (let p = 0; p < fracturePlanes; p++) {
-    const n = new THREE.Vector3(
-      randPlane() * 2 - 1,
-      randPlane() * 2 - 1,
-      randPlane() * 2 - 1
-    ).normalize();
-    planes.push({
-      normal: n,
-      offset: 0.58 + randPlane() * 0.28,
-      strength: 0.16 + randPlane() * 0.14,
-    });
-  }
-
-  const geo = new THREE.BoxGeometry(1, 1, 1, segments, segments, segments);
-  const posAttr = geo.attributes.position as THREE.BufferAttribute;
-  const uvAttr = geo.attributes.uv as THREE.BufferAttribute;
-  const count = posAttr.count;
-  const colors = new Float32Array(count * 3);
-
-  const sandstone = new THREE.Color("#bfa983");
-  const deepCrevice = new THREE.Color("#493d2d");
-  const mossCrevice = new THREE.Color("#4c6f2c");
-  const tmpColor = new THREE.Color();
-
-  for (let i = 0; i < count; i++) {
-    const v = new THREE.Vector3(posAttr.getX(i), posAttr.getY(i), posAttr.getZ(i));
-    const x2 = v.x * v.x;
-    const y2 = v.y * v.y;
-    const z2 = v.z * v.z;
-    const sx = v.x * Math.sqrt(Math.max(0, 1 - y2 / 2 - z2 / 2 + (y2 * z2) / 3));
-    const sy = v.y * Math.sqrt(Math.max(0, 1 - z2 / 2 - x2 / 2 + (z2 * x2) / 3));
-    const sz = v.z * Math.sqrt(Math.max(0, 1 - x2 / 2 - y2 / 2 + (x2 * y2) / 3));
-
-    const dir = new THREE.Vector3(sx, sy, sz).normalize();
-
-    // Planar angular cliff bevels + broad geological massing (zero horizontal rings)
-    let planeBevel = 0;
-    for (let p = 0; p < planes.length; p++) {
-      const d = dir.dot(planes[p].normal);
-      if (d > planes[p].offset) {
-        planeBevel -= (d - planes[p].offset) * planes[p].strength * 1.9;
-      }
-    }
-
-    const macro = fbm3(dir.x * 1.15, dir.y * 1.15, dir.z * 1.15, 3, seed);
-    const crags = (ridged3(dir.x * 1.65, dir.y * 1.55, dir.z * 1.65, 3, seed + 13) - 0.5) * cragStrength;
-    const fine = fbm3(dir.x * 5.8, dir.y * 5.8, dir.z * 5.8, 2, seed + 71) * 0.045;
-
-    const displacement = 1 + macro * 0.22 + crags + planeBevel + fine;
-    const finalPos = new THREE.Vector3(
-      dir.x * radius * scale[0] * displacement,
-      dir.y * radius * scale[1] * displacement,
-      dir.z * radius * scale[2] * displacement
-    );
-
-    posAttr.setXYZ(i, finalPos.x, finalPos.y, finalPos.z);
-    uvAttr.setXY(i, uvAttr.getX(i) * uvScale, uvAttr.getY(i) * uvScale);
-
-    const upwardness = THREE.MathUtils.clamp(dir.y * 0.72 + dir.z * 0.14 + mossBias, 0, 1);
-    const cavity = THREE.MathUtils.clamp((crags * 2.5 + 0.5), 0, 1);
-    tmpColor.copy(deepCrevice).lerp(sandstone, cavity * 0.78 + 0.22);
-    const mossMask = fbm3(dir.x * 2.6 + 1.8, dir.y * 2.6, dir.z * 2.6, 3, seed + 99);
-    const mossWeight = THREE.MathUtils.smoothstep(
-      upwardness + mossMask * 0.32,
-      0.34,
-      0.72
-    );
-    tmpColor.lerp(mossCrevice, mossWeight * 0.62);
-
-    colors[i * 3] = tmpColor.r;
-    colors[i * 3 + 1] = tmpColor.g;
-    colors[i * 3 + 2] = tmpColor.b;
-  }
-
-  geo.setAttribute("color", new THREE.BufferAttribute(colors, 3));
-  geo.computeVertexNormals();
-  geo.computeBoundingSphere();
-
-  const normAttr = geo.attributes.normal as THREE.BufferAttribute;
-  const rand = createSeededRandom(seed * 97 + 11);
-  const mossAnchors: Array<{ pos: THREE.Vector3; normal: THREE.Vector3; scale: number }> = [];
-
-  for (let i = 0; i < count; i++) {
-    const ny = normAttr.getY(i);
-    const nz = normAttr.getZ(i);
-    const px = posAttr.getX(i);
-    const py = posAttr.getY(i);
-    const pz = posAttr.getZ(i);
-
-    const clusterNoise = fbm3(px * 1.35, py * 1.35, pz * 1.35, 3, seed + 211);
-    const slopeScore = ny * 0.75 + Math.max(0, nz) * 0.18 + mossBias;
-    if (slopeScore + clusterNoise * 0.35 > 0.38 && rand() < 0.36) {
-      const normal = new THREE.Vector3(normAttr.getX(i), ny, nz).normalize();
-      mossAnchors.push({
-        pos: new THREE.Vector3(px, py, pz),
-        normal,
-        scale: 0.45 + rand() * 0.75,
-      });
-    }
-  }
-
-  return { geometry: geo, mossAnchors };
+export function getTerrainHeight(worldX: number, worldZ: number, seed = 313): number {
+  const localX = worldX - 3.5;
+  const localZ = worldZ + 0.4;
+  const roll = fbm3(localX * 0.16, 0, localZ * 0.16, 3, seed) * 0.46;
+  const microRidges = ridged3(localX * 0.54, 0.8, localZ * 0.54, 3, seed + 17) * 0.14;
+  const stationRise = THREE.MathUtils.smoothstep(localX, 0.2, 6.2) * 0.72;
+  const horizonDrop = THREE.MathUtils.smoothstep(-localZ, 1.0, 6.5) * 0.28;
+  return roll + microRidges + stationRise + horizonDrop;
 }
 
 /**
- * Generates an organic multi-lobed 3D velvet moss cap dome to settle onto rocks.
- */
-export function createMossCushionBlob(
-  radius = 0.7,
-  scale: [number, number, number] = [1.3, 0.55, 1.1],
-  seed = 77
-): THREE.BufferGeometry {
-  const geo = new THREE.BoxGeometry(1, 1, 1, 18, 18, 18);
-  const posAttr = geo.attributes.position as THREE.BufferAttribute;
-  const uvAttr = geo.attributes.uv as THREE.BufferAttribute;
-
-  for (let i = 0; i < posAttr.count; i++) {
-    const v = new THREE.Vector3(posAttr.getX(i), posAttr.getY(i), posAttr.getZ(i));
-    const x2 = v.x * v.x;
-    const y2 = v.y * v.y;
-    const z2 = v.z * v.z;
-    const sx = v.x * Math.sqrt(Math.max(0, 1 - y2 / 2 - z2 / 2 + (y2 * z2) / 3));
-    const sy = v.y * Math.sqrt(Math.max(0, 1 - z2 / 2 - x2 / 2 + (z2 * x2) / 3));
-    const sz = v.z * Math.sqrt(Math.max(0, 1 - x2 / 2 - y2 / 2 + (x2 * y2) / 3));
-    const dir = new THREE.Vector3(sx, sy, sz).normalize();
-
-    const cushionLobes = Math.abs(fbm3(dir.x * 2.6, dir.y * 2.6, dir.z * 2.6, 3, seed)) * 0.34;
-    const disp = 0.88 + cushionLobes;
-    posAttr.setXYZ(
-      i,
-      dir.x * radius * scale[0] * disp,
-      dir.y * radius * scale[1] * disp,
-      dir.z * radius * scale[2] * disp
-    );
-    uvAttr.setXY(i, uvAttr.getX(i) * 1.8, uvAttr.getY(i) * 1.8);
-  }
-  geo.computeVertexNormals();
-  return geo;
-}
-
-/**
- * Contoured soil & rock terrain bed for Scene 3 and Scene 4.
+ * High-resolution contoured scree & forest soil terrain bed for Scenes 3-4.
  */
 export function createTerrainGeometry(
-  width = 28,
-  depth = 18,
-  segX = 96,
-  segZ = 72,
+  width = 30,
+  depth = 20,
+  segX = 120,
+  segZ = 84,
   seed = 313
 ): THREE.BufferGeometry {
   const geo = new THREE.PlaneGeometry(width, depth, segX, segZ);
@@ -278,29 +122,24 @@ export function createTerrainGeometry(
   const uvAttr = geo.attributes.uv as THREE.BufferAttribute;
   const colors = new Float32Array(posAttr.count * 3);
 
-  const soilTone = new THREE.Color("#9e8c78");
-  const deepLoam = new THREE.Color("#4f4135");
-  const mossEdge = new THREE.Color("#4a6830");
+  const drySoil = new THREE.Color("#cec4b4");
+  const dampSoil = new THREE.Color("#73685c");
+  const mossTint = new THREE.Color("#7d8b66");
   const c = new THREE.Color();
 
   for (let i = 0; i < posAttr.count; i++) {
-    const x = posAttr.getX(i);
-    const z = posAttr.getZ(i);
-
-    const roll = fbm3(x * 0.18, 0, z * 0.18, 3, seed) * 0.5;
-    const detail = ridged3(x * 0.65, 1.2, z * 0.65, 3, seed + 17) * 0.16;
-    const ridgeRise = THREE.MathUtils.smoothstep(x, 1.5, 9.5) * 0.8;
-    const horizonRoll = THREE.MathUtils.smoothstep(-z, 0.5, 6.5) * 0.32;
-
-    const y = roll + detail + ridgeRise + horizonRoll;
+    const localX = posAttr.getX(i);
+    const localZ = posAttr.getZ(i);
+    const y = getTerrainHeight(localX + 3.5, localZ - 0.4, seed);
     posAttr.setY(i, y);
 
-    uvAttr.setXY(i, (x + width * 0.5) * 0.48, (z + depth * 0.5) * 0.48);
+    uvAttr.setXY(i, (localX + width * 0.5) * 0.65, (localZ + depth * 0.5) * 0.65);
 
-    const tintMix = THREE.MathUtils.clamp((y + 0.4) * 0.65, 0, 1);
-    c.copy(deepLoam).lerp(soilTone, tintMix);
-    if (x > 2.2) {
-      c.lerp(mossEdge, THREE.MathUtils.smoothstep(x, 2.2, 7.0) * 0.4);
+    const macroShade = fbm3(localX * 0.28, 1.1, localZ * 0.28, 3, seed + 51);
+    const t = THREE.MathUtils.clamp(0.46 + macroShade * 0.62 + y * 0.22, 0, 1);
+    c.copy(dampSoil).lerp(drySoil, t);
+    if (localX > -1.2) {
+      c.lerp(mossTint, THREE.MathUtils.smoothstep(localX, -1.2, 4.5) * 0.26);
     }
     colors[i * 3] = c.r;
     colors[i * 3 + 1] = c.g;
@@ -313,15 +152,15 @@ export function createTerrainGeometry(
 }
 
 /**
- * Undulating velvet cushion moss hummock for Scene 3 foreground & horizon ridges.
+ * Undulating mossy cushion hummock base whose surface spawns instanced photogrammetry moss_01 tufts.
  */
 export function createMossHummockGeometry(
   width = 2.8,
   depth = 2.1,
   height = 0.55,
   seed = 505
-): { geometry: THREE.BufferGeometry; fuzzAnchors: Array<{ pos: THREE.Vector3; normal: THREE.Vector3; scale: number }> } {
-  const geo = new THREE.PlaneGeometry(width, depth, 64, 52);
+): { geometry: THREE.BufferGeometry; mossAnchors: SurfaceAnchor[] } {
+  const geo = new THREE.PlaneGeometry(width, depth, 72, 56);
   geo.rotateX(-Math.PI / 2);
 
   const posAttr = geo.attributes.position as THREE.BufferAttribute;
@@ -333,111 +172,219 @@ export function createMossHummockGeometry(
 
     const nx = x / (width * 0.5);
     const nz = z / (depth * 0.5);
-    const radial = Math.max(0, 1 - (nx * nx + nz * nz * 0.92));
-    const dome = Math.pow(radial, 0.66) * height;
-    const lobes = Math.abs(fbm3(x * 1.45, 0, z * 1.45, 3, seed)) * 0.28 * radial;
-    const micro = fbm3(x * 5.2, 0, z * 5.2, 2, seed + 19) * 0.04 * radial;
+    const radial = Math.max(0, 1 - (nx * nx + nz * nz * 0.9));
+    const dome = Math.pow(radial, 0.68) * height;
+    const cushionLobes = Math.abs(fbm3(x * 1.65, 0, z * 1.65, 3, seed)) * 0.24 * radial;
+    const micro = fbm3(x * 5.8, 0, z * 5.8, 2, seed + 19) * 0.035 * radial;
 
-    posAttr.setY(i, dome + lobes + micro - 0.06);
-    uvAttr.setXY(i, (x + width * 0.5) * 1.1, (z + depth * 0.5) * 1.1);
+    posAttr.setY(i, dome + cushionLobes + micro - 0.08);
+    uvAttr.setXY(i, (x + width * 0.5) * 1.2, (z + depth * 0.5) * 1.2);
   }
 
   geo.computeVertexNormals();
 
   const normAttr = geo.attributes.normal as THREE.BufferAttribute;
   const rand = createSeededRandom(seed * 41);
-  const fuzzAnchors: Array<{ pos: THREE.Vector3; normal: THREE.Vector3; scale: number }> = [];
+  const mossAnchors: SurfaceAnchor[] = [];
 
   for (let i = 0; i < posAttr.count; i++) {
     const py = posAttr.getY(i);
     const ny = normAttr.getY(i);
-    if (py > 0.03 && ny > 0.3 && rand() < 0.72) {
-      fuzzAnchors.push({
-        pos: new THREE.Vector3(posAttr.getX(i), py, posAttr.getZ(i)),
+    if (py > 0.02 && ny > 0.2 && rand() < 0.85) {
+      mossAnchors.push({
+        pos: new THREE.Vector3(posAttr.getX(i), py - 0.01, posAttr.getZ(i)),
         normal: new THREE.Vector3(normAttr.getX(i), ny, normAttr.getZ(i)).normalize(),
-        scale: 0.75 + rand() * 0.65,
+        scale: 0.78 + rand() * 0.72,
       });
     }
   }
 
-  return { geometry: geo, fuzzAnchors };
+  for (let i = mossAnchors.length - 1; i > 0; i--) {
+    const j = Math.floor(rand() * (i + 1));
+    const tmp = mossAnchors[i];
+    mossAnchors[i] = mossAnchors[j];
+    mossAnchors[j] = tmp;
+  }
+
+  return { geometry: geo, mossAnchors };
+}
+
+export interface ExtractedMeshPart {
+  geometry: THREE.BufferGeometry;
+  material: THREE.Material | THREE.Material[];
+  size: THREE.Vector3;
 }
 
 /**
- * Smooth multi-segment curved ovate botanical leaf blade with soft natural camber.
+ * Extracts and centers/grounds an individual mesh node from a multi-asset Poly Haven GLB.
  */
-export function createBotanicalLeafGeometry(
-  length = 0.24,
-  maxWidth = 0.072,
-  arch = 0.055,
-  crease = 0.011
-): THREE.BufferGeometry {
-  const segments = 8;
-  const positions: number[] = [];
-  const uvs: number[] = [];
-  const indices: number[] = [];
+export function extractMeshPart(
+  root: THREE.Object3D,
+  nodeName?: string,
+  anchor: "center" | "base" = "center"
+): ExtractedMeshPart {
+  let targetMesh: THREE.Mesh | null = null;
+  root.traverse((obj) => {
+    if (targetMesh) return;
+    if (obj instanceof THREE.Mesh && (!nodeName || obj.name === nodeName)) {
+      targetMesh = obj;
+    }
+  });
 
-  for (let i = 0; i <= segments; i++) {
-    const t = i / segments;
-    const y = t * length;
-    const zCurve = Math.sin(t * Math.PI * 0.8) * arch - t * t * arch * 0.58;
-    // Ovate leaf silhouette: fuller mid-base tapering smoothly to an organic apex
-    const widthProfile = Math.pow(Math.sin(Math.pow(t, 0.58) * Math.PI), 0.72) * maxWidth;
-    const foldZ = crease * (1 - t);
-
-    positions.push(-widthProfile, y, zCurve + foldZ);
-    positions.push(0, y, zCurve);
-    positions.push(widthProfile, y, zCurve + foldZ);
-
-    uvs.push(0, t, 0.5, t, 1, t);
+  if (!targetMesh) {
+    root.traverse((obj) => {
+      if (!targetMesh && obj instanceof THREE.Mesh) {
+        targetMesh = obj;
+      }
+    });
   }
 
-  for (let i = 0; i < segments; i++) {
-    const row = i * 3;
-    const next = (i + 1) * 3;
-    indices.push(row + 0, row + 1, next + 0);
-    indices.push(row + 1, next + 1, next + 0);
-    indices.push(row + 1, row + 2, next + 1);
-    indices.push(row + 2, next + 2, next + 1);
+  if (!targetMesh) {
+    throw new Error(`Mesh node '${nodeName ?? "default"}' not found in GLTF scene.`);
   }
 
-  const geo = new THREE.BufferGeometry();
-  geo.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
-  geo.setAttribute("uv", new THREE.Float32BufferAttribute(uvs, 2));
-  geo.setIndex(indices);
-  geo.computeVertexNormals();
-  return geo;
+  const found = targetMesh as THREE.Mesh;
+  const geometry = found.geometry.clone();
+  geometry.computeBoundingBox();
+  const box = geometry.boundingBox ?? new THREE.Box3();
+  const center = new THREE.Vector3();
+  const size = new THREE.Vector3();
+  box.getCenter(center);
+  box.getSize(size);
+
+  if (anchor === "center") {
+    geometry.translate(-center.x, -center.y, -center.z);
+  } else {
+    geometry.translate(-center.x, -box.min.y, -center.z);
+  }
+  geometry.computeBoundingBox();
+  geometry.computeBoundingSphere();
+
+  return {
+    geometry,
+    material: found.material,
+    size,
+  };
 }
 
 /**
- * Ultra-fine velvety moss filament hair for Scene 3 velvet bryophyte cushions.
+ * Samples natural clumped anchor points over upward-facing crevices of a photogrammetry rock.
  */
-export function createVelvetHairGeometry(length = 0.048, width = 0.0038): THREE.BufferGeometry {
-  const segments = 3;
-  const positions: number[] = [];
-  const indices: number[] = [];
-  for (let i = 0; i <= segments; i++) {
-    const t = i / segments;
-    const w = width * (1 - t * 0.85);
-    const z = t * t * 0.008;
-    positions.push(-w, t * length, z);
-    positions.push(w, t * length, z);
+export function sampleRockMossAnchors(
+  geo: THREE.BufferGeometry,
+  options: {
+    seed?: number;
+    maxCount?: number;
+    minNormalY?: number;
+    frontBiasZ?: number;
+    patchThreshold?: number;
+  } = {}
+): SurfaceAnchor[] {
+  const {
+    seed = 701,
+    maxCount = 260,
+    minNormalY = 0.24,
+    frontBiasZ = 0.2,
+    patchThreshold = -0.02,
+  } = options;
+
+  const posAttr = geo.attributes.position as THREE.BufferAttribute;
+  const normAttr = geo.attributes.normal as THREE.BufferAttribute;
+  if (!posAttr || !normAttr) return [];
+
+  const rand = createSeededRandom(seed);
+  const candidates: SurfaceAnchor[] = [];
+  const stride = Math.max(1, Math.floor(posAttr.count / 4500));
+
+  for (let i = 0; i < posAttr.count; i += stride) {
+    const ny = normAttr.getY(i);
+    const nz = normAttr.getZ(i);
+    const px = posAttr.getX(i);
+    const py = posAttr.getY(i);
+    const pz = posAttr.getZ(i);
+
+    const facingScore = ny + Math.max(0, nz) * frontBiasZ;
+    if (facingScore < minNormalY) continue;
+
+    const colony = fbm3(px * 2.4, py * 2.4, pz * 2.4, 3, seed);
+    if (colony < patchThreshold) continue;
+
+    candidates.push({
+      pos: new THREE.Vector3(px, py, pz),
+      normal: new THREE.Vector3(normAttr.getX(i), ny, nz).normalize(),
+      scale: 0.72 + rand() * 0.68,
+    });
   }
-  for (let i = 0; i < segments; i++) {
-    const r = i * 2;
-    const n = (i + 1) * 2;
-    indices.push(r, r + 1, n);
-    indices.push(r + 1, n + 1, n);
+
+  for (let i = candidates.length - 1; i > 0; i--) {
+    const j = Math.floor(rand() * (i + 1));
+    const tmp = candidates[i];
+    candidates[i] = candidates[j];
+    candidates[j] = tmp;
   }
-  const geo = new THREE.BufferGeometry();
-  geo.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
-  geo.setIndex(indices);
-  geo.computeVertexNormals();
-  return geo;
+
+  return candidates.slice(0, maxCount);
+}
+
+export interface MaterialTuneOptions {
+  colorHex?: string;
+  alphaTest?: number;
+  roughnessScale?: number;
+  envMapIntensity?: number;
+  emissiveHex?: string;
+  emissiveIntensity?: number;
+  normalScale?: number;
+  aoMapIntensity?: number;
+  doubleSided?: boolean;
 }
 
 /**
- * Soft feathered mist sprite canvas texture.
+ * Clones and calibrates a loaded GLTF PBR material for realistic overcast/studio AgX rendering.
+ */
+export function cloneTunedMaterial(
+  source: THREE.Material | THREE.Material[],
+  options: MaterialTuneOptions = {}
+): THREE.MeshStandardMaterial {
+  const base = Array.isArray(source) ? source[0] : source;
+  const mat =
+    base instanceof THREE.MeshStandardMaterial
+      ? base.clone()
+      : new THREE.MeshStandardMaterial({ color: "#556840" });
+
+  if (options.colorHex) {
+    mat.color.set(options.colorHex);
+  }
+  if (typeof options.alphaTest === "number") {
+    mat.alphaTest = options.alphaTest;
+    mat.transparent = false;
+    mat.depthWrite = true;
+  }
+  if (typeof options.roughnessScale === "number") {
+    mat.roughness = THREE.MathUtils.clamp(mat.roughness * options.roughnessScale, 0.25, 1);
+  }
+  if (typeof options.envMapIntensity === "number") {
+    mat.envMapIntensity = options.envMapIntensity;
+  }
+  if (options.emissiveHex && typeof options.emissiveIntensity === "number") {
+    mat.emissive.set(options.emissiveHex);
+    mat.emissiveIntensity = options.emissiveIntensity;
+  }
+  if (typeof options.normalScale === "number" && mat.normalMap) {
+    mat.normalScale.set(options.normalScale, options.normalScale);
+  }
+  if (typeof options.aoMapIntensity === "number" && mat.aoMap) {
+    mat.aoMapIntensity = options.aoMapIntensity;
+  }
+  if (options.doubleSided !== undefined) {
+    mat.side = options.doubleSided ? THREE.DoubleSide : THREE.FrontSide;
+  }
+
+  mat.needsUpdate = true;
+  return mat;
+}
+
+/**
+ * Soft feathered atmospheric mist sprite canvas texture.
  */
 export function createMistTexture(): THREE.CanvasTexture {
   const size = 256;
@@ -454,8 +401,8 @@ export function createMistTexture(): THREE.CanvasTexture {
       size * 0.5,
       size * 0.5
     );
-    grad.addColorStop(0, "rgba(232, 236, 230, 0.45)");
-    grad.addColorStop(0.45, "rgba(218, 224, 217, 0.18)");
+    grad.addColorStop(0, "rgba(232, 236, 230, 0.42)");
+    grad.addColorStop(0.45, "rgba(218, 224, 217, 0.16)");
     grad.addColorStop(1, "rgba(218, 224, 217, 0)");
     ctx.fillStyle = grad;
     ctx.fillRect(0, 0, size, size);
