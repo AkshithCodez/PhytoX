@@ -522,7 +522,8 @@ function EcoWorld({ scrollProgressRef, mousePosRef, reducedMotion }: EcoTechScen
     };
   }, [scene, keyTarget]);
 
-  // Load 6 compressed CC0 photogrammetry GLBs
+  // Load Meshy authored floating botanical island + environmental GLBs
+  const mainIslandGltf = useGLTF("/models/main_island_desktop.glb");
   const boulderGltf = useGLTF("/models/boulder_01.glb");
   const mossRocks1Gltf = useGLTF("/models/rock_moss_set_01.glb");
   const mossRocks2Gltf = useGLTF("/models/rock_moss_set_02.glb");
@@ -579,6 +580,7 @@ function EcoWorld({ scrollProgressRef, mousePosRef, reducedMotion }: EcoTechScen
 
   // Extract centered/grounded photogrammetry geometries + calibrate materials
   const sceneAssets = useMemo(() => {
+    const mainIslandPart = extractMeshPart(mainIslandGltf.scene, "Mesh_0", "center");
     const boulderCore = extractMeshPart(boulderGltf.scene, "boulder_01", "center");
 
     const r1_01 = extractMeshPart(mossRocks1Gltf.scene, "rock_moss_set_01_rock01", "center");
@@ -633,12 +635,18 @@ function EcoWorld({ scrollProgressRef, mousePosRef, reducedMotion }: EcoTechScen
     const horizonMoss2 = createMossHummockGeometry(2.6, 1.4, 0.34, 709);
 
     // Calibrated PBR Materials
+    const mainIslandMat = cloneTunedMaterial(mainIslandPart.material, {
+      roughnessScale: 0.94,
+      envMapIntensity: 0.85,
+      normalScale: 1.25,
+      doubleSided: true,
+    });
     const boulderMat = cloneTunedMaterial(boulderCore.material, {
-      colorHex: "#9e9882",
-      roughnessScale: 0.96,
-      envMapIntensity: 0.72,
-      normalScale: 1.55,
-      aoMapIntensity: 1.25,
+      colorHex: "#d4cca8",
+      roughnessScale: 0.92,
+      envMapIntensity: 0.88,
+      normalScale: 1.45,
+      aoMapIntensity: 1.15,
       doubleSided: false,
     });
     const mossRock1Mat = cloneTunedMaterial(r1_01.material, {
@@ -650,9 +658,9 @@ function EcoWorld({ scrollProgressRef, mousePosRef, reducedMotion }: EcoTechScen
       doubleSided: false,
     });
     const mossRock2Mat = cloneTunedMaterial(r2_07.material, {
-      colorHex: "#a3a18f",
-      roughnessScale: 0.95,
-      envMapIntensity: 0.7,
+      colorHex: "#b8ae98",
+      roughnessScale: 0.94,
+      envMapIntensity: 0.8,
       normalScale: 1.35,
       aoMapIntensity: 1.15,
       doubleSided: false,
@@ -729,6 +737,8 @@ function EcoWorld({ scrollProgressRef, mousePosRef, reducedMotion }: EcoTechScen
     });
 
     return {
+      mainIslandPart,
+      mainIslandMat,
       boulderCore,
       r1_01,
       r1_02,
@@ -770,6 +780,7 @@ function EcoWorld({ scrollProgressRef, mousePosRef, reducedMotion }: EcoTechScen
       mistSpriteMat,
     };
   }, [
+    mainIslandGltf,
     boulderGltf,
     mossRocks1Gltf,
     mossRocks2Gltf,
@@ -788,6 +799,8 @@ function EcoWorld({ scrollProgressRef, mousePosRef, reducedMotion }: EcoTechScen
 
   useEffect(() => {
     return () => {
+      sceneAssets.mainIslandPart.geometry.dispose();
+      sceneAssets.mainIslandMat.dispose();
       sceneAssets.boulderCore.geometry.dispose();
       sceneAssets.r1_01.geometry.dispose();
       sceneAssets.r1_02.geometry.dispose();
@@ -937,31 +950,31 @@ function EcoWorld({ scrollProgressRef, mousePosRef, reducedMotion }: EcoTechScen
 
       mainRockRef.current.position.set(
         THREE.MathUtils.lerp(0.32, 0.0, visionT),
-        THREE.MathUtils.lerp(-0.04, 0.02, visionT) + plungeT * 4.5 + idleFloat,
+        THREE.MathUtils.lerp(-0.16, 0.02, visionT) + plungeT * 4.5 + idleFloat,
         THREE.MathUtils.lerp(0.0, 0.25, visionT) - plungeT * 1.4
       );
       mainRockRef.current.rotation.set(
-        0.12 - visionT * 0.06,
-        -0.18 + visionT * 0.36 + idleRot,
-        -0.05 + visionT * 0.05
+        -visionT * 0.08,
+        visionT * 0.42 + idleRot,
+        visionT * 0.04
       );
       const baseScale = THREE.MathUtils.lerp(1.0, 1.14, visionT) * (1 - plungeT * 0.2);
       mainRockRef.current.scale.setScalar(baseScale);
 
       if (sat1Ref.current) {
         sat1Ref.current.position.set(
-          -2.58 - visionT * 3.1,
-          -0.78 - visionT * 1.1 + idleFloat * 1.3,
-          0.55
+          -2.48 - visionT * 3.1,
+          -0.66 - visionT * 1.1 + idleFloat * 1.3,
+          0.72
         );
         sat1Ref.current.rotation.y = 0.5 + time * (reducedMotion ? 0 : 0.07);
         sat1Ref.current.scale.setScalar(Math.max(0.001, 1 - visionT * 0.45));
       }
       if (sat2Ref.current) {
         sat2Ref.current.position.set(
-          2.68 + visionT * 3.1,
-          -1.02 - visionT * 1.0 - idleFloat,
-          0.42
+          2.58 + visionT * 3.1,
+          -0.76 - visionT * 1.1 + idleFloat * 1.2,
+          0.58
         );
         sat2Ref.current.rotation.y = -0.7 - time * (reducedMotion ? 0 : 0.05);
         sat2Ref.current.scale.setScalar(Math.max(0.001, 1 - visionT * 0.45));
@@ -1057,15 +1070,16 @@ function EcoWorld({ scrollProgressRef, mousePosRef, reducedMotion }: EcoTechScen
       {/* Natural Overcast IBL HDRI for photorealistic rock, moss, leaf, and aluminum reflections */}
       <Environment files="/hdri/belfast_open_field_1k.hdr" background={false} />
 
-      <hemisphereLight ref={hemiLightRef} args={["#e4ebe3", "#243324", 0.45]} />
+      <hemisphereLight ref={hemiLightRef} args={["#dbe8d8", "#182b1c", 0.55]} />
+      {/* Cinematic Directional Key Light from Top-Left matching reference */}
       <directionalLight
         ref={keyLightRef}
-        position={[4.5, 5.5, 4.8]}
-        intensity={2.45}
-        color="#fff6e6"
+        position={[-5.2, 5.8, 4.6]}
+        intensity={3.2}
+        color="#fff8ed"
         castShadow
-        shadow-mapSize={[512, 512]}
-        shadow-bias={-0.0005}
+        shadow-mapSize={[1024, 1024]}
+        shadow-bias={-0.0004}
         shadow-camera-near={0.5}
         shadow-camera-far={24}
         shadow-camera-left={-7}
@@ -1073,13 +1087,15 @@ function EcoWorld({ scrollProgressRef, mousePosRef, reducedMotion }: EcoTechScen
         shadow-camera-top={7}
         shadow-camera-bottom={-7}
       />
+      {/* Subtle Rim Light from Upper-Right catching foliage & rock crest */}
       <directionalLight
         ref={backLightRef}
-        position={[-4.5, 3.0, -5.0]}
-        intensity={0.95}
-        color="#d8e6ce"
+        position={[3.8, 4.2, -4.5]}
+        intensity={1.45}
+        color="#dff0e6"
       />
-      <directionalLight position={[0, -4.0, 2.5]} intensity={0.35} color="#345038" />
+      {/* Soft Ambient Forest Bounce from Lower-Right */}
+      <directionalLight position={[4.0, -2.8, 2.5]} intensity={0.85} color="#27402f" />
 
       <SkyBackdrop mistRef={mistRef} />
 
@@ -1087,123 +1103,33 @@ function EcoWorld({ scrollProgressRef, mousePosRef, reducedMotion }: EcoTechScen
       {/* DIORAMA A: SCENE 1 HERO & SCENE 2 VISION PHOTOGRAMMETRY BOULDERS      */}
       {/* ===================================================================== */}
       <group ref={dioramaAGroupRef}>
-        <group ref={mainRockRef} position={[0.32, -0.04, 0]}>
-          {/* Fractured eroded photogrammetry crag core */}
-          <group rotation={[0.18, 0.56, -0.14]} scale={[2.02, 1.92, 1.62]}>
-            <mesh
-              geometry={sceneAssets.boulderCore.geometry}
-              material={sceneAssets.boulderMat}
-              castShadow
-              receiveShadow
-            />
-            <MossColonyInstanced
-              anchors={sceneAssets.heroAnchorsCore}
-              variants={sceneAssets.mossVariants}
-              baseScale={2.2}
-              yScaleRatio={0.68}
-              seed={4409}
-              maxInstances={220}
-              sink={0.01}
-              paletteHex={["#d8eba8", "#c2de8a", "#e6f2c2", "#a8c96e"]}
-            />
-          </group>
-
-          {/* Upper-back mossy rock shelf interlocking over rear ridge */}
-          <group position={[-0.08, 0.6, -0.16]} rotation={[0.2, -0.45, -0.15]} scale={[0.7, 0.64, 0.58]}>
-            <mesh
-              geometry={sceneAssets.r1_01.geometry}
-              material={sceneAssets.mossRock1Mat}
-              castShadow
-              receiveShadow
-            />
-            <MossColonyInstanced
-              anchors={sceneAssets.heroAnchorsCap}
-              variants={sceneAssets.mossVariants}
-              baseScale={3.5}
-              yScaleRatio={0.68}
-              seed={5113}
-              maxInstances={160}
-              sink={0.015}
-              paletteHex={["#d8eba8", "#c2de8a", "#e6f2c2", "#a8c96e"]}
-            />
-          </group>
-
-          {/* Right flank outcrop */}
+        <group ref={mainRockRef} position={[0.32, -0.16, 0]}>
+          {/* Meshy AI Primary Floating Botanical Island — Calibrated Hero Silhouette */}
           <mesh
-            geometry={sceneAssets.r1_03.geometry}
-            material={sceneAssets.mossRock1Mat}
-            position={[0.64, -0.12, -0.14]}
-            rotation={[0.35, 0.78, -0.45]}
-            scale={[0.58, 0.54, 0.58]}
-            castShadow
-            receiveShadow
-          />
-
-          {/* Lower front dark mineral stratum */}
-          <mesh
-            geometry={sceneAssets.r2_07.geometry}
-            material={sceneAssets.mossRock2Mat}
-            position={[-0.36, -0.4, 0.26]}
-            rotation={[-0.25, 0.42, 0.18]}
-            scale={[0.52, 0.48, 0.5]}
-            castShadow
-            receiveShadow
-          />
-
-          {/* Lush photogrammetry fern rosettes tucked naturally inside hero rock crevices */}
-          <mesh
-            geometry={sceneAssets.fernParts.b}
-            material={sceneAssets.fernMat}
-            position={[0.42, -0.22, 0.84]}
-            rotation={[0.5, 0.25, -0.28]}
-            scale={0.78}
-            castShadow
-            receiveShadow
-          />
-          <mesh
-            geometry={sceneAssets.fernParts.a}
-            material={sceneAssets.fernMat}
-            position={[-0.26, 0.78, 0.22]}
-            rotation={[0.16, -0.6, 0.22]}
-            scale={0.72}
-            castShadow
-            receiveShadow
-          />
-          <mesh
-            geometry={sceneAssets.fernParts.c}
-            material={sceneAssets.fernMat}
-            position={[0.38, 0.76, 0.04]}
-            rotation={[0.2, 0.85, -0.28]}
-            scale={0.68}
-            castShadow
-            receiveShadow
-          />
-          <mesh
-            geometry={sceneAssets.fernParts.d}
-            material={sceneAssets.fernMat}
-            position={[-0.65, 0.42, 0.35]}
-            rotation={[0.32, -1.1, 0.36]}
-            scale={0.62}
+            geometry={sceneAssets.mainIslandPart.geometry}
+            material={sceneAssets.mainIslandMat}
+            scale={1.82}
+            rotation={[0.18, -0.82, -0.02]}
             castShadow
             receiveShadow
           />
         </group>
 
-        {/* Satellite Rock 1: Eroded Mossy Sandstone Bottom-Left */}
-        <group ref={sat1Ref} position={[-2.58, -0.78, 0.55]}>
+        {/* Satellite Rock 1: Faceted Sandstone Block Bottom-Left matching reference */}
+        <group ref={sat1Ref} position={[-2.48, -0.66, 0.72]}>
           <mesh
-            geometry={sceneAssets.r1_04.geometry}
-            material={sceneAssets.mossRock1Mat}
-            rotation={[0.25, 0.7, -0.15]}
-            scale={0.44}
+            geometry={sceneAssets.boulderCore.geometry}
+            material={sceneAssets.boulderMat}
+            rotation={[0.28, 0.65, -0.12]}
+            scale={0.56}
             castShadow
             receiveShadow
           />
         </group>
 
-        {/* Satellite Rock 2: Moss-Touched Boulder Bottom-Right */}
-        <group ref={sat2Ref} position={[2.68, -1.02, 0.42]}>
-          <group rotation={[0.1, -0.4, 0.08]} scale={[0.58, 0.6, 0.56]}>
+        {/* Satellite Rock 2: Elongated River Stone Bottom-Right matching reference */}
+        <group ref={sat2Ref} position={[2.58, -0.76, 0.58]}>
+          <group rotation={[0.16, -0.48, 0.1]} scale={[0.72, 0.54, 0.62]}>
             <mesh
               geometry={sceneAssets.r2_09.geometry}
               material={sceneAssets.mossRock2Mat}
@@ -1213,9 +1139,9 @@ function EcoWorld({ scrollProgressRef, mousePosRef, reducedMotion }: EcoTechScen
             <MossColonyInstanced
               anchors={sceneAssets.sat2Anchors}
               variants={sceneAssets.mossVariants}
-              baseScale={4.5}
+              baseScale={4.0}
               seed={6029}
-              maxInstances={85}
+              maxInstances={80}
               sink={0.015}
             />
           </group>
@@ -1226,9 +1152,9 @@ function EcoWorld({ scrollProgressRef, mousePosRef, reducedMotion }: EcoTechScen
           ref={sat3Ref}
           geometry={sceneAssets.r2_08.geometry}
           material={sceneAssets.mossRock2Mat}
-          position={[2.1, 1.38, -1.1]}
-          rotation={[0.4, 0.9, -0.2]}
-          scale={0.35}
+          position={[1.98, 1.58, -1.2]}
+          rotation={[0.38, 0.92, -0.22]}
+          scale={0.24}
           castShadow
         />
       </group>
@@ -1498,3 +1424,5 @@ export function EcoTechScene(props: EcoTechSceneProps) {
     </div>
   );
 }
+
+useGLTF.preload("/models/main_island_desktop.glb");

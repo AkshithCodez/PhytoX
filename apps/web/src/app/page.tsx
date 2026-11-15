@@ -317,26 +317,27 @@ export default function Home() {
               className="absolute inset-0 max-w-[1440px] mx-auto px-6 md:px-12 pt-[88px] pb-8 md:pb-10 flex flex-col justify-between"
             >
               {/* Subtle Translucent Square Reticle Over Moss Patch */}
+              {/* Minimal reference-matched HUD reticle with delicate telemetry */}
               <div
                 ref={reticleRef}
-                className="hidden md:flex flex-col justify-end items-end pointer-events-none absolute top-[47%] left-[52%] -translate-x-1/2 -translate-y-1/2 w-[176px] h-[176px] border border-white/30 bg-white/[0.02]"
+                className="hidden md:flex flex-col justify-end items-end pointer-events-none absolute top-[48%] left-[52%] -translate-x-1/2 -translate-y-1/2 w-[164px] h-[164px] border border-white/20 bg-white/[0.015]"
                 aria-hidden="true"
               >
-                <div className="translate-x-[58%] translate-y-2 flex flex-col items-start gap-1">
-                  <span className="px-1.5 py-0.5 rounded-[2px] bg-[#f5f7f4] text-[#111d13] font-mono text-[8.5px] font-semibold tracking-[0.08em] uppercase whitespace-nowrap">
-                    38 DISEASE CLASSES
+                <div className="translate-x-[52%] translate-y-2 flex flex-col items-start gap-1">
+                  <span className="px-1.5 py-0.5 rounded-[2px] bg-white/90 text-[#111d13] font-mono text-[8px] font-semibold tracking-[0.1em] uppercase whitespace-nowrap shadow-sm">
+                    [38.4°N 78.1°E]
                   </span>
-                  <span className="font-mono text-[8.5px] tracking-[0.12em] uppercase text-white/80 leading-tight whitespace-nowrap [text-shadow:0_1px_6px_rgba(0,0,0,0.9)]">
-                    LEAF SCREENING · ONNX READY
+                  <span className="font-mono text-[8px] tracking-[0.12em] uppercase text-white/60 leading-tight whitespace-nowrap [text-shadow:0_1px_6px_rgba(0,0,0,0.9)]">
+                    CANOPY SPECTRAL · ONNX 38 CLS
                     <br />
-                    EN / తెలుగు / हिन्दी
+                    LATENCY 14MS · FP16 QUANT
                   </span>
                 </div>
               </div>
 
-              {/* Top-Left Hero Headline & Action */}
-              <div className="relative z-10 max-w-[560px] mt-[4vh] md:mt-[5vh]">
-                <h1 className="text-[clamp(2.35rem,4.7vw,4.25rem)] font-medium leading-[1.03] tracking-[-0.03em] text-[#f5f7f4] [text-shadow:0_2px_24px_rgba(10,18,12,0.55)]">
+              {/* Top-Left Hero Headline & Action — Proportional 3-line layout */}
+              <div className="relative z-10 max-w-[500px] mt-[3vh] md:mt-[4vh]">
+                <h1 className="text-[clamp(2.1rem,3.4vw,3.15rem)] font-medium leading-[1.08] tracking-[-0.035em] text-[#f5f7f4] [text-shadow:0_2px_20px_rgba(8,16,10,0.6)]">
                   Where Crop Science
                   <br />
                   and Field Intelligence
