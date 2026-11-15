@@ -1,0 +1,31 @@
+{
+  "nonImageBufferViewsIdentical": 1,
+  "geometryAndAccessorsIdentical": true,
+  "files": [
+    {
+      "file": "public/models/main_island_desktop.glb",
+      "bytes": 6540428,
+      "sha256": "d41a2b923bb1a5f735c6337d4bee6f8964ab1f4e301933349c035301d36f1fb1"
+    },
+    {
+      "file": "public/models/ground_ecosystem_desktop.glb",
+      "bytes": 7033764,
+      "sha256": "145f6dd9230d95e00236d8f385f108ee7dd46187a8e29508c5603f8d899be34c"
+    },
+    {
+      "file": "public/models/ground_ecosystem_2k.glb",
+      "bytes": 3543792,
+      "sha256": "230440c56df574c57267ecfee163625d94f3ed627a27e6e81f310cce03a2b693"
+    },
+    {
+      "file": "public/images/ground-still-desktop.webp",
+      "bytes": 413572,
+      "sha256": "ca12d574d2c80ce25cafafa32c3a8340206f1f1da978df8a52b3529a22cef01d"
+    },
+    {
+      "file": "public/images/ground-still-mobile.webp",
+      "bytes": 84950,
+      "sha256": "422c601d6f6e17394e4c3b1b275f9c70e903b9dfb311e31c8fce34c77d84edfe"
+    }
+  ]
+}

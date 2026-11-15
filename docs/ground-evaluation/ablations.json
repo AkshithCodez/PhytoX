@@ -1,0 +1,75 @@
+[
+  {
+    "mode": "original",
+    "config": {
+      "side": 2,
+      "transparent": false,
+      "alphaTest": 0,
+      "normal": true,
+      "maps": [
+        {
+          "key": "map",
+          "width": 4096,
+          "height": 4096
+        },
+        {
+          "key": "normalMap",
+          "width": 4096,
+          "height": 4096
+        },
+        {
+          "key": "roughnessMap",
+          "width": 2048,
+          "height": 2048
+        },
+        {
+          "key": "metalnessMap",
+          "width": 2048,
+          "height": 2048
+        }
+      ]
+    },
+    "timing": {
+      "fps": 119.98800119988002,
+      "p95": 8.600000000000364,
+      "calls": 47,
+      "triangles": 1950888
+    }
+  },
+  {
+    "mode": "no-ground-shadow",
+    "timing": {
+      "fps": 120.00400013333778,
+      "p95": 8.400000000001455,
+      "calls": 46,
+      "triangles": 1730888
+    }
+  },
+  {
+    "mode": "front-face",
+    "timing": {
+      "fps": 119.99200053329774,
+      "p95": 8.400000000001455,
+      "calls": 46,
+      "triangles": 1730888
+    }
+  },
+  {
+    "mode": "no-normal",
+    "timing": {
+      "fps": 120.020003333889,
+      "p95": 8.400000000001455,
+      "calls": 46,
+      "triangles": 1730888
+    }
+  },
+  {
+    "mode": "static-shadows",
+    "timing": {
+      "fps": 120.01200120012,
+      "p95": 8.400000000001455,
+      "calls": 18,
+      "triangles": 990132
+    }
+  }
+]

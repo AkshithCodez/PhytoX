@@ -9,18 +9,11 @@ import {
   type MutableRefObject,
 } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { Environment, useGLTF, useTexture } from "@react-three/drei";
+import { Environment, useGLTF } from "@react-three/drei";
 import * as THREE from "three";
 import {
   cloneTunedMaterial,
-  createMistTexture,
-  createMossHummockGeometry,
-  createSeededRandom,
-  createTerrainGeometry,
   extractMeshPart,
-  getTerrainHeight,
-  sampleRockMossAnchors,
-  type SurfaceAnchor,
 } from "./scene-helpers";
 
 useGLTF.setDecoderPath("/draco/");
@@ -129,383 +122,20 @@ function SkyBackdrop({ mistRef }: { mistRef: MutableRefObject<number> }) {
   );
 }
 
-interface MossBatchVariant {
-  geometry: THREE.BufferGeometry;
-  material: THREE.Material;
-}
+function EcoWorld({
+  scrollProgressRef,
+  mousePosRef,
+  reducedMotion,
+}: EcoTechSceneProps) {
+  const { scene, camera } = useThree();
 
-/**
- * Instanced photogrammetry bryophyte moss tufts seeded onto cushion mounds or rock crevices.
- */
-function MossColonyInstanced({
-  anchors,
-  variants,
-  baseScale = 2.4,
-  yScaleRatio = 0.6,
-  seed = 4409,
-  maxInstances = 750,
-  sink = 0.014,
-  paletteHex = ["#d6e3be", "#c2d4a4", "#e5edd6", "#b2c693"],
-}: {
-  anchors: SurfaceAnchor[];
-  variants: MossBatchVariant[];
-  baseScale?: number;
-  yScaleRatio?: number;
-  seed?: number;
-  maxInstances?: number;
-  sink?: number;
-  paletteHex?: string[];
-}) {
-  const count = Math.min(anchors.length, maxInstances);
-  const inst0 = useRef<THREE.InstancedMesh>(null);
-  const inst1 = useRef<THREE.InstancedMesh>(null);
-  const inst2 = useRef<THREE.InstancedMesh>(null);
-
-  const perBatch = useMemo(() => {
-    const groups: SurfaceAnchor[][] = [[], [], []];
-    for (let i = 0; i < count; i++) {
-      groups[i % variants.length].push(anchors[i]);
-    }
-    return groups;
-  }, [anchors, count, variants.length]);
-
-  useEffect(() => {
-    const refs = [inst0.current, inst1.current, inst2.current];
-    const dummy = new THREE.Object3D();
-    const up = new THREE.Vector3(0, 1, 0);
-    const q = new THREE.Quaternion();
-    const rand = createSeededRandom(seed);
-    const colors = paletteHex.map((hex) => new THREE.Color(hex));
-
-    perBatch.forEach((group, gIdx) => {
-      const mesh = refs[gIdx];
-      if (!mesh || group.length === 0) return;
-
-      for (let i = 0; i < group.length; i++) {
-        const a = group[i];
-        dummy.position.copy(a.pos).addScaledVector(a.normal, -sink);
-        q.setFromUnitVectors(up, a.normal);
-        dummy.quaternion.copy(q);
-        dummy.rotateY(rand() * Math.PI * 2);
-        dummy.rotateX((rand() - 0.5) * 0.42);
-        dummy.rotateZ((rand() - 0.5) * 0.36);
-        const s = a.scale * baseScale * (0.78 + rand() * 0.52);
-        dummy.scale.set(s * 1.15, s * yScaleRatio * (0.82 + rand() * 0.36), s * 1.15);
-        dummy.updateMatrix();
-        mesh.setMatrixAt(i, dummy.matrix);
-        mesh.setColorAt(i, colors[Math.floor(rand() * colors.length)]);
-      }
-      mesh.instanceMatrix.needsUpdate = true;
-      if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
-    });
-  }, [perBatch, baseScale, yScaleRatio, seed, sink, paletteHex]);
-
-  if (count === 0) return null;
-
-  return (
-    <>
-      {variants.map((v, idx) => {
-        const group = perBatch[idx];
-        if (!group || group.length === 0) return null;
-        const ref = idx === 0 ? inst0 : idx === 1 ? inst1 : inst2;
-        return (
-          <instancedMesh
-            key={idx}
-            ref={ref}
-            args={[v.geometry, v.material, group.length]}
-            receiveShadow
-          />
-        );
-      })}
-    </>
-  );
-}
-
-/**
- * Photogrammetry evergreen bush cluster composed of multi-angled woody shrub_04 sprays.
- */
-function PhotogrammetryShrubCluster({
-  position,
-  geometry,
-  material,
-  stemCount = 16,
-  spread = 0.52,
-  scaleRange = [1.55, 2.35],
-  seed = 901,
-}: {
-  position: [number, number, number];
-  geometry: THREE.BufferGeometry;
-  material: THREE.Material;
-  stemCount?: number;
-  spread?: number;
-  scaleRange?: [number, number];
-  seed?: number;
-}) {
-  const instRef = useRef<THREE.InstancedMesh>(null);
-
-  useEffect(() => {
-    const mesh = instRef.current;
-    if (!mesh) return;
-    const dummy = new THREE.Object3D();
-    const rand = createSeededRandom(seed);
-    const shades = [
-      new THREE.Color("#e8efe0"),
-      new THREE.Color("#d5e2ca"),
-      new THREE.Color("#f0f5ea"),
-      new THREE.Color("#c7d8bb"),
-    ];
-
-    for (let i = 0; i < stemCount; i++) {
-      const yaw = (i / stemCount) * Math.PI * 2 + (rand() - 0.5) * 0.35;
-      const radial = rand() * spread;
-      dummy.position.set(
-        Math.cos(yaw) * radial,
-        (rand() - 0.3) * 0.14,
-        Math.sin(yaw) * radial * 0.72
-      );
-      // shrub_04 twigs grow obliquely along -X/+Y; tilt upward into natural bushy fan
-      dummy.rotation.set(
-        (rand() - 0.5) * 0.45,
-        yaw,
-        -0.72 + (rand() - 0.5) * 0.38
-      );
-      const s = THREE.MathUtils.lerp(scaleRange[0], scaleRange[1], rand());
-      dummy.scale.set(s, s, s);
-      dummy.updateMatrix();
-      mesh.setMatrixAt(i, dummy.matrix);
-      mesh.setColorAt(i, shades[Math.floor(rand() * shades.length)]);
-    }
-    mesh.instanceMatrix.needsUpdate = true;
-    if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
-  }, [stemCount, spread, scaleRange, seed]);
-
-  return (
-    <group position={position}>
-      <instancedMesh ref={instRef} args={[geometry, material, stemCount]} castShadow receiveShadow />
-    </group>
-  );
-}
-
-/**
- * Multi-rosette woodland fern clump using alpha-masked photogrammetry fern_02 scans.
- */
-function PhotogrammetryFernCluster({
-  position,
-  parts,
-  material,
-  scale = 1,
-  rotationY = 0.25,
-}: {
-  position: [number, number, number];
-  parts: {
-    a: THREE.BufferGeometry;
-    b: THREE.BufferGeometry;
-    c: THREE.BufferGeometry;
-    d: THREE.BufferGeometry;
-  };
-  material: THREE.Material;
-  scale?: number | [number, number, number];
-  rotationY?: number;
-}) {
-  return (
-    <group position={position} rotation={[0, rotationY, 0]} scale={scale}>
-      <mesh geometry={parts.b} material={material} position={[0, 0, 0]} scale={1.06} castShadow receiveShadow />
-      <mesh
-        geometry={parts.c}
-        material={material}
-        position={[0.14, -0.01, -0.1]}
-        rotation={[0.05, 1.35, -0.04]}
-        scale={0.94}
-        castShadow
-        receiveShadow
-      />
-      <mesh
-        geometry={parts.a}
-        material={material}
-        position={[-0.16, -0.01, 0.14]}
-        rotation={[-0.06, -1.1, 0.04]}
-        scale={1.08}
-        castShadow
-        receiveShadow
-      />
-      <mesh
-        geometry={parts.d}
-        material={material}
-        position={[0.12, 0.0, 0.2]}
-        rotation={[0.04, 2.3, 0.03]}
-        scale={0.95}
-        castShadow
-        receiveShadow
-      />
-    </group>
-  );
-}
-
-/**
- * Scene 4 Weather & Agricultural Micro-Climate Observation Mast.
- */
-function ObservationMast({ position }: { position: [number, number, number] }) {
-  const metalMat = useMemo(
-    () =>
-      new THREE.MeshStandardMaterial({
-        color: "#c8ceca",
-        metalness: 0.78,
-        roughness: 0.28,
-        envMapIntensity: 1.25,
-      }),
-    []
-  );
-  const darkMetalMat = useMemo(
-    () =>
-      new THREE.MeshStandardMaterial({
-        color: "#2b302c",
-        metalness: 0.58,
-        roughness: 0.42,
-        envMapIntensity: 0.9,
-      }),
-    []
-  );
-  const plateMat = useMemo(
-    () =>
-      new THREE.MeshStandardMaterial({
-        color: "#ecefed",
-        metalness: 0.08,
-        roughness: 0.34,
-        envMapIntensity: 0.9,
-      }),
-    []
-  );
-
-  useEffect(() => {
-    return () => {
-      metalMat.dispose();
-      darkMetalMat.dispose();
-      plateMat.dispose();
-    };
-  }, [metalMat, darkMetalMat, plateMat]);
-
-  const louverOffsets = useMemo(() => Array.from({ length: 8 }, (_, i) => i * 0.044), []);
-
-  const sensors = [
-    { x: -0.66, armX: -0.45, y: 2.66, scale: 1.0 },
-    { x: -0.34, armX: -0.18, y: 2.48, scale: 0.82 },
-  ];
-
-  return (
-    <group position={position}>
-      {/* Main Vertical Anodized Mast Pole */}
-      <mesh position={[0, 1.35, 0]} material={metalMat} castShadow>
-        <cylinderGeometry args={[0.042, 0.048, 3.8, 18]} />
-      </mesh>
-
-      {/* Top Whip Antenna & Cap */}
-      <mesh position={[0, 3.85, 0]} material={metalMat}>
-        <cylinderGeometry args={[0.011, 0.014, 1.3, 12]} />
-      </mesh>
-      <mesh position={[0, 3.24, 0]} material={darkMetalMat}>
-        <cylinderGeometry args={[0.048, 0.048, 0.05, 16]} />
-      </mesh>
-
-      {/* Upper & Center Collar Clamps */}
-      <mesh position={[0, 2.72, 0]} material={metalMat}>
-        <cylinderGeometry args={[0.068, 0.068, 0.08, 18]} />
-      </mesh>
-      <mesh position={[0, 2.02, 0]} material={metalMat}>
-        <cylinderGeometry args={[0.075, 0.075, 0.16, 18]} />
-      </mesh>
-
-      {/* Horizontal Cross-Arm Tube */}
-      <mesh
-        position={[0.22, 2.02, 0]}
-        rotation={[0, 0, Math.PI / 2]}
-        material={metalMat}
-        castShadow
-      >
-        <cylinderGeometry args={[0.032, 0.032, 1.85, 16]} />
-      </mesh>
-
-      {/* Right Pyranometer Sensor Boom Tip */}
-      <mesh position={[1.18, 2.02, 0]} rotation={[0, 0, Math.PI / 2]} material={plateMat}>
-        <cylinderGeometry args={[0.022, 0.03, 0.24, 14]} />
-      </mesh>
-      <mesh position={[1.29, 2.04, 0]} material={darkMetalMat}>
-        <cylinderGeometry args={[0.025, 0.025, 0.04, 14]} />
-      </mesh>
-
-      {/* Twin Louvered Radiation Shields with Bolted Struts */}
-      {sensors.map((sensor, sIdx) => {
-        const dx = sensor.x - sensor.armX;
-        const dy = sensor.y - 2.02;
-        const len = Math.hypot(dx, dy);
-        const angleZ = -Math.atan2(dx, dy);
-        const midX = (sensor.armX + sensor.x) * 0.5;
-        const midY = (2.02 + sensor.y) * 0.5;
-
-        return (
-          <group key={sIdx}>
-            <mesh
-              position={[sensor.armX, 2.02, 0]}
-              rotation={[0, 0, Math.PI / 2]}
-              material={darkMetalMat}
-            >
-              <cylinderGeometry args={[0.044, 0.044, 0.06, 14]} />
-            </mesh>
-            <mesh position={[midX, midY, 0]} rotation={[0, 0, angleZ]} material={metalMat}>
-              <boxGeometry args={[0.036, len, 0.055]} />
-            </mesh>
-            <group position={[sensor.x, sensor.y, 0]} scale={sensor.scale}>
-              <mesh position={[0, 0.16, 0]} material={darkMetalMat}>
-                <cylinderGeometry args={[0.105, 0.105, 0.34, 20]} />
-              </mesh>
-              <mesh position={[0, 0.35, 0]} material={plateMat} castShadow>
-                <cylinderGeometry args={[0.11, 0.155, 0.04, 24]} />
-              </mesh>
-              {louverOffsets.map((lDy, lIdx) => (
-                <mesh key={lIdx} position={[0, lDy, 0]} material={plateMat} castShadow>
-                  <cylinderGeometry args={[0.155, 0.142, 0.024, 24]} />
-                </mesh>
-              ))}
-            </group>
-          </group>
-        );
-      })}
-
-      {/* Lower Guy-Wire Collar & Anchored Tension Cables */}
-      <mesh position={[0, 1.05, 0]} material={metalMat}>
-        <cylinderGeometry args={[0.06, 0.06, 0.07, 16]} />
-      </mesh>
-      {[
-        { rotY: 0.25, tilt: 0.26 },
-        { rotY: 2.3, tilt: 0.28 },
-        { rotY: -1.9, tilt: 0.25 },
-      ].map((wire, wIdx) => (
-        <group key={wIdx} position={[0, 1.05, 0]} rotation={[0, wire.rotY, 0]}>
-          <mesh position={[0.18, -0.62, 0]} rotation={[0, 0, wire.tilt]} material={metalMat}>
-            <cylinderGeometry args={[0.005, 0.005, 1.35, 6]} />
-          </mesh>
-        </group>
-      ))}
-    </group>
-  );
-}
-
-/**
- * Full Photorealistic 3D World rendered inside <Canvas>. Zero React setState inside useFrame.
- */
-function EcoWorld({ scrollProgressRef, mousePosRef, reducedMotion }: EcoTechSceneProps) {
-  const { camera, scene } = useThree();
-  const mistRef = useRef(0);
-  const smoothedScroll = useRef(0);
+  const smoothedScroll = useRef(scrollProgressRef.current);
   const smoothedMouse = useRef({ x: 0, y: 0 });
+  const mistRef = useRef(0);
   const lookTarget = useRef(new THREE.Vector3(0.14, 0.02, 0));
 
   const dioramaAGroupRef = useRef<THREE.Group>(null);
   const mainRockRef = useRef<THREE.Group>(null);
-  const sat1Ref = useRef<THREE.Group>(null);
-  const sat2Ref = useRef<THREE.Group>(null);
-  const sat3Ref = useRef<THREE.Mesh>(null);
-  const dioramaBGroupRef = useRef<THREE.Group>(null);
-  const mistSpritesRef = useRef<THREE.Group>(null);
 
   const keyLightRef = useRef<THREE.DirectionalLight>(null);
   const backLightRef = useRef<THREE.DirectionalLight>(null);
@@ -522,367 +152,31 @@ function EcoWorld({ scrollProgressRef, mousePosRef, reducedMotion }: EcoTechScen
     };
   }, [scene, keyTarget]);
 
-  // Load Meshy authored floating botanical island + ground ecosystem + environmental GLBs
+  // Load ONLY the approved Meshy authored primary floating botanical island (6.24 MB)
   const mainIslandGltf = useGLTF("/models/main_island_desktop.glb");
-  const groundEcosystemGltf = useGLTF("/models/ground_ecosystem_desktop.glb");
-  const boulderGltf = useGLTF("/models/boulder_01.glb");
-  const mossRocks1Gltf = useGLTF("/models/rock_moss_set_01.glb");
-  const mossRocks2Gltf = useGLTF("/models/rock_moss_set_02.glb");
-  const fernGltf = useGLTF("/models/fern_02.glb");
-  const mossGltf = useGLTF("/models/moss_01.glb");
-  const shrubGltf = useGLTF("/models/shrub_04.glb");
 
-  // Load full PBR texture sets (Diffuse + OpenGL Normal + Roughness + AO)
-  const [
-    groundCol,
-    groundNor,
-    groundRough,
-    groundAo,
-    mossyCol,
-    mossyNor,
-    mossyRough,
-    mossyAo,
-  ] = useTexture([
-    "/textures/rocks_ground_02/rocks_ground_02_col_1k.jpg",
-    "/textures/rocks_ground_02/rocks_ground_02_nor_gl_1k.jpg",
-    "/textures/rocks_ground_02/rocks_ground_02_rough_1k.jpg",
-    "/textures/rocks_ground_02/rocks_ground_02_ao_1k.jpg",
-    "/images/moss-albedo.jpg",
-    "/textures/mossy_rock/mossy_rock_nor_gl_1k.jpg",
-    "/textures/mossy_rock/mossy_rock_rough_1k.jpg",
-    "/textures/mossy_rock/mossy_rock_ao_1k.jpg",
-  ]);
-
-  useEffect(() => {
-    [groundCol, mossyCol].forEach((tex) => {
-      tex.colorSpace = THREE.SRGBColorSpace;
-    });
-    [
-      groundCol,
-      groundNor,
-      groundRough,
-      groundAo,
-      mossyCol,
-      mossyNor,
-      mossyRough,
-      mossyAo,
-    ].forEach((tex) => {
-      tex.wrapS = THREE.RepeatWrapping;
-      tex.wrapT = THREE.RepeatWrapping;
-      tex.channel = 0;
-      tex.anisotropy = 8;
-      tex.needsUpdate = true;
-    });
-    [mossyCol, mossyNor, mossyRough, mossyAo].forEach((tex) => {
-      tex.repeat.set(2.2, 2.2);
-      tex.needsUpdate = true;
-    });
-  }, [groundCol, groundNor, groundRough, groundAo, mossyCol, mossyNor, mossyRough, mossyAo]);
-
-  // Extract centered/grounded photogrammetry geometries + calibrate materials
+  // Extract centered geometry + calibrated PBR material
   const sceneAssets = useMemo(() => {
     const mainIslandPart = extractMeshPart(mainIslandGltf.scene, "Mesh_0", "center");
-    const groundEcosystemPart = extractMeshPart(groundEcosystemGltf.scene, "Mesh_0", "center");
-    const boulderCore = extractMeshPart(boulderGltf.scene, "boulder_01", "center");
-
-    const r1_01 = extractMeshPart(mossRocks1Gltf.scene, "rock_moss_set_01_rock01", "center");
-    const r1_02 = extractMeshPart(mossRocks1Gltf.scene, "rock_moss_set_01_rock02", "center");
-    const r1_03 = extractMeshPart(mossRocks1Gltf.scene, "rock_moss_set_01_rock03", "center");
-    const r1_04 = extractMeshPart(mossRocks1Gltf.scene, "rock_moss_set_01_rock04", "center");
-    const r1_05 = extractMeshPart(mossRocks1Gltf.scene, "rock_moss_set_01_rock05", "center");
-
-    const r2_07 = extractMeshPart(mossRocks2Gltf.scene, "rock_moss_set_02_rock07", "center");
-    const r2_08 = extractMeshPart(mossRocks2Gltf.scene, "rock_moss_set_02_rock08", "center");
-    const r2_09 = extractMeshPart(mossRocks2Gltf.scene, "rock_moss_set_02_rock09", "center");
-    const r2_12 = extractMeshPart(mossRocks2Gltf.scene, "rock_moss_set_02_rock12", "base");
-
-    const fernA = extractMeshPart(fernGltf.scene, "fern_02_a", "base");
-    const fernB = extractMeshPart(fernGltf.scene, "fern_02_b", "base");
-    const fernC = extractMeshPart(fernGltf.scene, "fern_02_c", "base");
-    const fernD = extractMeshPart(fernGltf.scene, "fern_02_d", "base");
-
-    const mossA = extractMeshPart(mossGltf.scene, "moss_01_a_LOD0", "base");
-    const mossB = extractMeshPart(mossGltf.scene, "moss_01_b_LOD0", "base");
-    const mossI = extractMeshPart(mossGltf.scene, "moss_01_i_LOD0", "base");
-
-    const shrubPart = extractMeshPart(shrubGltf.scene, "shrub_04", "base");
-
-    // Sample organic crevice moss anchors directly on hero rock core + upper mossy cap
-    const heroAnchorsCore = sampleRockMossAnchors(boulderCore.geometry, {
-      seed: 109,
-      maxCount: 340,
-      minNormalY: 0.16,
-      frontBiasZ: 0.28,
-      patchThreshold: -0.06,
-    });
-    const heroAnchorsCap = sampleRockMossAnchors(r1_01.geometry, {
-      seed: 211,
-      maxCount: 240,
-      minNormalY: 0.22,
-      frontBiasZ: 0.22,
-      patchThreshold: -0.1,
-    });
-    const sat2Anchors = sampleRockMossAnchors(r2_09.geometry, {
-      seed: 317,
-      maxCount: 110,
-      minNormalY: 0.36,
-      frontBiasZ: 0.12,
-      patchThreshold: -0.02,
-    });
-
-    // Diorama B terrain & mossy hummock cushions
-    const terrainGeo = createTerrainGeometry(30, 20, 120, 84, 313);
-    const frontMoss = createMossHummockGeometry(3.2, 2.2, 0.56, 505);
-    const horizonMoss1 = createMossHummockGeometry(3.4, 1.6, 0.38, 607);
-    const horizonMoss2 = createMossHummockGeometry(2.6, 1.4, 0.34, 709);
-
-    // Calibrated PBR Materials
     const mainIslandMat = cloneTunedMaterial(mainIslandPart.material, {
       roughnessScale: 0.94,
       envMapIntensity: 0.85,
       normalScale: 1.25,
       doubleSided: true,
     });
-    const groundEcosystemMat = cloneTunedMaterial(groundEcosystemPart.material, {
-      colorHex: "#a6d868",
-      roughness: 0.82,
-      metalness: 0.0,
-      envMapIntensity: 0.28,
-      emissiveHex: "#1b3810",
-      emissiveIntensity: 0.18,
-      normalScale: 1.5,
-      doubleSided: true,
-    });
-    const boulderMat = cloneTunedMaterial(boulderCore.material, {
-      colorHex: "#d4cca8",
-      roughnessScale: 0.92,
-      envMapIntensity: 0.88,
-      normalScale: 1.45,
-      aoMapIntensity: 1.15,
-      doubleSided: false,
-    });
-    const mossRock1Mat = cloneTunedMaterial(r1_01.material, {
-      colorHex: "#a8aa90",
-      roughnessScale: 0.94,
-      envMapIntensity: 0.72,
-      normalScale: 1.45,
-      aoMapIntensity: 1.15,
-      doubleSided: false,
-    });
-    const mossRock2Mat = cloneTunedMaterial(r2_07.material, {
-      colorHex: "#b8ae98",
-      roughnessScale: 0.94,
-      envMapIntensity: 0.8,
-      normalScale: 1.35,
-      aoMapIntensity: 1.15,
-      doubleSided: false,
-    });
-
-    const fernMat = cloneTunedMaterial(fernB.material, {
-      colorHex: "#b2d178",
-      alphaTest: 0.22,
-      roughnessScale: 0.78,
-      envMapIntensity: 0.95,
-      emissiveHex: "#1c360b",
-      emissiveIntensity: 0.2,
-      normalScale: 1.15,
-      aoMapIntensity: 0.75,
-      doubleSided: true,
-    });
-
-    const mossClumpMat = cloneTunedMaterial(mossA.material, {
-      colorHex: "#aed16a",
-      alphaTest: 0.16,
-      roughnessScale: 0.85,
-      envMapIntensity: 0.88,
-      emissiveHex: "#1e3a0d",
-      emissiveIntensity: 0.22,
-      normalScale: 1.2,
-      aoMapIntensity: 0.78,
-      doubleSided: true,
-    });
-
-    const shrubMat = cloneTunedMaterial(shrubPart.material, {
-      colorHex: "#dce8cc",
-      alphaTest: 0.32,
-      roughnessScale: 0.8,
-      envMapIntensity: 0.95,
-      emissiveHex: "#162b0b",
-      emissiveIntensity: 0.14,
-      normalScale: 1.15,
-      aoMapIntensity: 0.8,
-      doubleSided: true,
-    });
-
-    const terrainMat = new THREE.MeshStandardMaterial({
-      color: "#686c5c",
-      map: groundCol,
-      normalMap: groundNor,
-      normalScale: new THREE.Vector2(1.2, 1.2),
-      roughnessMap: groundRough,
-      aoMap: groundAo,
-      aoMapIntensity: 0.9,
-      vertexColors: false,
-      roughness: 0.94,
-      metalness: 0.02,
-      envMapIntensity: 0.18,
-    });
-
-    const hummockBaseMat = new THREE.MeshStandardMaterial({
-      map: mossyCol,
-      normalMap: mossyNor,
-      normalScale: new THREE.Vector2(1.3, 1.3),
-      roughnessMap: mossyRough,
-      aoMap: mossyAo,
-      aoMapIntensity: 0.88,
-      color: "#7ea346",
-      roughness: 0.9,
-      metalness: 0.02,
-      envMapIntensity: 0.72,
-    });
-
-    const mistTex = createMistTexture();
-    const mistSpriteMat = new THREE.SpriteMaterial({
-      map: mistTex,
-      transparent: true,
-      opacity: 0.26,
-      depthWrite: false,
-    });
 
     return {
       mainIslandPart,
       mainIslandMat,
-      groundEcosystemPart,
-      groundEcosystemMat,
-      boulderCore,
-      r1_01,
-      r1_02,
-      r1_03,
-      r1_04,
-      r1_05,
-      r2_07,
-      r2_08,
-      r2_09,
-      r2_12,
-      fernParts: {
-        a: fernA.geometry,
-        b: fernB.geometry,
-        c: fernC.geometry,
-        d: fernD.geometry,
-      },
-      mossVariants: [
-        { geometry: mossA.geometry, material: mossClumpMat },
-        { geometry: mossB.geometry, material: mossClumpMat },
-        { geometry: mossI.geometry, material: mossClumpMat },
-      ] as MossBatchVariant[],
-      shrubGeo: shrubPart.geometry,
-      heroAnchorsCore,
-      heroAnchorsCap,
-      sat2Anchors,
-      terrainGeo,
-      frontMoss,
-      horizonMoss1,
-      horizonMoss2,
-      boulderMat,
-      mossRock1Mat,
-      mossRock2Mat,
-      fernMat,
-      mossClumpMat,
-      shrubMat,
-      terrainMat,
-      hummockBaseMat,
-      mistTex,
-      mistSpriteMat,
     };
-  }, [
-    mainIslandGltf,
-    groundEcosystemGltf,
-    boulderGltf,
-    mossRocks1Gltf,
-    mossRocks2Gltf,
-    fernGltf,
-    mossGltf,
-    shrubGltf,
-    groundCol,
-    groundNor,
-    groundRough,
-    groundAo,
-    mossyCol,
-    mossyNor,
-    mossyRough,
-    mossyAo,
-  ]);
+  }, [mainIslandGltf]);
 
   useEffect(() => {
     return () => {
       sceneAssets.mainIslandPart.geometry.dispose();
       sceneAssets.mainIslandMat.dispose();
-      sceneAssets.groundEcosystemPart.geometry.dispose();
-      sceneAssets.groundEcosystemMat.dispose();
-      sceneAssets.boulderCore.geometry.dispose();
-      sceneAssets.r1_01.geometry.dispose();
-      sceneAssets.r1_02.geometry.dispose();
-      sceneAssets.r1_03.geometry.dispose();
-      sceneAssets.r1_04.geometry.dispose();
-      sceneAssets.r1_05.geometry.dispose();
-      sceneAssets.r2_07.geometry.dispose();
-      sceneAssets.r2_08.geometry.dispose();
-      sceneAssets.r2_09.geometry.dispose();
-      sceneAssets.r2_12.geometry.dispose();
-      sceneAssets.fernParts.a.dispose();
-      sceneAssets.fernParts.b.dispose();
-      sceneAssets.fernParts.c.dispose();
-      sceneAssets.fernParts.d.dispose();
-      sceneAssets.mossVariants.forEach((v) => v.geometry.dispose());
-      sceneAssets.shrubGeo.dispose();
-      sceneAssets.terrainGeo.dispose();
-      sceneAssets.frontMoss.geometry.dispose();
-      sceneAssets.horizonMoss1.geometry.dispose();
-      sceneAssets.horizonMoss2.geometry.dispose();
-      sceneAssets.mistTex.dispose();
-
-      sceneAssets.boulderMat.dispose();
-      sceneAssets.mossRock1Mat.dispose();
-      sceneAssets.mossRock2Mat.dispose();
-      sceneAssets.fernMat.dispose();
-      sceneAssets.mossClumpMat.dispose();
-      sceneAssets.shrubMat.dispose();
-      sceneAssets.terrainMat.dispose();
-      sceneAssets.hummockBaseMat.dispose();
-      sceneAssets.mistSpriteMat.dispose();
     };
   }, [sceneAssets]);
-
-  // Scatter photogrammetry scree stones embedded naturally into Scene 3 soil terrain
-  const stoneInstRef = useRef<THREE.InstancedMesh>(null);
-  const stoneCount = 72;
-
-  useEffect(() => {
-    const sMesh = stoneInstRef.current;
-    if (!sMesh) return;
-    const dummy = new THREE.Object3D();
-    const rand = createSeededRandom(301);
-    const tints = [
-      new THREE.Color("#dedad0"),
-      new THREE.Color("#c8c2b6"),
-      new THREE.Color("#b5ae9f"),
-      new THREE.Color("#e8e4da"),
-    ];
-    for (let i = 0; i < stoneCount; i++) {
-      const px = 2.4 + rand() * 5.8;
-      const pz = -2.8 + rand() * 4.6;
-      const groundY = getTerrainHeight(px, pz);
-      dummy.position.set(px, groundY - 0.03, pz);
-      dummy.rotation.set((rand() - 0.5) * 0.4, rand() * Math.PI * 2, (rand() - 0.5) * 0.4);
-      const s = 0.065 + rand() * 0.16;
-      dummy.scale.set(s, s * (0.65 + rand() * 0.45), s);
-      dummy.updateMatrix();
-      sMesh.setMatrixAt(i, dummy.matrix);
-      sMesh.setColorAt(i, tints[Math.floor(rand() * tints.length)]);
-    }
-    sMesh.instanceMatrix.needsUpdate = true;
-    if (sMesh.instanceColor) sMesh.instanceColor.needsUpdate = true;
-  }, []);
 
   const tmpVoidFog = useMemo(() => new THREE.Color("#111d13"), []);
   const tmpMistFog = useMemo(() => new THREE.Color("#7a8a80"), []);
@@ -899,6 +193,18 @@ function EcoWorld({ scrollProgressRef, mousePosRef, reducedMotion }: EcoTechScen
         ? targetP
         : THREE.MathUtils.lerp(smoothedScroll.current, targetP, Math.min(1, dt * 11));
     const p = smoothedScroll.current;
+
+    // Suspend rendering updates when scrolled past the 3D diorama (Scenes 3-5 use cinematic plates)
+    if (p > 0.42) {
+      if (dioramaAGroupRef.current && dioramaAGroupRef.current.visible) {
+        dioramaAGroupRef.current.visible = false;
+      }
+      return;
+    }
+
+    if (dioramaAGroupRef.current && !dioramaAGroupRef.current.visible) {
+      dioramaAGroupRef.current.visible = true;
+    }
 
     const targetMX = reducedMotion ? 0 : mousePosRef.current.x;
     const targetMY = reducedMotion ? 0 : mousePosRef.current.y;
@@ -920,10 +226,8 @@ function EcoWorld({ scrollProgressRef, mousePosRef, reducedMotion }: EcoTechScen
         ? (1 - camera.aspect) * 3.15
         : 0;
 
-    // -------------------------------------------------------------------------
-    // Mist Atmosphere & HDRI Environment Intensity Blend
-    // -------------------------------------------------------------------------
-    const mistBlend = THREE.MathUtils.smoothstep(p, 0.28, 0.41);
+    // Mist Atmosphere & HDRI Environment Intensity
+    const mistBlend = THREE.MathUtils.smoothstep(p, 0.22, 0.38);
     mistRef.current = mistBlend;
     scene.environmentIntensity = THREE.MathUtils.lerp(0.38, 0.48, mistBlend);
 
@@ -933,105 +237,44 @@ function EcoWorld({ scrollProgressRef, mousePosRef, reducedMotion }: EcoTechScen
       scene.fog.density = THREE.MathUtils.lerp(0.028, 0.016, mistBlend);
     }
 
-    // Reposition directional shadow frustum cleanly between Diorama A and Diorama B
     if (keyLightRef.current) {
-      keyLightRef.current.intensity = THREE.MathUtils.lerp(2.75, 3.4, mistBlend);
-      if (mistBlend < 0.45) {
-        keyTarget.position.set(0.25, 0.0, 0.0);
-        keyLightRef.current.position.set(4.5, 5.5, 4.8);
-      } else {
-        keyTarget.position.set(0.3, -8.6, -0.2);
-        keyLightRef.current.position.set(-3.5, -4.2, 5.4);
-      }
+      keyLightRef.current.intensity = THREE.MathUtils.lerp(3.2, 3.4, mistBlend);
+      keyTarget.position.set(0.25, 0.0, 0.0);
+      keyLightRef.current.position.set(4.5, 5.5, 4.8);
       keyTarget.updateMatrixWorld();
     }
     if (backLightRef.current) {
-      backLightRef.current.intensity = THREE.MathUtils.lerp(0.85, 1.25, mistBlend);
-      if (mistBlend >= 0.45) {
-        backLightRef.current.position.set(3.2, -5.2, -3.5);
-      } else {
-        backLightRef.current.position.set(3.8, 4.2, -4.5);
-      }
+      backLightRef.current.intensity = THREE.MathUtils.lerp(1.45, 1.25, mistBlend);
     }
     if (hemiLightRef.current) {
-      hemiLightRef.current.intensity = THREE.MathUtils.lerp(0.26, 0.36, mistBlend);
+      hemiLightRef.current.intensity = THREE.MathUtils.lerp(0.55, 0.36, mistBlend);
     }
 
     // -------------------------------------------------------------------------
-    // Diorama A (Hero 0..0.14 -> Vision 0.18..0.28 -> Plunge 0.28..0.44)
+    // Diorama A: Hero Floating Botanical Island (p: 0 -> 0.14 -> Vision 0.18..0.38)
     // -------------------------------------------------------------------------
-    if (dioramaAGroupRef.current) {
-      dioramaAGroupRef.current.visible = p < 0.46;
-    }
-
-    if (mainRockRef.current && dioramaAGroupRef.current?.visible) {
-      const visionT = THREE.MathUtils.smoothstep(p, 0.03, 0.19);
-      const plungeT = THREE.MathUtils.smoothstep(p, 0.28, 0.44);
+    if (mainRockRef.current) {
+      const visionT = THREE.MathUtils.smoothstep(p, 0.03, 0.22);
+      const exitT = THREE.MathUtils.smoothstep(p, 0.26, 0.40);
 
       const idleFloat = reducedMotion ? 0 : Math.sin(time * 0.65) * 0.04;
-      const idleRot = reducedMotion ? 0 : Math.sin(time * 0.25) * 0.042;
+      const idleRot = reducedMotion ? 0 : Math.sin(time * 0.25) * 0.035;
 
       mainRockRef.current.position.set(
         THREE.MathUtils.lerp(0.32, 0.0, visionT),
-        THREE.MathUtils.lerp(-0.16, 0.02, visionT) + plungeT * 4.5 + idleFloat,
-        THREE.MathUtils.lerp(0.0, 0.25, visionT) - plungeT * 1.4
+        THREE.MathUtils.lerp(-0.16, 0.04, visionT) + idleFloat + exitT * 3.2,
+        THREE.MathUtils.lerp(0.0, 0.25, visionT) - exitT * 1.6
       );
       mainRockRef.current.rotation.set(
         -visionT * 0.08,
         visionT * 0.42 + idleRot,
         visionT * 0.04
       );
-      const baseScale = THREE.MathUtils.lerp(1.0, 1.14, visionT) * (1 - plungeT * 0.2);
+      const baseScale = THREE.MathUtils.lerp(1.0, 1.14, visionT) * (1 - exitT * 0.3);
       mainRockRef.current.scale.setScalar(baseScale);
-
-      if (sat1Ref.current) {
-        sat1Ref.current.position.set(
-          -2.48 - visionT * 3.1,
-          -0.66 - visionT * 1.1 + idleFloat * 1.3,
-          0.72
-        );
-        sat1Ref.current.rotation.y = 0.5 + time * (reducedMotion ? 0 : 0.07);
-        sat1Ref.current.scale.setScalar(Math.max(0.001, 1 - visionT * 0.45));
-      }
-      if (sat2Ref.current) {
-        sat2Ref.current.position.set(
-          2.58 + visionT * 3.1,
-          -0.76 - visionT * 1.1 + idleFloat * 1.2,
-          0.58
-        );
-        sat2Ref.current.rotation.y = -0.7 - time * (reducedMotion ? 0 : 0.05);
-        sat2Ref.current.scale.setScalar(Math.max(0.001, 1 - visionT * 0.45));
-      }
-      if (sat3Ref.current) {
-        sat3Ref.current.position.set(
-          2.1 + visionT * 2.5,
-          1.38 + visionT * 1.8 + idleFloat,
-          -1.1
-        );
-        sat3Ref.current.rotation.y = time * (reducedMotion ? 0 : 0.08);
-        sat3Ref.current.scale.setScalar(Math.max(0.001, 1 - visionT * 0.6));
-      }
     }
 
-    // -------------------------------------------------------------------------
-    // Diorama B Visibility + Mist Drift (Scenes 3 -> 5)
-    // -------------------------------------------------------------------------
-    if (dioramaBGroupRef.current) {
-      dioramaBGroupRef.current.visible = p > 0.26 && p < 0.98;
-    }
-    if (mistSpritesRef.current && dioramaBGroupRef.current?.visible) {
-      mistSpritesRef.current.children.forEach((child, idx) => {
-        if (!reducedMotion) {
-          child.position.x =
-            (idx % 3 === 0 ? -0.9 : idx === 1 ? 1.5 : 5.1) +
-            Math.sin(time * 0.22 + idx) * 0.55;
-        }
-      });
-    }
-
-    // -------------------------------------------------------------------------
-    // Camera Flight Path Matched to Runway Anchors (0..1 = 0..460vh)
-    // -------------------------------------------------------------------------
+    // Camera Flight Path (Scene 1 Hero -> Scene 2 Vision)
     let camX = 0;
     let camY = 0.06;
     let camZ = 6.15 + portraitBoost;
@@ -1039,38 +282,22 @@ function EcoWorld({ scrollProgressRef, mousePosRef, reducedMotion }: EcoTechScen
     let lookY = 0.02;
     let lookZ = 0;
 
-    if (p < 0.28) {
-      const t = THREE.MathUtils.smoothstep(p, 0.0, 0.22);
+    if (p < 0.24) {
+      const t = THREE.MathUtils.smoothstep(p, 0.0, 0.20);
       camX = 0.0;
       camY = THREE.MathUtils.lerp(0.06, 0.04, t);
       camZ = THREE.MathUtils.lerp(6.15, 5.45, t) + portraitBoost;
       lookX = THREE.MathUtils.lerp(0.14, 0.0, t);
       lookY = 0.02;
       lookZ = 0;
-    } else if (p < 0.44) {
-      const t = THREE.MathUtils.smoothstep(p, 0.28, 0.44);
-      camX = THREE.MathUtils.lerp(0.0, -0.42, t);
-      camY = THREE.MathUtils.lerp(0.04, -7.38, t);
-      camZ = THREE.MathUtils.lerp(5.45, 5.75 + portraitBoost * 1.05, t);
-      lookX = THREE.MathUtils.lerp(0.0, 0.28, t);
-      lookY = THREE.MathUtils.lerp(0.02, -8.28, t);
-      lookZ = THREE.MathUtils.lerp(0.0, -0.45, t);
-    } else if (p < 0.66) {
-      const panT = THREE.MathUtils.smoothstep(p, 0.56, 0.66);
-      camX = THREE.MathUtils.lerp(-0.42, 5.1, panT);
-      camY = THREE.MathUtils.lerp(-7.38, -6.92, panT);
-      camZ = THREE.MathUtils.lerp(5.75 + portraitBoost * 1.05, 3.88 + portraitBoost * 0.9, panT);
-      lookX = THREE.MathUtils.lerp(0.28, 5.18, panT);
-      lookY = THREE.MathUtils.lerp(-8.28, -6.82, panT);
-      lookZ = THREE.MathUtils.lerp(-0.45, 0.0, panT);
     } else {
-      const endT = THREE.MathUtils.smoothstep(p, 0.78, 0.94);
-      camX = THREE.MathUtils.lerp(5.1, 5.15, endT);
-      camY = THREE.MathUtils.lerp(-6.92, -6.62, endT);
-      camZ = 3.88 + portraitBoost * 0.9;
-      lookX = 5.18;
-      lookY = THREE.MathUtils.lerp(-6.82, -6.46, endT);
-      lookZ = 0.0;
+      const t = THREE.MathUtils.smoothstep(p, 0.24, 0.40);
+      camX = THREE.MathUtils.lerp(0.0, -0.25, t);
+      camY = THREE.MathUtils.lerp(0.04, -0.4, t);
+      camZ = THREE.MathUtils.lerp(5.45, 5.85 + portraitBoost, t);
+      lookX = THREE.MathUtils.lerp(0.0, 0.15, t);
+      lookY = 0.02;
+      lookZ = 0;
     }
 
     camera.position.set(camX + mx * 0.22, camY - my * 0.14, camZ);
@@ -1078,23 +305,15 @@ function EcoWorld({ scrollProgressRef, mousePosRef, reducedMotion }: EcoTechScen
     camera.lookAt(lookTarget.current);
   });
 
-  // Ground-anchored Diorama B elevations
-  const heroFernY = getTerrainHeight(-0.98, 1.38) - 0.03;
-  const bgFernY = getTerrainHeight(-1.88, -0.58) - 0.02;
-  const frontMossY = getTerrainHeight(1.18, 1.48) - 0.04;
-  const horizonMoss1Y = getTerrainHeight(1.75, -1.8) - 0.03;
-  const horizonMoss2Y = getTerrainHeight(3.1, -2.2) - 0.03;
-  const mastBaseY = getTerrainHeight(5.2, 0.12) + 0.02;
-
   return (
     <>
       <fogExp2 attach="fog" args={["#111d13", 0.028]} />
 
-      {/* Natural Overcast IBL HDRI for photorealistic rock, moss, leaf, and aluminum reflections */}
+      {/* Natural Overcast IBL HDRI for photorealistic reflections */}
       <Environment files="/hdri/belfast_open_field_1k.hdr" background={false} />
 
       <hemisphereLight ref={hemiLightRef} args={["#dbe8d8", "#182b1c", 0.55]} />
-      {/* Cinematic Directional Key Light from Top-Left matching reference */}
+      {/* Cinematic Directional Key Light matching reference video */}
       <directionalLight
         ref={keyLightRef}
         position={[-5.2, 5.8, 4.6]}
@@ -1103,31 +322,22 @@ function EcoWorld({ scrollProgressRef, mousePosRef, reducedMotion }: EcoTechScen
         castShadow
         shadow-mapSize={[1024, 1024]}
         shadow-bias={-0.0004}
-        shadow-camera-near={0.5}
-        shadow-camera-far={24}
-        shadow-camera-left={-7}
-        shadow-camera-right={7}
-        shadow-camera-top={7}
-        shadow-camera-bottom={-7}
       />
-      {/* Subtle Rim Light from Upper-Right catching foliage & rock crest */}
+      {/* Subtle Rim Light catching foliage crest */}
       <directionalLight
         ref={backLightRef}
         position={[3.8, 4.2, -4.5]}
         intensity={1.45}
         color="#dff0e6"
       />
-      {/* Soft Ambient Forest Bounce from Lower-Right */}
+      {/* Soft Ambient Forest Bounce */}
       <directionalLight position={[4.0, -2.8, 2.5]} intensity={0.85} color="#27402f" />
 
       <SkyBackdrop mistRef={mistRef} />
 
-      {/* ===================================================================== */}
-      {/* DIORAMA A: SCENE 1 HERO & SCENE 2 VISION PHOTOGRAMMETRY BOULDERS      */}
-      {/* ===================================================================== */}
+      {/* Meshy AI Primary Floating Botanical Island — Calibrated Hero Silhouette */}
       <group ref={dioramaAGroupRef}>
         <group ref={mainRockRef} position={[0.32, -0.16, 0]}>
-          {/* Meshy AI Primary Floating Botanical Island — Calibrated Hero Silhouette */}
           <mesh
             geometry={sceneAssets.mainIslandPart.geometry}
             material={sceneAssets.mainIslandMat}
@@ -1136,182 +346,6 @@ function EcoWorld({ scrollProgressRef, mousePosRef, reducedMotion }: EcoTechScen
             castShadow
             receiveShadow
           />
-        </group>
-
-        {/* Satellite Rock 1: Faceted Sandstone Block Bottom-Left matching reference */}
-        <group ref={sat1Ref} position={[-2.48, -0.66, 0.72]}>
-          <mesh
-            geometry={sceneAssets.boulderCore.geometry}
-            material={sceneAssets.boulderMat}
-            rotation={[0.28, 0.65, -0.12]}
-            scale={0.56}
-            castShadow
-            receiveShadow
-          />
-        </group>
-
-        {/* Satellite Rock 2: Elongated River Stone Bottom-Right matching reference */}
-        <group ref={sat2Ref} position={[2.58, -0.76, 0.58]}>
-          <group rotation={[0.16, -0.48, 0.1]} scale={[0.72, 0.54, 0.62]}>
-            <mesh
-              geometry={sceneAssets.r2_09.geometry}
-              material={sceneAssets.mossRock2Mat}
-              castShadow
-              receiveShadow
-            />
-            <MossColonyInstanced
-              anchors={sceneAssets.sat2Anchors}
-              variants={sceneAssets.mossVariants}
-              baseScale={4.0}
-              seed={6029}
-              maxInstances={80}
-              sink={0.015}
-            />
-          </group>
-        </group>
-
-        {/* Satellite Rock 3: Floating Fragment Upper-Right */}
-        <mesh
-          ref={sat3Ref}
-          geometry={sceneAssets.r2_08.geometry}
-          material={sceneAssets.mossRock2Mat}
-          position={[1.98, 1.58, -1.2]}
-          rotation={[0.38, 0.92, -0.22]}
-          scale={0.24}
-          castShadow
-        />
-      </group>
-
-      {/* ===================================================================== */}
-      {/* TRANSITION PORTAL WALLS                                              */}
-      {/* ===================================================================== */}
-      <mesh
-        geometry={sceneAssets.r1_02.geometry}
-        material={sceneAssets.mossRock1Mat}
-        position={[-2.85, -4.3, 2.35]}
-        rotation={[0.3, 0.6, -0.45]}
-        scale={[1.05, 1.35, 1.0]}
-      />
-      <mesh
-        geometry={sceneAssets.r1_05.geometry}
-        material={sceneAssets.mossRock1Mat}
-        position={[2.85, -4.3, 2.35]}
-        rotation={[-0.25, -0.55, 0.42]}
-        scale={[1.05, 1.35, 1.0]}
-      />
-
-      {/* ===================================================================== */}
-      {/* DIORAMA B: SCENE 3 MACRO FERN + SCENE 4 OBSERVATION STATION           */}
-      {/* ===================================================================== */}
-      <group ref={dioramaBGroupRef} position={[0, -9.05, 0]}>
-        {/* Meshy AI Primary Ground Ecosystem */}
-        <mesh
-          geometry={sceneAssets.groundEcosystemPart.geometry}
-          material={sceneAssets.groundEcosystemMat}
-          position={[0.22, 0.32, 0.12]}
-          rotation={[0.02, -0.32, -0.01]}
-          scale={[5.2, 3.95, 5.2]}
-          castShadow
-          receiveShadow
-        />
-
-        {/* Extended Terrain Bed Skirt to Horizon & Scene 4 Grounding */}
-        <mesh
-          geometry={sceneAssets.terrainGeo}
-          material={sceneAssets.terrainMat}
-          position={[2.0, -0.72, -0.6]}
-          receiveShadow
-        />
-
-        {/* Instanced Photogrammetry Scree Stones Embedded Along Terrain Elevation */}
-        <instancedMesh
-          ref={stoneInstRef}
-          args={[sceneAssets.r2_12.geometry, sceneAssets.mossRock2Mat, stoneCount]}
-          castShadow
-          receiveShadow
-        />
-
-        {/* Scene 4 Photogrammetry Rock Outcrops & Solid Mast Anchor Plinth */}
-        <mesh
-          geometry={sceneAssets.r1_02.geometry}
-          material={sceneAssets.mossRock1Mat}
-          position={[4.25, getTerrainHeight(4.25, -1.25) + 0.18, -1.25]}
-          rotation={[0.08, 0.42, 0.12]}
-          scale={[1.08, 1.18, 0.96]}
-          castShadow
-          receiveShadow
-        />
-        <mesh
-          geometry={sceneAssets.r1_01.geometry}
-          material={sceneAssets.mossRock1Mat}
-          position={[7.2, getTerrainHeight(7.2, -0.85) + 0.2, -0.85]}
-          rotation={[0.1, -0.48, -0.12]}
-          scale={[1.15, 1.25, 1.05]}
-          castShadow
-          receiveShadow
-        />
-        <mesh
-          geometry={sceneAssets.boulderCore.geometry}
-          material={sceneAssets.boulderMat}
-          position={[6.25, getTerrainHeight(6.25, -1.05) + 0.1, -1.05]}
-          rotation={[0.22, 1.15, -0.08]}
-          scale={[1.25, 1.15, 1.1]}
-          castShadow
-          receiveShadow
-        />
-        <mesh
-          geometry={sceneAssets.r1_05.geometry}
-          material={sceneAssets.mossRock1Mat}
-          position={[5.2, mastBaseY - 0.18, 0.12]}
-          rotation={[0.05, 0.24, 0.0]}
-          scale={[0.96, 0.82, 0.88]}
-          castShadow
-          receiveShadow
-        />
-
-        {/* Lean Photogrammetry Evergreen Shrub Clusters Flanking & Framing Station */}
-        <PhotogrammetryShrubCluster
-          position={[4.85, mastBaseY + 1.05, -1.42]}
-          geometry={sceneAssets.shrubGeo}
-          material={sceneAssets.shrubMat}
-          stemCount={12}
-          spread={0.62}
-          scaleRange={[2.25, 3.15]}
-          seed={901}
-        />
-        <PhotogrammetryShrubCluster
-          position={[3.72, mastBaseY + 0.52, -1.55]}
-          geometry={sceneAssets.shrubGeo}
-          material={sceneAssets.shrubMat}
-          stemCount={8}
-          spread={0.48}
-          scaleRange={[1.75, 2.55]}
-          seed={907}
-        />
-        <PhotogrammetryShrubCluster
-          position={[6.55, mastBaseY + 0.58, -1.65]}
-          geometry={sceneAssets.shrubGeo}
-          material={sceneAssets.shrubMat}
-          stemCount={9}
-          spread={0.55}
-          scaleRange={[1.9, 2.65]}
-          seed={919}
-        />
-
-        {/* Scene 4 Observation Station Mast Planted Solidly into Stone Plinth */}
-        <ObservationMast position={[5.2, mastBaseY - 0.06, 0.12]} />
-
-        {/* Low Ground Atmospheric Mist */}
-        <group ref={mistSpritesRef}>
-          {[
-            { pos: [-0.85, 0.15, 2.0] as [number, number, number], scale: [4.8, 1.6, 1] as [number, number, number] },
-            { pos: [1.4, 0.22, 1.5] as [number, number, number], scale: [5.2, 1.8, 1] as [number, number, number] },
-            { pos: [3.4, 0.35, 0.0] as [number, number, number], scale: [5.8, 2.0, 1] as [number, number, number] },
-            { pos: [0.2, 0.12, -2.4] as [number, number, number], scale: [12.0, 2.2, 1] as [number, number, number] },
-            { pos: [5.2, 0.85, 1.8] as [number, number, number], scale: [6.0, 2.2, 1] as [number, number, number] },
-          ].map((m, idx) => (
-            <sprite key={idx} position={m.pos} scale={m.scale} material={sceneAssets.mistSpriteMat} />
-          ))}
         </group>
       </group>
     </>
@@ -1334,6 +368,7 @@ function checkWebGLSupport(): boolean {
 }
 
 export function EcoTechScene(props: EcoTechSceneProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
   const [ready, setReady] = useState(false);
   const [webGLOk, setWebGLOk] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
@@ -1345,8 +380,34 @@ export function EcoTechScene(props: EcoTechSceneProps) {
 
     const onResize = () => setIsMobile(window.innerWidth < 768);
     window.addEventListener("resize", onResize, { passive: true });
-    return () => window.removeEventListener("resize", onResize);
-  }, []);
+
+    let animId = 0;
+    const updateOpacity = () => {
+      animId = 0;
+      if (containerRef.current) {
+        const p = props.scrollProgressRef.current;
+        // Smooth fade out as Image 1 comes into view (p: 0.32 -> 0.42)
+        const alpha = p < 0.32 ? 1 : Math.max(0, 1 - (p - 0.32) / 0.10);
+        containerRef.current.style.opacity = alpha.toFixed(3);
+        containerRef.current.style.visibility = alpha > 0.01 ? "visible" : "hidden";
+      }
+    };
+
+    const handleScroll = () => {
+      if (!animId) {
+        animId = requestAnimationFrame(updateOpacity);
+      }
+    };
+
+    updateOpacity();
+    window.addEventListener("scroll", handleScroll, { passive: true });
+
+    return () => {
+      window.removeEventListener("resize", onResize);
+      window.removeEventListener("scroll", handleScroll);
+      if (animId) cancelAnimationFrame(animId);
+    };
+  }, [props.scrollProgressRef]);
 
   if (!ready || !webGLOk) {
     return (
@@ -1365,7 +426,8 @@ export function EcoTechScene(props: EcoTechSceneProps) {
 
   return (
     <div
-      className="fixed inset-0 pointer-events-none z-0 overflow-hidden bg-[#111d13]"
+      ref={containerRef}
+      className="fixed inset-0 pointer-events-none z-0 overflow-hidden bg-[#111d13] will-change-[opacity]"
       aria-hidden="true"
     >
       <Canvas
@@ -1388,4 +450,3 @@ export function EcoTechScene(props: EcoTechSceneProps) {
 }
 
 useGLTF.preload("/models/main_island_desktop.glb");
-useGLTF.preload("/models/ground_ecosystem_desktop.glb");

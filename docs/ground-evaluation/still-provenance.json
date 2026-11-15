@@ -1,0 +1,18 @@
+[
+  {
+    "name": "desktop",
+    "width": 2880,
+    "height": 1800,
+    "bytes": 413572,
+    "source": "Existing Meshy ecosystem texture-only2k derivative, production camera at scroll progress0.51, all HUD descendants hidden; no terrain or hero alteration",
+    "format": "WebP quality90"
+  },
+  {
+    "name": "mobile",
+    "width": 780,
+    "height": 1688,
+    "bytes": 84950,
+    "source": "Existing Meshy ecosystem texture-only2k derivative, production camera at scroll progress0.51, all HUD descendants hidden; no terrain or hero alteration",
+    "format": "WebP quality90"
+  }
+]

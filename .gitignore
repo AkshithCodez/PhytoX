@@ -20,3 +20,6 @@ services/inference/models/*
 # Blender temporary backups
 *.blend1
 *.blend2
+
+# 8K model backups
+apps/web/public/models/*_backup.glb

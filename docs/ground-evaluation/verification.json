@@ -1,0 +1,20 @@
+{
+  "date": "2026-11-15",
+  "verdict": "PASS",
+  "scope": "ground ecosystem implementation and scoped local validation, not physical mobile performance",
+  "checks": [
+    {"command":"npm run typecheck","result":"passed"},
+    {"command":"npm run build","result":"passed after final tablet layout correction; TypeScript and route generation passed"},
+    {"command":"npm test","before":41,"after":41,"failed":0},
+    {"command":"npm run test:e2e -- tests/e2e/ground.spec.ts tests/e2e/workspaces.spec.ts","result":"initial combined run: 18 passed, 2 failed; all 12 unchanged portal checks passed; failures reproduced tablet overflow and early test-readiness assumption"},
+    {"command":"npm run test:e2e -- tests/e2e/ground.spec.ts","result":"after corrections: 8 passed, 0 failed in37.7s"},
+    {"command":"node scripts/ground-verify-assets.mjs","result":"passed; non-image buffer views, mesh declarations and accessors identical"},
+    {"command":"node scripts/ground-profile.mjs 3d","result":"desktop/mobile two5s samples; zero React commits in final samples"},
+    {"command":"node scripts/ground-profile.mjs image","result":"desktop/mobile two5s samples; zero covered-ground WebGL renders and React commits"},
+    {"command":"git diff --check","result":"passed; existing gitignore line-ending warning only"}
+  ],
+  "measurementFreshness":"The final change only moves the third tooltip left below1024px; it does not change the1440px/390px frame samples, image bytes, renderer or texture budget. The final build and all eight ground tests were rerun afterward.",
+  "screenshotsInspected":["baseline-desktop-ground.png","3d-mobile-ground.png","image-desktop-ground.png","image-mobile-ground.png","image-desktop-hero.png","baseline-repeat-desktop-hero.png"],
+  "limitations":["No physical low-end phone test","No actual GPU VRAM or timer queries","Model decode not isolated from shared loading","Initial slowdown not reproducible","Existing terrain visual softness retained","Portal regressions use fixture APIs"],
+  "cleanup":"Owned production preview sessions stopped; Playwright-managed servers stopped by the runner."
+}

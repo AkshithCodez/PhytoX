@@ -13,6 +13,8 @@ import {
   Sprout,
 } from "lucide-react";
 import { EcoTechScene } from "@/components/eco-tech-scene";
+import { CinematicBackground } from "@/components/cinematic-background";
+import { RegionalIntelligenceViz } from "@/components/regional-intelligence-viz";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -33,60 +35,66 @@ function smoothRange(
   return t * t * (3 - 2 * t);
 }
 
-const CAPABILITY_PILLARS = [
+const REGIONAL_INTELLIGENCE_PILLARS = [
   {
     id: "01",
-    title: "EDGE-OPTIMIZED MOBILENETV2 CLASSIFICATION",
+    title: "FARMER DISEASE REPORTS",
     detail:
-      "Screens 38 crop-disease categories on our FastAPI ONNX service with calibrated top-k predictions.",
+      "Mobile leaf photos screened via FastAPI ONNX service, capturing foliar symptoms with calibrated uncertainty metrics and native language guidance.",
   },
   {
     id: "02",
-    title: "AUTOMATED PHOTO QUALITY & UNCERTAINTY GATES",
+    title: "GEOGRAPHIC DISEASE PATTERNS",
     detail:
-      "Detects blur, poor lighting, or ambiguous leaf framing before showing action guidance.",
+      "Spatial clustering aggregates anonymized farmer submissions across districts to distinguish isolated field blights from spreading vectors.",
   },
   {
     id: "03",
-    title: "MULTILINGUAL CARE IN ENGLISH, TELUGU & HINDI",
+    title: "POTENTIAL HOTSPOT MONITORING",
     detail:
-      "Native language interface and crop-care instructions available cleanly prior to login.",
+      "Anomaly detection triggers early warnings when localized report density for rusts, blights, or viruses exceeds historical seasonal baselines.",
   },
   {
     id: "04",
-    title: "PRIVATE FARMER STORAGE VIA POSTGRESQL RLS",
+    title: "AGRICULTURAL OFFICER REVIEW",
     detail:
-      "Signed media uploads and strict Row Level Security isolate each farmer's diagnosis history.",
+      "Designated agricultural officers inspect flagged clusters, verify diagnostic confidence scores, and formulate targeted regional advisories.",
   },
   {
     id: "05",
-    title: "REGIONAL CLUSTER REVIEW FOR AGRI OFFICERS",
+    title: "REGIONAL CROP-HEALTH INSIGHTS",
     detail:
-      "Verified regional reports highlight emerging foliar blight or rust clusters for timely advisories.",
+      "Longitudinal pathology data informs regional planting cycles, input distribution, and proactive crop disease management.",
   },
 ] as const;
 
 const SPATIAL_HOTSPOTS = [
   {
     id: "hs-1",
-    posClass: "top-[62%] left-[16%] sm:top-[66%] sm:left-[22%]",
+    desktopStyle: { left: "19%", top: "67%" },
+    mobileStyle: { left: "12%", top: "62%" },
     kicker: "DIAGNOSTIC ENGINE",
     label: "38 CROP DISEASE CLASSES",
-    detail: "MobileNetV2 ONNX screening across foliar blights, rusts, spots, and healthy leaves.",
+    detail:
+      "MobileNetV2 ONNX screening across foliar blights, rusts, spots, and healthy leaves.",
   },
   {
     id: "hs-2",
-    posClass: "top-[80%] left-[36%] sm:top-[78%] sm:left-[44%]",
+    desktopStyle: { left: "48%", top: "76%" },
+    mobileStyle: { left: "34%", top: "74%" },
     kicker: "FIELD ACCESSIBILITY",
     label: "ENGLISH · తెలుగు · हिन्दी",
-    detail: "Multilingual screening workflows and preventive recommendations built for regional growers.",
+    detail:
+      "Multilingual screening workflows and preventive recommendations built for regional growers.",
   },
   {
     id: "hs-3",
-    posClass: "top-[66%] left-[64%] sm:top-[62%] sm:left-[68%]",
+    desktopStyle: { left: "74%", top: "66%" },
+    mobileStyle: { left: "58%", top: "84%" },
     kicker: "DATA GOVERNANCE",
     label: "PRIVATE RLS STORAGE",
-    detail: "Signed private uploads and farmer-controlled report sharing under PostgreSQL RLS.",
+    detail:
+      "Signed private uploads and farmer-controlled report sharing under PostgreSQL RLS.",
   },
 ] as const;
 
@@ -107,6 +115,7 @@ export default function Home() {
   const mousePosRef = useRef({ x: 0, y: 0 });
 
   const [reducedMotion, setReducedMotion] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const [openPillar, setOpenPillar] = useState<string | null>(null);
   const [activeHotspot, setActiveHotspot] = useState<string | null>(null);
   const [hoveredHotspot, setHoveredHotspot] = useState<string | null>(null);
@@ -117,13 +126,17 @@ export default function Home() {
     const onMq = (e: MediaQueryListEvent) => setReducedMotion(e.matches);
     mq.addEventListener("change", onMq);
 
+    const onResize = () => setIsMobile(window.innerWidth < 768);
+    onResize();
+    window.addEventListener("resize", onResize, { passive: true });
+
     function applyHudProgress(p: number) {
-      // Scene opacity & vertical parallax transitions (zero overlap between Hero, Vision, Macro, Telemetry)
+      // Scene opacity & vertical parallax transitions with zero visual collisions
       const s1 = smoothRange(p, -1.0, -0.5, 0.06, 0.14);
-      const s2 = smoothRange(p, 0.14, 0.19, 0.27, 0.33);
-      const s3 = smoothRange(p, 0.43, 0.47, 0.55, 0.61);
-      const s4 = smoothRange(p, 0.63, 0.67, 0.75, 0.82);
-      const skyScrim = smoothRange(p, 0.3, 0.4, 0.88, 0.96);
+      const s2 = smoothRange(p, 0.14, 0.19, 0.28, 0.34);
+      const s3 = smoothRange(p, 0.38, 0.44, 0.56, 0.62);
+      const s4 = smoothRange(p, 0.64, 0.70, 0.84, 0.90);
+      const skyScrim = smoothRange(p, 0.32, 0.40, 0.88, 0.96);
 
       const updateLayer = (
         el: HTMLDivElement | null,
@@ -141,8 +154,8 @@ export default function Home() {
       updateLayer(scene1Ref.current, s1, (1 - s1) * -18);
       updateLayer(reticleRef.current, s1, 0);
       updateLayer(scene2Ref.current, s2, (1 - s2) * 16);
-      updateLayer(scene3Ref.current, s3, (1 - s3) * 18);
-      updateLayer(scene4Ref.current, s4, p > 0.75 ? (1 - s4) * -32 : (1 - s4) * 18);
+      updateLayer(scene3Ref.current, s3, (1 - s3) * 16);
+      updateLayer(scene4Ref.current, s4, p > 0.75 ? (1 - s4) * -24 : (1 - s4) * 16);
 
       if (skyScrimRef.current) {
         skyScrimRef.current.style.opacity = skyScrim.toFixed(3);
@@ -154,7 +167,7 @@ export default function Home() {
 
       if (headerRef.current) {
         const nextMode =
-          solutionsTop <= 80 || p >= 0.985 ? "light" : p >= 0.33 ? "mist" : "dark";
+          solutionsTop <= 80 || p >= 0.985 ? "light" : p >= 0.34 ? "mist" : "dark";
         if (headerRef.current.getAttribute("data-mode") !== nextMode) {
           headerRef.current.setAttribute("data-mode", nextMode);
         }
@@ -176,7 +189,6 @@ export default function Home() {
       });
     }, rootRef);
 
-    // Ensure initial progress state on load and sync across programmatic/hash jumps
     function syncFromWindowScroll() {
       if (!runwayRef.current) return;
       const runwayLen = Math.max(1, runwayRef.current.offsetHeight);
@@ -209,6 +221,7 @@ export default function Home() {
 
     return () => {
       mq.removeEventListener("change", onMq);
+      window.removeEventListener("resize", onResize);
       window.removeEventListener("scroll", syncFromWindowScroll);
       window.removeEventListener("scrollend", syncFromWindowScroll);
       window.removeEventListener("mousemove", onMouseMove);
@@ -222,14 +235,20 @@ export default function Home() {
       ref={rootRef}
       className="marketing-cinematic min-h-screen relative bg-[#111d13] text-[#f5f7f4] overflow-x-clip selection:bg-[#b7f36b] selection:text-[#111d13]"
     >
-      {/* 3D WebGL Background Stage */}
+      {/* Interactive 3D WebGL Island (Hero & Vision Scene 1-2) */}
       <EcoTechScene
         scrollProgressRef={scrollProgressRef}
         mousePosRef={mousePosRef}
         reducedMotion={reducedMotion}
       />
 
-      {/* Minimal Floating HUD Header matching reference composition */}
+      {/* Photorealistic Cinematic Background Plates (Scenes 3-4) */}
+      <CinematicBackground
+        progressRef={scrollProgressRef}
+        reducedMotion={reducedMotion}
+      />
+
+      {/* Minimal Floating HUD Header */}
       <header
         ref={headerRef}
         data-mode="dark"
@@ -255,10 +274,10 @@ export default function Home() {
               Vision
             </a>
             <a href="#methodology" className="hdr-nav-link">
-              Methodology
+              Ecosystem
             </a>
             <a href="#telemetry" className="hdr-nav-link">
-              Telemetry
+              Intelligence
             </a>
             <a href="#solutions" className="hdr-nav-link">
               Solutions
@@ -290,10 +309,10 @@ export default function Home() {
 
       <main id="main" className="relative z-10">
         {/* ================================================================= */}
-        {/* PINNED 3D RUNWAY FOR SCENES 1 -> 4 (460vh Scroll Track)            */}
+        {/* PINNED RUNWAY FOR SCENES 1 -> 4 (460vh Scroll Track)              */}
         {/* ================================================================= */}
         <div ref={runwayRef} className="relative h-[460vh]">
-          {/* Scroll Anchor Targets inside Runway for Clean Nav Deep-Linking */}
+          {/* Scroll Anchor Targets inside Runway */}
           <div id="hero" className="absolute top-0 left-0 h-px w-px" aria-hidden="true" />
           <div id="vision" className="absolute top-[106vh] left-0 h-px w-px" aria-hidden="true" />
           <div id="methodology" className="absolute top-[235vh] left-0 h-px w-px" aria-hidden="true" />
@@ -301,23 +320,22 @@ export default function Home() {
 
           {/* Sticky 100vh HUD Viewport */}
           <div className="sticky top-0 h-screen w-full overflow-hidden">
-            {/* Subtle top sky contrast scrim active during bright overcast Scenes 3-4 */}
+            {/* Subtle top sky contrast scrim active during overcast Scenes 3-4 */}
             <div
               ref={skyScrimRef}
-              className="absolute inset-x-0 top-0 h-[44vh] pointer-events-none bg-gradient-to-b from-[#172118]/50 via-[#1f2920]/20 to-transparent"
+              className="absolute inset-x-0 top-0 h-[44vh] pointer-events-none bg-gradient-to-b from-[#111d13]/70 via-[#111d13]/25 to-transparent"
               style={{ opacity: 0 }}
               aria-hidden="true"
             />
 
             {/* ------------------------------------------------------------- */}
-            {/* SCENE 1: HERO (0% - 16%)                                      */}
+            {/* SCENE 1: HERO (0% - 16%) — Interactive 3D Botanical Island    */}
             {/* ------------------------------------------------------------- */}
             <div
               ref={scene1Ref}
               className="absolute inset-0 max-w-[1440px] mx-auto px-6 md:px-12 pt-[88px] pb-8 md:pb-10 flex flex-col justify-between"
             >
-              {/* Subtle Translucent Square Reticle Over Moss Patch */}
-              {/* Minimal reference-matched HUD reticle with delicate telemetry */}
+              {/* Reference-matched HUD reticle with verified PhytoX capability badge */}
               <div
                 ref={reticleRef}
                 className="hidden md:flex flex-col justify-end items-end pointer-events-none absolute top-[48%] left-[52%] -translate-x-1/2 -translate-y-1/2 w-[164px] h-[164px] border border-white/20 bg-white/[0.015]"
@@ -325,17 +343,17 @@ export default function Home() {
               >
                 <div className="translate-x-[52%] translate-y-2 flex flex-col items-start gap-1">
                   <span className="px-1.5 py-0.5 rounded-[2px] bg-white/90 text-[#111d13] font-mono text-[8px] font-semibold tracking-[0.1em] uppercase whitespace-nowrap shadow-sm">
-                    [38.4°N 78.1°E]
+                    [PHYTOX AI]
                   </span>
                   <span className="font-mono text-[8px] tracking-[0.12em] uppercase text-white/60 leading-tight whitespace-nowrap [text-shadow:0_1px_6px_rgba(0,0,0,0.9)]">
-                    CANOPY SPECTRAL · ONNX 38 CLS
+                    DIAGNOSTIC ENGINE
                     <br />
-                    LATENCY 14MS · FP16 QUANT
+                    38 CROP DISEASE CLASSES
                   </span>
                 </div>
               </div>
 
-              {/* Top-Left Hero Headline & Action — Proportional 3-line layout */}
+              {/* Top-Left Hero Headline & Action */}
               <div className="relative z-10 max-w-[500px] mt-[3vh] md:mt-[4vh]">
                 <h1 className="text-[clamp(2.1rem,3.4vw,3.15rem)] font-medium leading-[1.08] tracking-[-0.035em] text-[#f5f7f4] [text-shadow:0_2px_20px_rgba(8,16,10,0.6)]">
                   Where Crop Science
@@ -365,7 +383,7 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* Bottom Strip matching reference subcopy + Scroll hint */}
+              {/* Bottom Strip */}
               <div className="relative z-10 flex items-end justify-between gap-6">
                 <p className="max-w-[330px] text-[12.5px] md:text-[13px] leading-[1.45] text-[#dce2da] [text-shadow:0_1px_12px_rgba(8,14,9,0.75)]">
                   Screen leaf symptoms early.
@@ -384,7 +402,7 @@ export default function Home() {
             </div>
 
             {/* ------------------------------------------------------------- */}
-            {/* SCENE 2: VISION - Direct Centered Copy Over Boulder (no grey box) */}
+            {/* SCENE 2: VISION — Narrative Transition                        */}
             {/* ------------------------------------------------------------- */}
             <div
               ref={scene2Ref}
@@ -412,16 +430,16 @@ export default function Home() {
             </div>
 
             {/* ------------------------------------------------------------- */}
-            {/* SCENE 3: MACRO TERRAIN, FERN & 3 MINIMAL LIME HOTSPOTS        */}
+            {/* SCENE 3: GROUND-LEVEL BOTANICAL ECOSYSTEM                     */}
             {/* ------------------------------------------------------------- */}
             <div
               ref={scene3Ref}
-              className="absolute inset-0 max-w-[1440px] mx-auto px-6 md:px-12 pt-[88px] pb-10 pointer-events-none"
+              className="absolute inset-0 px-6 md:px-12 pt-[88px] pb-10 pointer-events-none"
               style={{ opacity: 0, visibility: "hidden" }}
             >
               {/* Top Row: Left Micro Stack + Right Editorial Statement */}
               <div className="flex flex-col md:flex-row justify-between items-start gap-6">
-                <div className="font-mono text-[9.5px] tracking-[0.14em] uppercase leading-[1.45] text-white [text-shadow:0_1px_10px_rgba(12,18,13,0.7)]">
+                <div className="font-mono text-[9.5px] tracking-[0.14em] uppercase leading-[1.45] text-white [text-shadow:0_1px_10px_rgba(12,18,13,0.8)]">
                   REAL-TIME
                   <br />
                   MULTILINGUAL
@@ -429,25 +447,31 @@ export default function Home() {
                   CROP INTELLIGENCE
                 </div>
 
-                <div className="max-w-[500px] md:mr-8 md:ml-auto flex flex-col gap-2 text-left md:text-right">
-                  <h2 className="text-[clamp(1.35rem,2.3vw,1.95rem)] font-normal leading-[1.22] tracking-[-0.02em] text-white [text-shadow:0_2px_20px_rgba(12,18,13,0.7)]">
-                    From a single leaf to a clearer picture of crop health.
+                <div className="max-w-[520px] md:mr-8 md:ml-auto flex flex-col gap-2 text-left md:text-right">
+                  <h2 className="text-[clamp(1.35rem,2.3vw,1.95rem)] font-normal leading-[1.22] tracking-[-0.02em] text-white [text-shadow:0_2px_22px_rgba(12,18,13,0.85)]">
+                    From a Single Leaf to a Clearer Picture of Crop Health.
                   </h2>
-                  <p className="text-[clamp(0.85rem,1.05vw,0.95rem)] font-light leading-[1.5] text-[#d6ded5] [text-shadow:0_1px_12px_rgba(12,18,13,0.65)]">
-                    AI-assisted diagnosis helps farmers recognize possible diseases and supports regional crop-health monitoring.
+                  <p className="text-[clamp(0.85rem,1.05vw,0.95rem)] font-light leading-[1.5] text-[#d6ded5] [text-shadow:0_1px_14px_rgba(12,18,13,0.85)]">
+                    AI-assisted diagnosis helps farmers recognize possible
+                    diseases while supporting broader regional monitoring.
                   </p>
                 </div>
               </div>
 
-              {/* 3 Spatial Lime Target Hotspots matching reference composition */}
-              <div className="relative h-[calc(100%-150px)] w-full">
-                {SPATIAL_HOTSPOTS.map((spot) => {
+              {/* 3 Interactive Spatial Lime Target Hotspots over Image Plate */}
+              <div className="absolute inset-0 pointer-events-none" data-ground-hotspots>
+                {SPATIAL_HOTSPOTS.map((spot, index) => {
                   const isPinned = activeHotspot === spot.id;
                   const isOpen = isPinned || hoveredHotspot === spot.id;
+                  const pos = isMobile ? spot.mobileStyle : spot.desktopStyle;
+
                   return (
                     <div
                       key={spot.id}
-                      className={`absolute ${spot.posClass} ${isOpen ? "z-30" : "z-10"} flex items-start gap-2.5`}
+                      style={{ left: pos.left, top: pos.top }}
+                      className={`absolute ${
+                        isOpen ? "z-30" : "z-10"
+                      } flex items-start gap-2.5 pointer-events-auto transition-all`}
                     >
                       <button
                         type="button"
@@ -461,14 +485,23 @@ export default function Home() {
                         }}
                         onMouseEnter={() => setHoveredHotspot(spot.id)}
                         onMouseLeave={() =>
-                          setHoveredHotspot((prev) => (prev === spot.id ? null : prev))
+                          setHoveredHotspot((prev) =>
+                            prev === spot.id ? null : prev
+                          )
                         }
-                        aria-expanded={isPinned}
+                        aria-expanded={isOpen}
+                        aria-controls={`${spot.id}-detail`}
                         aria-label={`${spot.label}: ${spot.detail}`}
-                        className="w-6 h-6 rounded-full bg-[#c4f56b] text-[#111d13] inline-flex items-center justify-center shadow-md hotspot-pulse shrink-0 focus-visible:outline-2 focus-visible:outline-white"
+                        className="w-11 h-11 sm:w-7 sm:h-7 rounded-full text-[#111d13] inline-flex items-center justify-center shrink-0 focus-visible:outline-2 focus-visible:outline-white cursor-pointer group"
                       >
-                        {/* 4-dot target glyph matching reference */}
-                        <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor" aria-hidden="true">
+                        <svg
+                          className="w-6 h-6 p-[6.5px] rounded-full bg-[#b7f36b] shadow-lg transition-transform duration-200 group-hover:scale-110"
+                          width="10"
+                          height="10"
+                          viewBox="0 0 10 10"
+                          fill="currentColor"
+                          aria-hidden="true"
+                        >
                           <circle cx="5" cy="1.8" r="1.15" />
                           <circle cx="8.2" cy="5" r="1.15" />
                           <circle cx="5" cy="8.2" r="1.15" />
@@ -476,13 +509,24 @@ export default function Home() {
                         </svg>
                       </button>
 
-                      <div className="text-left">
+                      <div
+                        className={`text-left ${
+                          index === 2
+                            ? "max-lg:absolute max-lg:right-full max-lg:mr-2 max-lg:w-[130px]"
+                            : "max-sm:max-w-[140px]"
+                        }`}
+                      >
                         <div className="font-mono text-[8.5px] sm:text-[9.5px] tracking-[0.11em] uppercase leading-tight text-white [text-shadow:0_1px_10px_rgba(8,14,9,0.95),0_0_3px_rgba(8,14,9,0.9)]">
-                          <span className="block text-[#d7f79a]">{spot.kicker}</span>
+                          <span className="block text-[#b7f36b]">
+                            {spot.kicker}
+                          </span>
                           <span>{spot.label}</span>
                         </div>
                         {isOpen && (
-                          <div className="mt-1.5 max-w-[220px] px-2.5 py-1.5 rounded-[6px] bg-[#111d13]/90 backdrop-blur-md border border-white/15 text-[11px] leading-snug text-white shadow-lg">
+                          <div
+                            id={`${spot.id}-detail`}
+                            className="mt-1.5 max-w-[220px] px-2.5 py-1.5 rounded-[6px] bg-[#111d13]/90 backdrop-blur-md border border-white/20 text-[11px] leading-snug text-white shadow-xl animate-in fade-in"
+                          >
                             {spot.detail}
                           </div>
                         )}
@@ -494,92 +538,47 @@ export default function Home() {
             </div>
 
             {/* ------------------------------------------------------------- */}
-            {/* SCENE 4: TELEMETRY MAST + FROSTED CARD + 5 STRIPS             */}
+            {/* SCENE 4: REGIONAL CROP INTELLIGENCE                           */}
             {/* ------------------------------------------------------------- */}
             <div
               ref={scene4Ref}
               className="absolute inset-0 max-w-[1440px] mx-auto px-5 sm:px-6 md:px-12 pt-[78px] sm:pt-[86px] pb-4 sm:pb-8 overflow-y-auto lg:overflow-visible flex flex-col justify-between pointer-events-none"
               style={{ opacity: 0, visibility: "hidden" }}
             >
-              {/* Top-Left Title Matching `↗ Scientific Credibility...` */}
-              <div className="flex items-start gap-2.5 max-w-[360px] pt-1 sm:pt-2">
+              {/* Top-Left Section Title */}
+              <div className="flex items-start gap-2.5 max-w-[480px] pt-1 sm:pt-2">
                 <ArrowUpRight
                   size={16}
-                  className="text-white/90 mt-1 shrink-0"
+                  className="text-[#b7f36b] mt-1 shrink-0"
                   aria-hidden="true"
                 />
-                <h2 className="text-[clamp(1.15rem,2.1vw,1.65rem)] font-normal leading-[1.2] tracking-[-0.02em] text-white [text-shadow:0_2px_18px_rgba(12,18,13,0.6)]">
-                  Scientific Credibility to
-                  <br />
-                  Regional Crop Action
-                </h2>
+                <div>
+                  <span className="font-mono text-[9px] tracking-[0.14em] uppercase text-[#b7f36b] block">
+                    REGIONAL SURVEILLANCE ARCHITECTURE
+                  </span>
+                  <h2 className="text-[clamp(1.2rem,2.2vw,1.75rem)] font-normal leading-[1.2] tracking-[-0.02em] text-white [text-shadow:0_2px_18px_rgba(12,18,13,0.8)] mt-0.5">
+                    From Individual Observations to
+                    <br />
+                    Regional Crop Intelligence
+                  </h2>
+                  <p className="mt-1 text-[12px] sm:text-[13px] leading-relaxed text-[#dbe2da] [text-shadow:0_1px_10px_rgba(12,18,13,0.8)]">
+                    Farmer-submitted observations help reveal crop-health
+                    patterns and support agricultural officer review.
+                  </p>
+                </div>
               </div>
 
-              {/* Mid-Viewport Left Frosted Metric Card + Right 5 Horizontal Strips */}
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-3.5 lg:gap-8 items-center my-auto py-1 sm:py-2">
-                {/* Left Frosted Card matching reference `w-[275px]` proportion */}
-                <div className="lg:col-span-5 flex lg:justify-end">
-                  <div className="w-full max-w-[300px] rounded-[12px] bg-[#1a1f1b]/75 backdrop-blur-xl border border-white/15 p-4 sm:p-5 text-white shadow-2xl">
-                    <div className="text-[12px] font-medium text-white">
-                      Model pathology coverage
-                    </div>
-                    <div className="font-mono text-[9px] tracking-[0.14em] uppercase text-white/65 mt-0.5">
-                      ONNX CLASSIFICATION
-                    </div>
-
-                    <div className="mt-2 sm:mt-3 flex items-baseline gap-1.5">
-                      <span className="text-[26px] sm:text-[30px] font-normal tracking-tight text-white">
-                        38
-                      </span>
-                      <span className="font-mono text-[10px] text-white/75">
-                        classes
-                      </span>
-                    </div>
-
-                    {/* Minimal Node-and-Line Workflow Chart matching reference MAY badge */}
-                    <div className="mt-2.5 sm:mt-4 relative pt-4 sm:pt-5">
-                      <span className="absolute right-8 top-0 px-1.5 py-0.5 rounded-[3px] bg-[#c4f56b] text-[#111d13] font-mono text-[8.5px] font-semibold tracking-[0.06em]">
-                        EN · TE · HI
-                      </span>
-                      <svg
-                        viewBox="0 0 240 52"
-                        className="w-full h-9 sm:h-12 overflow-visible"
-                        aria-hidden="true"
-                      >
-                        <path
-                          d="M 8 44 L 54 39 L 100 28 L 144 26 L 188 18 L 232 10"
-                          fill="none"
-                          stroke="rgba(255,255,255,0.45)"
-                          strokeWidth="1.2"
-                          strokeDasharray="2.5 2.5"
-                        />
-                        <circle cx="8" cy="44" r="2.5" fill="#ffffff" />
-                        <circle cx="54" cy="39" r="2.5" fill="#ffffff" />
-                        <circle cx="100" cy="28" r="2.5" fill="#ffffff" />
-                        <circle cx="144" cy="26" r="2.5" fill="#ffffff" />
-                        <circle cx="188" cy="18" r="3.5" fill="#c4f56b" />
-                        <circle cx="232" cy="10" r="2.5" fill="#ffffff" />
-                      </svg>
-                      <div className="flex justify-between font-mono text-[8px] tracking-[0.08em] text-white/70 mt-1">
-                        <span>SCAN</span>
-                        <span>CHECK</span>
-                        <span>SCORE</span>
-                        <span>GUIDE</span>
-                        <span className="text-[#c4f56b]">STORE</span>
-                        <span>VERIFY</span>
-                      </div>
-                    </div>
-
-                    <div className="mt-2.5 sm:mt-4 pt-2 sm:pt-3 border-t border-white/10 font-mono text-[9px] text-white/75">
-                      FastAPI ONNX · Private PostgreSQL RLS
-                    </div>
-                  </div>
+              {/* Mid-Viewport: Left Regional Intelligence Map + Right 5 Accordion Strips */}
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-8 items-center my-auto py-2">
+                {/* Left: Interactive Regional Intelligence Map / Node Viz */}
+                <div className="lg:col-span-5 flex lg:justify-end pointer-events-auto">
+                  <RegionalIntelligenceViz />
                 </div>
 
-                {/* Right 5 Stacked Translucent Capability Strips */}
-                <div className="lg:col-span-7 flex lg:justify-start">
-                  <div className="w-full max-w-[430px] rounded-[6px] overflow-hidden border border-white/15 bg-[#1b221c]/60 backdrop-blur-md divide-y divide-white/15 shadow-xl">
-                    {CAPABILITY_PILLARS.map((pillar) => {
+                {/* Right: 5 Stacked Interactive Capability Strips */}
+                <div className="lg:col-span-7 flex lg:justify-start pointer-events-auto">
+                  <div className="w-full max-w-[450px] rounded-[10px] overflow-hidden border border-white/15 bg-[#1b221c]/75 backdrop-blur-md divide-y divide-white/15 shadow-xl">
+                    {REGIONAL_INTELLIGENCE_PILLARS.map((pillar) => {
                       const expanded = openPillar === pillar.id;
                       return (
                         <div key={pillar.id}>
@@ -591,10 +590,10 @@ export default function Home() {
                               )
                             }
                             aria-expanded={expanded}
-                            className="w-full px-3.5 sm:px-4 py-2 sm:py-2.5 flex items-center justify-between gap-3 text-left hover:bg-white/10 transition-colors focus-visible:outline-2 focus-visible:outline-white"
+                            className="w-full px-3.5 sm:px-4 py-2.5 sm:py-3 flex items-center justify-between gap-3 text-left hover:bg-white/10 transition-colors focus-visible:outline-2 focus-visible:outline-white cursor-pointer"
                           >
                             <span className="flex items-center gap-3 font-mono text-[9.5px] sm:text-[10.5px] tracking-[0.08em] text-white">
-                              <span className="text-[#c4f56b]">{pillar.id}</span>
+                              <span className="text-[#b7f36b]">{pillar.id}</span>
                               <span>{pillar.title}</span>
                             </span>
                             <span className="text-white/80 shrink-0">
@@ -620,7 +619,6 @@ export default function Home() {
 
         {/* ================================================================= */}
         {/* SCENE 5: PURE WHITE EDITORIAL SOLUTIONS SECTION + FOOTER          */}
-        {/* Slides cleanly over Scene 4 mast in normal document flow          */}
         {/* ================================================================= */}
         <section
           id="solutions"
@@ -628,7 +626,7 @@ export default function Home() {
           className="relative z-20 bg-white text-[#111813] pt-24 pb-20 md:pt-28 md:pb-28 px-6 md:px-12 shadow-[0_-24px_60px_rgba(0,0,0,0.18)]"
         >
           <div className="max-w-[1360px] mx-auto">
-            <span className="inline-block px-2.5 py-1 rounded-[3px] bg-[#c4f56b] text-[#111d13] font-mono text-[10px] font-medium tracking-[0.14em] uppercase">
+            <span className="inline-block px-2.5 py-1 rounded-[3px] bg-[#b7f36b] text-[#111d13] font-mono text-[10px] font-medium tracking-[0.14em] uppercase">
               OUR SOLUTIONS
             </span>
 
@@ -638,7 +636,7 @@ export default function Home() {
               Fields Show Naturally
             </h2>
 
-            {/* 2-Column Editorial Photo Cards matching Frame 18/20 */}
+            {/* 2-Column Editorial Photo Cards */}
             <div className="mt-10 md:mt-12 grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Left Card: Farmer Portal */}
               <Link
@@ -660,7 +658,7 @@ export default function Home() {
                     <span className="font-mono text-[10px] tracking-[0.14em] uppercase text-white">
                       [ FARMER PORTAL ]
                     </span>
-                    <span className="w-8 h-8 rounded-full bg-[#c4f56b] text-[#111d13] inline-flex items-center justify-center transition-transform duration-300 group-hover:translate-x-0.5">
+                    <span className="w-8 h-8 rounded-full bg-[#b7f36b] text-[#111d13] inline-flex items-center justify-center transition-transform duration-300 group-hover:translate-x-0.5">
                       <ArrowRight size={15} strokeWidth={2.2} />
                     </span>
                   </div>
@@ -698,7 +696,7 @@ export default function Home() {
                     <span className="font-mono text-[10px] tracking-[0.14em] uppercase text-white">
                       [ OFFICER PORTAL ]
                     </span>
-                    <span className="w-8 h-8 rounded-full bg-[#c4f56b] text-[#111d13] inline-flex items-center justify-center transition-transform duration-300 group-hover:translate-x-0.5">
+                    <span className="w-8 h-8 rounded-full bg-[#b7f36b] text-[#111d13] inline-flex items-center justify-center transition-transform duration-300 group-hover:translate-x-0.5">
                       <ArrowRight size={15} strokeWidth={2.2} />
                     </span>
                   </div>
@@ -717,7 +715,7 @@ export default function Home() {
               </Link>
             </div>
 
-            {/* Quiet Factual Capability Strip */}
+            {/* Factual Capability Strip */}
             <div className="mt-12 pt-8 border-t border-[#e6ebe4] grid grid-cols-1 sm:grid-cols-3 gap-6 text-left">
               <div>
                 <div className="font-mono text-[10px] tracking-[0.12em] uppercase text-[#4d624c]">

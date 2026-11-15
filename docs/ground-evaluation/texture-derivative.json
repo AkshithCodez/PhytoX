@@ -1,0 +1,43 @@
+{
+  "sourceBytes": 7033764,
+  "outputBytes": 3543792,
+  "images": [
+    {
+      "image": 0,
+      "before": [
+        4096,
+        4096
+      ],
+      "after": [
+        2048,
+        2048
+      ],
+      "bytes": 548459
+    },
+    {
+      "image": 1,
+      "before": [
+        4096,
+        4096
+      ],
+      "after": [
+        2048,
+        2048
+      ],
+      "bytes": 1343374
+    },
+    {
+      "image": 2,
+      "before": [
+        2048,
+        2048
+      ],
+      "after": [
+        2048,
+        2048
+      ],
+      "bytes": 142216
+    }
+  ],
+  "geometry": "Unmodified original bufferViews; no simplification or terrain generation"
+}

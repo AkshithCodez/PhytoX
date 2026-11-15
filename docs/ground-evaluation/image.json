@@ -1,0 +1,2004 @@
+[
+  {
+    "device": "desktop",
+    "width": 1440,
+    "height": 900,
+    "dpr": 1,
+    "info": {
+      "renderer": "ANGLE (NVIDIA, NVIDIA GeForce GTX 1650 (0x00001F99) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+      "meshes": [
+        {
+          "name": "",
+          "vertices": 4,
+          "triangles": 2,
+          "instances": 1,
+          "position": [
+            0,
+            -0.44,
+            -15.85
+          ]
+        },
+        {
+          "name": "",
+          "vertices": 169814,
+          "triangles": 140000,
+          "instances": 1,
+          "position": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "name": "",
+          "vertices": 6221,
+          "triangles": 10996,
+          "instances": 1,
+          "position": [
+            -2.85,
+            -4.3,
+            2.35
+          ]
+        },
+        {
+          "name": "",
+          "vertices": 8538,
+          "triangles": 16548,
+          "instances": 1,
+          "position": [
+            2.85,
+            -4.3,
+            2.35
+          ]
+        },
+        {
+          "name": "",
+          "vertices": 10285,
+          "triangles": 20160,
+          "instances": 1,
+          "position": [
+            2,
+            -0.72,
+            -0.6
+          ]
+        },
+        {
+          "name": "",
+          "vertices": 4317,
+          "triangles": 7999,
+          "instances": 36,
+          "position": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "name": "",
+          "vertices": 6221,
+          "triangles": 10996,
+          "instances": 1,
+          "position": [
+            4.25,
+            0.29855334533130223,
+            -1.25
+          ]
+        },
+        {
+          "name": "",
+          "vertices": 6079,
+          "triangles": 11000,
+          "instances": 1,
+          "position": [
+            7.2,
+            0.7917868747563674,
+            -0.85
+          ]
+        },
+        {
+          "name": "",
+          "vertices": 115803,
+          "triangles": 66122,
+          "instances": 1,
+          "position": [
+            6.25,
+            0.5978476217461876,
+            -1.05
+          ]
+        },
+        {
+          "name": "",
+          "vertices": 8538,
+          "triangles": 16548,
+          "instances": 1,
+          "position": [
+            5.2,
+            0.078588186938716,
+            0.12
+          ]
+        },
+        {
+          "name": "",
+          "vertices": 16869,
+          "triangles": 24733,
+          "instances": 6,
+          "position": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "name": "",
+          "vertices": 16869,
+          "triangles": 24733,
+          "instances": 4,
+          "position": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "name": "",
+          "vertices": 16869,
+          "triangles": 24733,
+          "instances": 4,
+          "position": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "name": "",
+          "vertices": 112,
+          "triangles": 72,
+          "instances": 1,
+          "position": [
+            0,
+            1.35,
+            0
+          ]
+        },
+        {
+          "name": "",
+          "vertices": 76,
+          "triangles": 48,
+          "instances": 1,
+          "position": [
+            0,
+            3.85,
+            0
+          ]
+        },
+        {
+          "name": "",
+          "vertices": 100,
+          "triangles": 64,
+          "instances": 1,
+          "position": [
+            0,
+            3.24,
+            0
+          ]
+        },
+        {
+          "name": "",
+          "vertices": 112,
+          "triangles": 72,
+          "instances": 1,
+          "position": [
+            0,
+            2.72,
+            0
+          ]
+        },
+        {
+          "name": "",
+          "vertices": 112,
+          "triangles": 72,
+          "instances": 1,
+          "position": [
+            0,
+            2.02,
+            0
+          ]
+        },
+        {
+          "name": "",
+          "vertices": 100,
+          "triangles": 64,
+          "instances": 1,
+          "position": [
+            0.22,
+            2.02,
+            0
+          ]
+        },
+        {
+          "name": "",
+          "vertices": 88,
+          "triangles": 56,
+          "instances": 1,
+          "position": [
+            1.18,
+            2.02,
+            0
+          ]
+        },
+        {
+          "name": "",
+          "vertices": 88,
+          "triangles": 56,
+          "instances": 1,
+          "position": [
+            1.29,
+            2.04,
+            0
+          ]
+        },
+        {
+          "name": "",
+          "vertices": 88,
+          "triangles": 56,
+          "instances": 1,
+          "position": [
+            -0.45,
+            2.02,
+            0
+          ]
+        },
+        {
+          "name": "",
+          "vertices": 24,
+          "triangles": 12,
+          "instances": 1,
+          "position": [
+            -0.555,
+            2.34,
+            0
+          ]
+        },
+        {
+          "name": "",
+          "vertices": 124,
+          "triangles": 80,
+          "instances": 1,
+          "position": [
+            0,
+            0.16,
+            0
+          ]
+        },
+        {
+          "name": "",
+          "vertices": 148,
+          "triangles": 96,
+          "instances": 1,
+          "position": [
+            0,
+            0.35,
+            0
+          ]
+        },
+        {
+          "name": "",
+          "vertices": 148,
+          "triangles": 96,
+          "instances": 1,
+          "position": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "name": "",
+          "vertices": 148,
+          "triangles": 96,
+          "instances": 1,
+          "position": [
+            0,
+            0.044,
+            0
+          ]
+        },
+        {
+          "name": "",
+          "vertices": 148,
+          "triangles": 96,
+          "instances": 1,
+          "position": [
+            0,
+            0.088,
+            0
+          ]
+        },
+        {
+          "name": "",
+          "vertices": 148,
+          "triangles": 96,
+          "instances": 1,
+          "position": [
+            0,
+            0.132,
+            0
+          ]
+        },
+        {
+          "name": "",
+          "vertices": 148,
+          "triangles": 96,
+          "instances": 1,
+          "position": [
+            0,
+            0.176,
+            0
+          ]
+        },
+        {
+          "name": "",
+          "vertices": 148,
+          "triangles": 96,
+          "instances": 1,
+          "position": [
+            0,
+            0.21999999999999997,
+            0
+          ]
+        },
+        {
+          "name": "",
+          "vertices": 148,
+          "triangles": 96,
+          "instances": 1,
+          "position": [
+            0,
+            0.264,
+            0
+          ]
+        },
+        {
+          "name": "",
+          "vertices": 148,
+          "triangles": 96,
+          "instances": 1,
+          "position": [
+            0,
+            0.308,
+            0
+          ]
+        },
+        {
+          "name": "",
+          "vertices": 88,
+          "triangles": 56,
+          "instances": 1,
+          "position": [
+            -0.18,
+            2.02,
+            0
+          ]
+        },
+        {
+          "name": "",
+          "vertices": 24,
+          "triangles": 12,
+          "instances": 1,
+          "position": [
+            -0.26,
+            2.25,
+            0
+          ]
+        },
+        {
+          "name": "",
+          "vertices": 124,
+          "triangles": 80,
+          "instances": 1,
+          "position": [
+            0,
+            0.16,
+            0
+          ]
+        },
+        {
+          "name": "",
+          "vertices": 148,
+          "triangles": 96,
+          "instances": 1,
+          "position": [
+            0,
+            0.35,
+            0
+          ]
+        },
+        {
+          "name": "",
+          "vertices": 148,
+          "triangles": 96,
+          "instances": 1,
+          "position": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "name": "",
+          "vertices": 148,
+          "triangles": 96,
+          "instances": 1,
+          "position": [
+            0,
+            0.044,
+            0
+          ]
+        },
+        {
+          "name": "",
+          "vertices": 148,
+          "triangles": 96,
+          "instances": 1,
+          "position": [
+            0,
+            0.088,
+            0
+          ]
+        },
+        {
+          "name": "",
+          "vertices": 148,
+          "triangles": 96,
+          "instances": 1,
+          "position": [
+            0,
+            0.132,
+            0
+          ]
+        },
+        {
+          "name": "",
+          "vertices": 148,
+          "triangles": 96,
+          "instances": 1,
+          "position": [
+            0,
+            0.176,
+            0
+          ]
+        },
+        {
+          "name": "",
+          "vertices": 148,
+          "triangles": 96,
+          "instances": 1,
+          "position": [
+            0,
+            0.21999999999999997,
+            0
+          ]
+        },
+        {
+          "name": "",
+          "vertices": 148,
+          "triangles": 96,
+          "instances": 1,
+          "position": [
+            0,
+            0.264,
+            0
+          ]
+        },
+        {
+          "name": "",
+          "vertices": 148,
+          "triangles": 96,
+          "instances": 1,
+          "position": [
+            0,
+            0.308,
+            0
+          ]
+        },
+        {
+          "name": "",
+          "vertices": 100,
+          "triangles": 64,
+          "instances": 1,
+          "position": [
+            0,
+            1.05,
+            0
+          ]
+        },
+        {
+          "name": "",
+          "vertices": 40,
+          "triangles": 24,
+          "instances": 1,
+          "position": [
+            0.18,
+            -0.62,
+            0
+          ]
+        },
+        {
+          "name": "",
+          "vertices": 40,
+          "triangles": 24,
+          "instances": 1,
+          "position": [
+            0.18,
+            -0.62,
+            0
+          ]
+        },
+        {
+          "name": "",
+          "vertices": 40,
+          "triangles": 24,
+          "instances": 1,
+          "position": [
+            0.18,
+            -0.62,
+            0
+          ]
+        }
+      ],
+      "textures": [
+        {
+          "width": 4096,
+          "height": 4096,
+          "mipmap": true
+        },
+        {
+          "width": 4096,
+          "height": 4096,
+          "mipmap": true
+        },
+        {
+          "width": 2048,
+          "height": 2048,
+          "mipmap": true
+        },
+        {
+          "width": 2048,
+          "height": 2048,
+          "mipmap": true
+        },
+        {
+          "width": 1024,
+          "height": 1024,
+          "mipmap": true
+        },
+        {
+          "width": 1024,
+          "height": 1024,
+          "mipmap": true
+        },
+        {
+          "width": 1024,
+          "height": 1024,
+          "mipmap": true
+        },
+        {
+          "width": 1024,
+          "height": 1024,
+          "mipmap": true
+        },
+        {
+          "width": 1024,
+          "height": 1024,
+          "mipmap": true
+        },
+        {
+          "width": 1024,
+          "height": 1024,
+          "mipmap": true
+        },
+        {
+          "width": 1024,
+          "height": 1024,
+          "mipmap": true
+        },
+        {
+          "width": 1024,
+          "height": 1024,
+          "mipmap": true
+        },
+        {
+          "width": 1024,
+          "height": 1024,
+          "mipmap": true
+        },
+        {
+          "width": 1024,
+          "height": 1024,
+          "mipmap": true
+        },
+        {
+          "width": 1024,
+          "height": 1024,
+          "mipmap": true
+        },
+        {
+          "width": 1024,
+          "height": 1024,
+          "mipmap": true
+        },
+        {
+          "width": 1024,
+          "height": 1024,
+          "mipmap": true
+        },
+        {
+          "width": 1024,
+          "height": 1024,
+          "mipmap": true
+        },
+        {
+          "width": 1024,
+          "height": 1024,
+          "mipmap": true
+        },
+        {
+          "width": 1024,
+          "height": 1024,
+          "mipmap": true
+        },
+        {
+          "width": 256,
+          "height": 256,
+          "mipmap": true
+        }
+      ],
+      "memory": {
+        "geometries": 3,
+        "textures": 17
+      },
+      "heap": 102136918,
+      "resources": [
+        {
+          "url": "/models/main_island_desktop.glb",
+          "bytes": 6511166,
+          "duration": 357.30000001192093,
+          "end": 772.6999999880791
+        },
+        {
+          "url": "/draco/draco_wasm_wrapper.js",
+          "bytes": 11748,
+          "duration": 4.100000023841858,
+          "end": 806.3999999761581
+        },
+        {
+          "url": "/draco/draco_decoder.wasm",
+          "bytes": 63458,
+          "duration": 10.5,
+          "end": 813
+        },
+        {
+          "url": "/models/boulder_01.glb",
+          "bytes": 1030545,
+          "duration": 39.60000002384186,
+          "end": 1131.699999988079
+        },
+        {
+          "url": "/models/rock_moss_set_01.glb",
+          "bytes": 517822,
+          "duration": 20.399999976158142,
+          "end": 1233.5999999642372
+        },
+        {
+          "url": "/models/rock_moss_set_02.glb",
+          "bytes": 619460,
+          "duration": 24.399999976158142,
+          "end": 1304.2999999523163
+        },
+        {
+          "url": "/models/shrub_04.glb",
+          "bytes": 257339,
+          "duration": 13.199999988079071,
+          "end": 1361.3999999761581
+        },
+        {
+          "url": "/textures/rocks_ground_02/rocks_ground_02_col_1k.jpg",
+          "bytes": 881510,
+          "duration": 18.600000023841858,
+          "end": 1406.699999988079
+        },
+        {
+          "url": "/textures/rocks_ground_02/rocks_ground_02_nor_gl_1k.jpg",
+          "bytes": 1466816,
+          "duration": 29.100000023841858,
+          "end": 1417.3999999761581
+        },
+        {
+          "url": "/textures/rocks_ground_02/rocks_ground_02_rough_1k.jpg",
+          "bytes": 489453,
+          "duration": 12.899999976158142,
+          "end": 1401.2999999523163
+        },
+        {
+          "url": "/textures/rocks_ground_02/rocks_ground_02_ao_1k.jpg",
+          "bytes": 546926,
+          "duration": 17.5,
+          "end": 1405.8999999761581
+        },
+        {
+          "url": "/textures/mossy_rock/mossy_rock_nor_gl_1k.jpg",
+          "bytes": 995727,
+          "duration": 25.5,
+          "end": 1414.199999988079
+        },
+        {
+          "url": "/textures/mossy_rock/mossy_rock_rough_1k.jpg",
+          "bytes": 780918,
+          "duration": 31.30000001192093,
+          "end": 1420.0999999642372
+        },
+        {
+          "url": "/textures/mossy_rock/mossy_rock_ao_1k.jpg",
+          "bytes": 533103,
+          "duration": 31.19999998807907,
+          "end": 1420.0999999642372
+        },
+        {
+          "url": "/hdri/belfast_open_field_1k.hdr",
+          "bytes": 1647689,
+          "duration": 13.100000023841858,
+          "end": 1539.199999988079
+        }
+      ],
+      "readyAt": 2995.699999988079
+    },
+    "finalInfo": {
+      "textures": [
+        {
+          "width": 4096,
+          "height": 4096,
+          "mipmap": true
+        },
+        {
+          "width": 4096,
+          "height": 4096,
+          "mipmap": true
+        },
+        {
+          "width": 2048,
+          "height": 2048,
+          "mipmap": true
+        },
+        {
+          "width": 2048,
+          "height": 2048,
+          "mipmap": true
+        },
+        {
+          "width": 1024,
+          "height": 1024,
+          "mipmap": true
+        },
+        {
+          "width": 1024,
+          "height": 1024,
+          "mipmap": true
+        },
+        {
+          "width": 1024,
+          "height": 1024,
+          "mipmap": true
+        },
+        {
+          "width": 1024,
+          "height": 1024,
+          "mipmap": true
+        },
+        {
+          "width": 1024,
+          "height": 1024,
+          "mipmap": true
+        },
+        {
+          "width": 1024,
+          "height": 1024,
+          "mipmap": true
+        },
+        {
+          "width": 1024,
+          "height": 1024,
+          "mipmap": true
+        },
+        {
+          "width": 1024,
+          "height": 1024,
+          "mipmap": true
+        },
+        {
+          "width": 1024,
+          "height": 1024,
+          "mipmap": true
+        },
+        {
+          "width": 1024,
+          "height": 1024,
+          "mipmap": true
+        },
+        {
+          "width": 1024,
+          "height": 1024,
+          "mipmap": true
+        },
+        {
+          "width": 1024,
+          "height": 1024,
+          "mipmap": true
+        },
+        {
+          "width": 1024,
+          "height": 1024,
+          "mipmap": true
+        },
+        {
+          "width": 1024,
+          "height": 1024,
+          "mipmap": true
+        },
+        {
+          "width": 1024,
+          "height": 1024,
+          "mipmap": true
+        },
+        {
+          "width": 1024,
+          "height": 1024,
+          "mipmap": true
+        },
+        {
+          "width": 256,
+          "height": 256,
+          "mipmap": true
+        }
+      ],
+      "memory": {
+        "geometries": 47,
+        "textures": 30
+      },
+      "resources": [
+        {
+          "url": "/models/main_island_desktop.glb",
+          "bytes": 6511166,
+          "duration": 357.30000001192093,
+          "end": 772.6999999880791
+        },
+        {
+          "url": "/draco/draco_wasm_wrapper.js",
+          "bytes": 11748,
+          "duration": 4.100000023841858,
+          "end": 806.3999999761581
+        },
+        {
+          "url": "/draco/draco_decoder.wasm",
+          "bytes": 63458,
+          "duration": 10.5,
+          "end": 813
+        },
+        {
+          "url": "/models/boulder_01.glb",
+          "bytes": 1030545,
+          "duration": 39.60000002384186,
+          "end": 1131.699999988079
+        },
+        {
+          "url": "/models/rock_moss_set_01.glb",
+          "bytes": 517822,
+          "duration": 20.399999976158142,
+          "end": 1233.5999999642372
+        },
+        {
+          "url": "/models/rock_moss_set_02.glb",
+          "bytes": 619460,
+          "duration": 24.399999976158142,
+          "end": 1304.2999999523163
+        },
+        {
+          "url": "/models/shrub_04.glb",
+          "bytes": 257339,
+          "duration": 13.199999988079071,
+          "end": 1361.3999999761581
+        },
+        {
+          "url": "/textures/rocks_ground_02/rocks_ground_02_col_1k.jpg",
+          "bytes": 881510,
+          "duration": 18.600000023841858,
+          "end": 1406.699999988079
+        },
+        {
+          "url": "/textures/rocks_ground_02/rocks_ground_02_nor_gl_1k.jpg",
+          "bytes": 1466816,
+          "duration": 29.100000023841858,
+          "end": 1417.3999999761581
+        },
+        {
+          "url": "/textures/rocks_ground_02/rocks_ground_02_rough_1k.jpg",
+          "bytes": 489453,
+          "duration": 12.899999976158142,
+          "end": 1401.2999999523163
+        },
+        {
+          "url": "/textures/rocks_ground_02/rocks_ground_02_ao_1k.jpg",
+          "bytes": 546926,
+          "duration": 17.5,
+          "end": 1405.8999999761581
+        },
+        {
+          "url": "/textures/mossy_rock/mossy_rock_nor_gl_1k.jpg",
+          "bytes": 995727,
+          "duration": 25.5,
+          "end": 1414.199999988079
+        },
+        {
+          "url": "/textures/mossy_rock/mossy_rock_rough_1k.jpg",
+          "bytes": 780918,
+          "duration": 31.30000001192093,
+          "end": 1420.0999999642372
+        },
+        {
+          "url": "/textures/mossy_rock/mossy_rock_ao_1k.jpg",
+          "bytes": 533103,
+          "duration": 31.19999998807907,
+          "end": 1420.0999999642372
+        },
+        {
+          "url": "/hdri/belfast_open_field_1k.hdr",
+          "bytes": 1647689,
+          "duration": 13.100000023841858,
+          "end": 1539.199999988079
+        },
+        {
+          "url": "/images/ground-still-desktop.webp",
+          "bytes": 413572,
+          "duration": 6.099999964237213,
+          "end": 5137.299999952316
+        }
+      ]
+    },
+    "samples": [
+      {
+        "name": "ground-0",
+        "elapsed": 5001.399999976158,
+        "frames": 600,
+        "fps": 119.98560172750665,
+        "p50": 8.300000000001091,
+        "p95": 8.600000000000364,
+        "over33": 0,
+        "reactCommits": 0,
+        "longTasks": [],
+        "renderCount": 0,
+        "renderCpuP50": 0,
+        "calls": 0,
+        "triangles": 0,
+        "heap": 64132171
+      },
+      {
+        "name": "ground-1",
+        "elapsed": 5001.899999976158,
+        "frames": 601,
+        "fps": 120.17356181611396,
+        "p50": 8.30000000000291,
+        "p95": 8.600000000002183,
+        "over33": 0,
+        "reactCommits": 0,
+        "longTasks": [],
+        "renderCount": 0,
+        "renderCpuP50": 0,
+        "calls": 0,
+        "triangles": 0,
+        "heap": 64304719
+      }
+    ],
+    "errors": []
+  },
+  {
+    "device": "mobile",
+    "width": 390,
+    "height": 844,
+    "dpr": 2,
+    "info": {
+      "renderer": "ANGLE (NVIDIA, NVIDIA GeForce GTX 1650 (0x00001F99) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+      "meshes": [
+        {
+          "name": "",
+          "vertices": 4,
+          "triangles": 2,
+          "instances": 1,
+          "position": [
+            0,
+            -0.44,
+            -14.155568720379147
+          ]
+        },
+        {
+          "name": "",
+          "vertices": 169814,
+          "triangles": 140000,
+          "instances": 1,
+          "position": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "name": "",
+          "vertices": 6221,
+          "triangles": 10996,
+          "instances": 1,
+          "position": [
+            -2.85,
+            -4.3,
+            2.35
+          ]
+        },
+        {
+          "name": "",
+          "vertices": 8538,
+          "triangles": 16548,
+          "instances": 1,
+          "position": [
+            2.85,
+            -4.3,
+            2.35
+          ]
+        },
+        {
+          "name": "",
+          "vertices": 10285,
+          "triangles": 20160,
+          "instances": 1,
+          "position": [
+            2,
+            -0.72,
+            -0.6
+          ]
+        },
+        {
+          "name": "",
+          "vertices": 4317,
+          "triangles": 7999,
+          "instances": 36,
+          "position": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "name": "",
+          "vertices": 6221,
+          "triangles": 10996,
+          "instances": 1,
+          "position": [
+            4.25,
+            0.29855334533130223,
+            -1.25
+          ]
+        },
+        {
+          "name": "",
+          "vertices": 6079,
+          "triangles": 11000,
+          "instances": 1,
+          "position": [
+            7.2,
+            0.7917868747563674,
+            -0.85
+          ]
+        },
+        {
+          "name": "",
+          "vertices": 115803,
+          "triangles": 66122,
+          "instances": 1,
+          "position": [
+            6.25,
+            0.5978476217461876,
+            -1.05
+          ]
+        },
+        {
+          "name": "",
+          "vertices": 8538,
+          "triangles": 16548,
+          "instances": 1,
+          "position": [
+            5.2,
+            0.078588186938716,
+            0.12
+          ]
+        },
+        {
+          "name": "",
+          "vertices": 16869,
+          "triangles": 24733,
+          "instances": 6,
+          "position": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "name": "",
+          "vertices": 16869,
+          "triangles": 24733,
+          "instances": 4,
+          "position": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "name": "",
+          "vertices": 16869,
+          "triangles": 24733,
+          "instances": 4,
+          "position": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "name": "",
+          "vertices": 112,
+          "triangles": 72,
+          "instances": 1,
+          "position": [
+            0,
+            1.35,
+            0
+          ]
+        },
+        {
+          "name": "",
+          "vertices": 76,
+          "triangles": 48,
+          "instances": 1,
+          "position": [
+            0,
+            3.85,
+            0
+          ]
+        },
+        {
+          "name": "",
+          "vertices": 100,
+          "triangles": 64,
+          "instances": 1,
+          "position": [
+            0,
+            3.24,
+            0
+          ]
+        },
+        {
+          "name": "",
+          "vertices": 112,
+          "triangles": 72,
+          "instances": 1,
+          "position": [
+            0,
+            2.72,
+            0
+          ]
+        },
+        {
+          "name": "",
+          "vertices": 112,
+          "triangles": 72,
+          "instances": 1,
+          "position": [
+            0,
+            2.02,
+            0
+          ]
+        },
+        {
+          "name": "",
+          "vertices": 100,
+          "triangles": 64,
+          "instances": 1,
+          "position": [
+            0.22,
+            2.02,
+            0
+          ]
+        },
+        {
+          "name": "",
+          "vertices": 88,
+          "triangles": 56,
+          "instances": 1,
+          "position": [
+            1.18,
+            2.02,
+            0
+          ]
+        },
+        {
+          "name": "",
+          "vertices": 88,
+          "triangles": 56,
+          "instances": 1,
+          "position": [
+            1.29,
+            2.04,
+            0
+          ]
+        },
+        {
+          "name": "",
+          "vertices": 88,
+          "triangles": 56,
+          "instances": 1,
+          "position": [
+            -0.45,
+            2.02,
+            0
+          ]
+        },
+        {
+          "name": "",
+          "vertices": 24,
+          "triangles": 12,
+          "instances": 1,
+          "position": [
+            -0.555,
+            2.34,
+            0
+          ]
+        },
+        {
+          "name": "",
+          "vertices": 124,
+          "triangles": 80,
+          "instances": 1,
+          "position": [
+            0,
+            0.16,
+            0
+          ]
+        },
+        {
+          "name": "",
+          "vertices": 148,
+          "triangles": 96,
+          "instances": 1,
+          "position": [
+            0,
+            0.35,
+            0
+          ]
+        },
+        {
+          "name": "",
+          "vertices": 148,
+          "triangles": 96,
+          "instances": 1,
+          "position": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "name": "",
+          "vertices": 148,
+          "triangles": 96,
+          "instances": 1,
+          "position": [
+            0,
+            0.044,
+            0
+          ]
+        },
+        {
+          "name": "",
+          "vertices": 148,
+          "triangles": 96,
+          "instances": 1,
+          "position": [
+            0,
+            0.088,
+            0
+          ]
+        },
+        {
+          "name": "",
+          "vertices": 148,
+          "triangles": 96,
+          "instances": 1,
+          "position": [
+            0,
+            0.132,
+            0
+          ]
+        },
+        {
+          "name": "",
+          "vertices": 148,
+          "triangles": 96,
+          "instances": 1,
+          "position": [
+            0,
+            0.176,
+            0
+          ]
+        },
+        {
+          "name": "",
+          "vertices": 148,
+          "triangles": 96,
+          "instances": 1,
+          "position": [
+            0,
+            0.21999999999999997,
+            0
+          ]
+        },
+        {
+          "name": "",
+          "vertices": 148,
+          "triangles": 96,
+          "instances": 1,
+          "position": [
+            0,
+            0.264,
+            0
+          ]
+        },
+        {
+          "name": "",
+          "vertices": 148,
+          "triangles": 96,
+          "instances": 1,
+          "position": [
+            0,
+            0.308,
+            0
+          ]
+        },
+        {
+          "name": "",
+          "vertices": 88,
+          "triangles": 56,
+          "instances": 1,
+          "position": [
+            -0.18,
+            2.02,
+            0
+          ]
+        },
+        {
+          "name": "",
+          "vertices": 24,
+          "triangles": 12,
+          "instances": 1,
+          "position": [
+            -0.26,
+            2.25,
+            0
+          ]
+        },
+        {
+          "name": "",
+          "vertices": 124,
+          "triangles": 80,
+          "instances": 1,
+          "position": [
+            0,
+            0.16,
+            0
+          ]
+        },
+        {
+          "name": "",
+          "vertices": 148,
+          "triangles": 96,
+          "instances": 1,
+          "position": [
+            0,
+            0.35,
+            0
+          ]
+        },
+        {
+          "name": "",
+          "vertices": 148,
+          "triangles": 96,
+          "instances": 1,
+          "position": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "name": "",
+          "vertices": 148,
+          "triangles": 96,
+          "instances": 1,
+          "position": [
+            0,
+            0.044,
+            0
+          ]
+        },
+        {
+          "name": "",
+          "vertices": 148,
+          "triangles": 96,
+          "instances": 1,
+          "position": [
+            0,
+            0.088,
+            0
+          ]
+        },
+        {
+          "name": "",
+          "vertices": 148,
+          "triangles": 96,
+          "instances": 1,
+          "position": [
+            0,
+            0.132,
+            0
+          ]
+        },
+        {
+          "name": "",
+          "vertices": 148,
+          "triangles": 96,
+          "instances": 1,
+          "position": [
+            0,
+            0.176,
+            0
+          ]
+        },
+        {
+          "name": "",
+          "vertices": 148,
+          "triangles": 96,
+          "instances": 1,
+          "position": [
+            0,
+            0.21999999999999997,
+            0
+          ]
+        },
+        {
+          "name": "",
+          "vertices": 148,
+          "triangles": 96,
+          "instances": 1,
+          "position": [
+            0,
+            0.264,
+            0
+          ]
+        },
+        {
+          "name": "",
+          "vertices": 148,
+          "triangles": 96,
+          "instances": 1,
+          "position": [
+            0,
+            0.308,
+            0
+          ]
+        },
+        {
+          "name": "",
+          "vertices": 100,
+          "triangles": 64,
+          "instances": 1,
+          "position": [
+            0,
+            1.05,
+            0
+          ]
+        },
+        {
+          "name": "",
+          "vertices": 40,
+          "triangles": 24,
+          "instances": 1,
+          "position": [
+            0.18,
+            -0.62,
+            0
+          ]
+        },
+        {
+          "name": "",
+          "vertices": 40,
+          "triangles": 24,
+          "instances": 1,
+          "position": [
+            0.18,
+            -0.62,
+            0
+          ]
+        },
+        {
+          "name": "",
+          "vertices": 40,
+          "triangles": 24,
+          "instances": 1,
+          "position": [
+            0.18,
+            -0.62,
+            0
+          ]
+        }
+      ],
+      "textures": [
+        {
+          "width": 4096,
+          "height": 4096,
+          "mipmap": true
+        },
+        {
+          "width": 4096,
+          "height": 4096,
+          "mipmap": true
+        },
+        {
+          "width": 2048,
+          "height": 2048,
+          "mipmap": true
+        },
+        {
+          "width": 2048,
+          "height": 2048,
+          "mipmap": true
+        },
+        {
+          "width": 1024,
+          "height": 1024,
+          "mipmap": true
+        },
+        {
+          "width": 1024,
+          "height": 1024,
+          "mipmap": true
+        },
+        {
+          "width": 1024,
+          "height": 1024,
+          "mipmap": true
+        },
+        {
+          "width": 1024,
+          "height": 1024,
+          "mipmap": true
+        },
+        {
+          "width": 1024,
+          "height": 1024,
+          "mipmap": true
+        },
+        {
+          "width": 1024,
+          "height": 1024,
+          "mipmap": true
+        },
+        {
+          "width": 1024,
+          "height": 1024,
+          "mipmap": true
+        },
+        {
+          "width": 1024,
+          "height": 1024,
+          "mipmap": true
+        },
+        {
+          "width": 1024,
+          "height": 1024,
+          "mipmap": true
+        },
+        {
+          "width": 1024,
+          "height": 1024,
+          "mipmap": true
+        },
+        {
+          "width": 1024,
+          "height": 1024,
+          "mipmap": true
+        },
+        {
+          "width": 1024,
+          "height": 1024,
+          "mipmap": true
+        },
+        {
+          "width": 1024,
+          "height": 1024,
+          "mipmap": true
+        },
+        {
+          "width": 1024,
+          "height": 1024,
+          "mipmap": true
+        },
+        {
+          "width": 1024,
+          "height": 1024,
+          "mipmap": true
+        },
+        {
+          "width": 1024,
+          "height": 1024,
+          "mipmap": true
+        },
+        {
+          "width": 256,
+          "height": 256,
+          "mipmap": true
+        }
+      ],
+      "memory": {
+        "geometries": 4,
+        "textures": 20
+      },
+      "heap": 101245765,
+      "resources": [
+        {
+          "url": "/models/main_island_desktop.glb",
+          "bytes": 6511166,
+          "duration": 321,
+          "end": 649.5
+        },
+        {
+          "url": "/draco/draco_wasm_wrapper.js",
+          "bytes": 11748,
+          "duration": 3.700000047683716,
+          "end": 683.1000000238419
+        },
+        {
+          "url": "/draco/draco_decoder.wasm",
+          "bytes": 63458,
+          "duration": 10.199999988079071,
+          "end": 689.8999999761581
+        },
+        {
+          "url": "/models/boulder_01.glb",
+          "bytes": 1030545,
+          "duration": 52,
+          "end": 1082.8999999761581
+        },
+        {
+          "url": "/models/rock_moss_set_01.glb",
+          "bytes": 517822,
+          "duration": 27,
+          "end": 1216.5
+        },
+        {
+          "url": "/models/rock_moss_set_02.glb",
+          "bytes": 619460,
+          "duration": 33.69999998807907,
+          "end": 1303.699999988079
+        },
+        {
+          "url": "/models/shrub_04.glb",
+          "bytes": 257339,
+          "duration": 20.099999964237213,
+          "end": 1370.3999999761581
+        },
+        {
+          "url": "/textures/rocks_ground_02/rocks_ground_02_col_1k.jpg",
+          "bytes": 881510,
+          "duration": 31,
+          "end": 1437
+        },
+        {
+          "url": "/textures/rocks_ground_02/rocks_ground_02_nor_gl_1k.jpg",
+          "bytes": 1466816,
+          "duration": 42.59999996423721,
+          "end": 1448.8999999761581
+        },
+        {
+          "url": "/textures/rocks_ground_02/rocks_ground_02_rough_1k.jpg",
+          "bytes": 489453,
+          "duration": 25.600000023841858,
+          "end": 1432
+        },
+        {
+          "url": "/textures/rocks_ground_02/rocks_ground_02_ao_1k.jpg",
+          "bytes": 546926,
+          "duration": 27.599999964237213,
+          "end": 1434.199999988079
+        },
+        {
+          "url": "/textures/mossy_rock/mossy_rock_nor_gl_1k.jpg",
+          "bytes": 995727,
+          "duration": 38.5,
+          "end": 1445.5
+        },
+        {
+          "url": "/textures/mossy_rock/mossy_rock_rough_1k.jpg",
+          "bytes": 780918,
+          "duration": 44.60000002384186,
+          "end": 1451.800000011921
+        },
+        {
+          "url": "/textures/mossy_rock/mossy_rock_ao_1k.jpg",
+          "bytes": 533103,
+          "duration": 42.69999998807907,
+          "end": 1450.199999988079
+        },
+        {
+          "url": "/hdri/belfast_open_field_1k.hdr",
+          "bytes": 1647689,
+          "duration": 10.299999952316284,
+          "end": 1589.8999999761581
+        }
+      ],
+      "readyAt": 2880.699999988079
+    },
+    "finalInfo": {
+      "textures": [
+        {
+          "width": 4096,
+          "height": 4096,
+          "mipmap": true
+        },
+        {
+          "width": 4096,
+          "height": 4096,
+          "mipmap": true
+        },
+        {
+          "width": 2048,
+          "height": 2048,
+          "mipmap": true
+        },
+        {
+          "width": 2048,
+          "height": 2048,
+          "mipmap": true
+        },
+        {
+          "width": 1024,
+          "height": 1024,
+          "mipmap": true
+        },
+        {
+          "width": 1024,
+          "height": 1024,
+          "mipmap": true
+        },
+        {
+          "width": 1024,
+          "height": 1024,
+          "mipmap": true
+        },
+        {
+          "width": 1024,
+          "height": 1024,
+          "mipmap": true
+        },
+        {
+          "width": 1024,
+          "height": 1024,
+          "mipmap": true
+        },
+        {
+          "width": 1024,
+          "height": 1024,
+          "mipmap": true
+        },
+        {
+          "width": 1024,
+          "height": 1024,
+          "mipmap": true
+        },
+        {
+          "width": 1024,
+          "height": 1024,
+          "mipmap": true
+        },
+        {
+          "width": 1024,
+          "height": 1024,
+          "mipmap": true
+        },
+        {
+          "width": 1024,
+          "height": 1024,
+          "mipmap": true
+        },
+        {
+          "width": 1024,
+          "height": 1024,
+          "mipmap": true
+        },
+        {
+          "width": 1024,
+          "height": 1024,
+          "mipmap": true
+        },
+        {
+          "width": 1024,
+          "height": 1024,
+          "mipmap": true
+        },
+        {
+          "width": 1024,
+          "height": 1024,
+          "mipmap": true
+        },
+        {
+          "width": 1024,
+          "height": 1024,
+          "mipmap": true
+        },
+        {
+          "width": 1024,
+          "height": 1024,
+          "mipmap": true
+        },
+        {
+          "width": 256,
+          "height": 256,
+          "mipmap": true
+        }
+      ],
+      "memory": {
+        "geometries": 45,
+        "textures": 30
+      },
+      "resources": [
+        {
+          "url": "/models/main_island_desktop.glb",
+          "bytes": 6511166,
+          "duration": 321,
+          "end": 649.5
+        },
+        {
+          "url": "/draco/draco_wasm_wrapper.js",
+          "bytes": 11748,
+          "duration": 3.700000047683716,
+          "end": 683.1000000238419
+        },
+        {
+          "url": "/draco/draco_decoder.wasm",
+          "bytes": 63458,
+          "duration": 10.199999988079071,
+          "end": 689.8999999761581
+        },
+        {
+          "url": "/models/boulder_01.glb",
+          "bytes": 1030545,
+          "duration": 52,
+          "end": 1082.8999999761581
+        },
+        {
+          "url": "/models/rock_moss_set_01.glb",
+          "bytes": 517822,
+          "duration": 27,
+          "end": 1216.5
+        },
+        {
+          "url": "/models/rock_moss_set_02.glb",
+          "bytes": 619460,
+          "duration": 33.69999998807907,
+          "end": 1303.699999988079
+        },
+        {
+          "url": "/models/shrub_04.glb",
+          "bytes": 257339,
+          "duration": 20.099999964237213,
+          "end": 1370.3999999761581
+        },
+        {
+          "url": "/textures/rocks_ground_02/rocks_ground_02_col_1k.jpg",
+          "bytes": 881510,
+          "duration": 31,
+          "end": 1437
+        },
+        {
+          "url": "/textures/rocks_ground_02/rocks_ground_02_nor_gl_1k.jpg",
+          "bytes": 1466816,
+          "duration": 42.59999996423721,
+          "end": 1448.8999999761581
+        },
+        {
+          "url": "/textures/rocks_ground_02/rocks_ground_02_rough_1k.jpg",
+          "bytes": 489453,
+          "duration": 25.600000023841858,
+          "end": 1432
+        },
+        {
+          "url": "/textures/rocks_ground_02/rocks_ground_02_ao_1k.jpg",
+          "bytes": 546926,
+          "duration": 27.599999964237213,
+          "end": 1434.199999988079
+        },
+        {
+          "url": "/textures/mossy_rock/mossy_rock_nor_gl_1k.jpg",
+          "bytes": 995727,
+          "duration": 38.5,
+          "end": 1445.5
+        },
+        {
+          "url": "/textures/mossy_rock/mossy_rock_rough_1k.jpg",
+          "bytes": 780918,
+          "duration": 44.60000002384186,
+          "end": 1451.800000011921
+        },
+        {
+          "url": "/textures/mossy_rock/mossy_rock_ao_1k.jpg",
+          "bytes": 533103,
+          "duration": 42.69999998807907,
+          "end": 1450.199999988079
+        },
+        {
+          "url": "/hdri/belfast_open_field_1k.hdr",
+          "bytes": 1647689,
+          "duration": 10.299999952316284,
+          "end": 1589.8999999761581
+        },
+        {
+          "url": "/images/ground-still-mobile.webp",
+          "bytes": 84950,
+          "duration": 2.5,
+          "end": 5107.699999988079
+        }
+      ]
+    },
+    "samples": [
+      {
+        "name": "ground-0",
+        "elapsed": 5006.199999988079,
+        "frames": 601,
+        "fps": 120.07752092922475,
+        "p50": 8.300000000001091,
+        "p95": 8.699999999998909,
+        "over33": 0,
+        "reactCommits": 0,
+        "longTasks": [],
+        "renderCount": 0,
+        "renderCpuP50": 0,
+        "calls": 0,
+        "triangles": 0,
+        "heap": 64881145
+      },
+      {
+        "name": "ground-1",
+        "elapsed": 5006.699999988079,
+        "frames": 601,
+        "fps": 120.06072955400364,
+        "p50": 8.299999999999272,
+        "p95": 8.700000000000728,
+        "over33": 0,
+        "reactCommits": 0,
+        "longTasks": [],
+        "renderCount": 0,
+        "renderCpuP50": 0,
+        "calls": 0,
+        "triangles": 0,
+        "heap": 65245077
+      }
+    ],
+    "errors": []
+  }
+]

@@ -1,0 +1,13 @@
+{
+  "date": "2026-11-15",
+  "planning": "deep",
+  "context_depth": "dependency",
+  "verification_depth": "impact",
+  "delegation": "none",
+  "reason_codes": ["shared-hero-canvas", "production-performance-comparison"],
+  "allowed_write_scope": ["apps/web/src/components/eco-tech-scene.tsx", "apps/web/src/components/ground-*", "apps/web/src/app/page.tsx ground-only integration", "apps/web/public/images/ground-*", "apps/web/public/models/ground_ecosystem_2k.glb derived only", "apps/web/scripts/ground-*", "apps/web/tests/e2e/ground-*", "docs/ground-evaluation"],
+  "protected": ["approved hero assets, transform, camera, lights and markup", "farmer and officer portals", "backend and Supabase", "existing uncommitted changes"],
+  "acceptance": ["production baseline and causal isolation", "measure both implemented alternatives", "approved source still and responsive hotspots", "hero preservation", "reduced-motion and WebGL failure access", "TypeScript build and functional checks"],
+  "image_authorization": "User approved a still rendered from the existing ecosystem.",
+  "runtime": "Gravitas CLI not on PATH; equivalent decision and executable evidence records stored here."
+}

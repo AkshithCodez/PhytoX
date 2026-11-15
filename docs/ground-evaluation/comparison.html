@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PhytoX · Ground ecosystem comparison</title>
+<style>body{margin:0;padding:32px;background:#111d13;color:#eef3e7;font:16px/1.5 system-ui}main{max-width:1500px;margin:auto}h1{font-size:clamp(28px,4vw,52px);letter-spacing:-.04em}p{max-width:850px;color:#c1ceb9}a{color:#c4f56b}.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}figure{margin:0}img{width:100%;height:auto;border-radius:12px;border:1px solid #485644}figcaption{padding:12px 0}h2{margin-top:42px}.mobile img{max-height:720px;object-fit:contain;object-position:top}small{display:block;color:#aabb9f}@media(max-width:800px){body{padding:18px}.grid{grid-template-columns:1fr}}</style>
+<main><small>PHYTOX / PRODUCTION COMPARISON / 15 NOVEMBER 2026</small>
+<h1>The same ecosystem. Less work per frame.</h1>
+<p>Actual production screenshots. The image option uses a clean render of the existing Meshy terrain, with live React hotspots. The floating island retains its existing design. Read <a href="REPORT.md">the evidence and limitations</a> before interpreting the performance measurements.</p>
+<h2>Desktop · 1440 × 900</h2><div class="grid">
+<figure><img src="baseline-repeat-desktop-ground.png" alt="Original ground ecosystem"><figcaption>Before · original 3D<small>4K textures; recurring shadows</small></figcaption></figure>
+<figure><img src="3d-desktop-ground.png" alt="Optimized 3D ground ecosystem"><figcaption>Option A · optimized 3D<small>Unchanged geometry; 2K textures; bounded shadows</small></figcaption></figure>
+<figure><img src="image-desktop-ground.png" alt="Cinematic still with real hotspots"><figcaption>Option B · cinematic still<small>WebP; ground WebGL paused; live hotspots</small></figcaption></figure></div>
+<h2>Mobile viewport · 390 × 844</h2><div class="grid mobile">
+<figure><img src="baseline-repeat-mobile-ground.png" alt="Original mobile ground scene"><figcaption>Before</figcaption></figure>
+<figure><img src="3d-mobile-ground.png" alt="Optimized mobile ground scene"><figcaption>Optimized 3D</figcaption></figure>
+<figure><img src="image-mobile-ground.png" alt="Image alternative on mobile"><figcaption>Image with larger touch targets</figcaption></figure></div>
+<h2>Sequence continuity</h2><div class="grid">
+<figure><img src="image-desktop-hero.png" alt="Preserved floating island hero"><figcaption>Approved floating island</figcaption></figure>
+<figure><img src="image-desktop-ground.png" alt="Ground-level still"><figcaption>Ground ecosystem</figcaption></figure>
+<figure><img src="image-desktop-regional.png" alt="Regional intelligence section"><figcaption>Existing regional scene resumes</figcaption></figure></div>
+<p>These are desktop Chrome captures, including mobile viewport emulation. They are not evidence of physical-phone GPU performance. The source mesh's soft vegetation and flat background remain visible in both approaches.</p></main></html>

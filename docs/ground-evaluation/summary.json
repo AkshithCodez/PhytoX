@@ -1,0 +1,326 @@
+[
+  {
+    "variant": "baseline",
+    "device": "desktop",
+    "readyMs": 4109,
+    "resourceBytes": 23354041,
+    "textureEstimateMiB": 512,
+    "textures": 17,
+    "samples": [
+      {
+        "name": "ground-0",
+        "fps": 22.1,
+        "p95": 50.099999999998545,
+        "calls": 47,
+        "triangles": 1950888,
+        "reactCommits": 0,
+        "heapMiB": 92.9
+      },
+      {
+        "name": "ground-1",
+        "fps": 22.3,
+        "p95": 50.099999999998545,
+        "calls": 47,
+        "triangles": 1950888,
+        "reactCommits": 0,
+        "heapMiB": 93
+      },
+      {
+        "name": "primary-ground-hidden",
+        "fps": 120.1,
+        "p95": 8.5,
+        "calls": 45,
+        "triangles": 1510888,
+        "reactCommits": 0,
+        "heapMiB": 92.7
+      }
+    ],
+    "groundResources": [
+      {
+        "url": "/models/ground_ecosystem_desktop.glb",
+        "bytes": 7000361,
+        "duration": 506.9000000357628,
+        "end": 1023.5
+      }
+    ]
+  },
+  {
+    "variant": "baseline",
+    "device": "mobile",
+    "readyMs": 3169,
+    "resourceBytes": 23354041,
+    "textureEstimateMiB": 512,
+    "textures": 20,
+    "samples": [
+      {
+        "name": "ground-0",
+        "fps": 120.2,
+        "p95": 8.400000000001455,
+        "calls": 39,
+        "triangles": 1239466,
+        "reactCommits": 0,
+        "heapMiB": 93.3
+      },
+      {
+        "name": "ground-1",
+        "fps": 120.1,
+        "p95": 8.5,
+        "calls": 39,
+        "triangles": 1239466,
+        "reactCommits": 0,
+        "heapMiB": 95.7
+      },
+      {
+        "name": "primary-ground-hidden",
+        "fps": 120.1,
+        "p95": 8.5,
+        "calls": 38,
+        "triangles": 799468,
+        "reactCommits": 0,
+        "heapMiB": 94.4
+      }
+    ],
+    "groundResources": [
+      {
+        "url": "/models/ground_ecosystem_desktop.glb",
+        "bytes": 7000361,
+        "duration": 394.5999999642372,
+        "end": 729.5999999642372
+      }
+    ]
+  },
+  {
+    "variant": "baseline-repeat",
+    "device": "desktop",
+    "readyMs": 3787,
+    "resourceBytes": 23354041,
+    "textureEstimateMiB": 512,
+    "textures": 17,
+    "samples": [
+      {
+        "name": "ground-0",
+        "fps": 120.2,
+        "p95": 8.599999999998545,
+        "calls": 47,
+        "triangles": 1950888,
+        "reactCommits": 0,
+        "heapMiB": 93.6
+      },
+      {
+        "name": "ground-1",
+        "fps": 120.1,
+        "p95": 8.700000000000728,
+        "calls": 47,
+        "triangles": 1950888,
+        "reactCommits": 0,
+        "heapMiB": 95.3
+      },
+      {
+        "name": "primary-ground-hidden",
+        "fps": 120.1,
+        "p95": 8.700000000000728,
+        "calls": 45,
+        "triangles": 1510888,
+        "reactCommits": 0,
+        "heapMiB": 93.6
+      }
+    ],
+    "groundResources": [
+      {
+        "url": "/models/ground_ecosystem_desktop.glb",
+        "bytes": 7000361,
+        "duration": 541.5999999642372,
+        "end": 1026.8999999761581
+      }
+    ]
+  },
+  {
+    "variant": "baseline-repeat",
+    "device": "mobile",
+    "readyMs": 2978,
+    "resourceBytes": 23354041,
+    "textureEstimateMiB": 512,
+    "textures": 20,
+    "samples": [
+      {
+        "name": "ground-0",
+        "fps": 120,
+        "p95": 8.5,
+        "calls": 40,
+        "triangles": 1239468,
+        "reactCommits": 0,
+        "heapMiB": 93.7
+      },
+      {
+        "name": "ground-1",
+        "fps": 120.1,
+        "p95": 8.600000000002183,
+        "calls": 39,
+        "triangles": 1239466,
+        "reactCommits": 0,
+        "heapMiB": 93.4
+      },
+      {
+        "name": "primary-ground-hidden",
+        "fps": 120.1,
+        "p95": 8.600000000002183,
+        "calls": 38,
+        "triangles": 799468,
+        "reactCommits": 0,
+        "heapMiB": 95.6
+      }
+    ],
+    "groundResources": [
+      {
+        "url": "/models/ground_ecosystem_desktop.glb",
+        "bytes": 7000361,
+        "duration": 381,
+        "end": 699.3000000119209
+      }
+    ]
+  },
+  {
+    "variant": "3d",
+    "device": "desktop",
+    "readyMs": 8230,
+    "resourceBytes": 19885652,
+    "textureEstimateMiB": 384,
+    "textures": 33,
+    "samples": [
+      {
+        "name": "ground-0",
+        "fps": 120.2,
+        "p95": 8.5,
+        "calls": 18,
+        "triangles": 990132,
+        "reactCommits": 0,
+        "heapMiB": 87.9
+      },
+      {
+        "name": "ground-1",
+        "fps": 120.1,
+        "p95": 8.5,
+        "calls": 18,
+        "triangles": 990132,
+        "reactCommits": 0,
+        "heapMiB": 88.6
+      }
+    ],
+    "groundResources": [
+      {
+        "url": "/models/ground_ecosystem_2k.glb",
+        "bytes": 3531972,
+        "duration": 1131.6000000238419,
+        "end": 11688.600000023842
+      }
+    ]
+  },
+  {
+    "variant": "3d",
+    "device": "mobile",
+    "readyMs": 5942,
+    "resourceBytes": 19885652,
+    "textureEstimateMiB": 384,
+    "textures": 33,
+    "samples": [
+      {
+        "name": "ground-0",
+        "fps": 119.2,
+        "p95": 8.5,
+        "calls": 10,
+        "triangles": 278710,
+        "reactCommits": 0,
+        "heapMiB": 86.6
+      },
+      {
+        "name": "ground-1",
+        "fps": 120.1,
+        "p95": 8.5,
+        "calls": 11,
+        "triangles": 278712,
+        "reactCommits": 0,
+        "heapMiB": 91.2
+      }
+    ],
+    "groundResources": [
+      {
+        "url": "/models/ground_ecosystem_2k.glb",
+        "bytes": 3531972,
+        "duration": 429.2999999523163,
+        "end": 8928.799999952316
+      }
+    ]
+  },
+  {
+    "variant": "image",
+    "device": "desktop",
+    "readyMs": 2996,
+    "resourceBytes": 16767252,
+    "textureEstimateMiB": 299,
+    "textures": 30,
+    "samples": [
+      {
+        "name": "ground-0",
+        "fps": 120,
+        "p95": 8.600000000000364,
+        "calls": 0,
+        "triangles": 0,
+        "reactCommits": 0,
+        "heapMiB": 61.2
+      },
+      {
+        "name": "ground-1",
+        "fps": 120.2,
+        "p95": 8.600000000002183,
+        "calls": 0,
+        "triangles": 0,
+        "reactCommits": 0,
+        "heapMiB": 61.3
+      }
+    ],
+    "groundResources": [
+      {
+        "url": "/images/ground-still-desktop.webp",
+        "bytes": 413572,
+        "duration": 6.099999964237213,
+        "end": 5137.299999952316
+      }
+    ]
+  },
+  {
+    "variant": "image",
+    "device": "mobile",
+    "readyMs": 2881,
+    "resourceBytes": 16438630,
+    "textureEstimateMiB": 299,
+    "textures": 30,
+    "samples": [
+      {
+        "name": "ground-0",
+        "fps": 120.1,
+        "p95": 8.699999999998909,
+        "calls": 0,
+        "triangles": 0,
+        "reactCommits": 0,
+        "heapMiB": 61.9
+      },
+      {
+        "name": "ground-1",
+        "fps": 120.1,
+        "p95": 8.700000000000728,
+        "calls": 0,
+        "triangles": 0,
+        "reactCommits": 0,
+        "heapMiB": 62.2
+      }
+    ],
+    "groundResources": [
+      {
+        "url": "/images/ground-still-mobile.webp",
+        "bytes": 84950,
+        "duration": 2.5,
+        "end": 5107.699999988079
+      }
+    ]
+  }
+]
