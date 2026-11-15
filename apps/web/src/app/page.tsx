@@ -69,21 +69,21 @@ const CAPABILITY_PILLARS = [
 const SPATIAL_HOTSPOTS = [
   {
     id: "hs-1",
-    posClass: "top-[44%] left-[12%] sm:top-[53%] sm:left-[28%]",
+    posClass: "top-[62%] left-[16%] sm:top-[66%] sm:left-[22%]",
     kicker: "DIAGNOSTIC ENGINE",
     label: "38 CROP DISEASE CLASSES",
     detail: "MobileNetV2 ONNX screening across foliar blights, rusts, spots, and healthy leaves.",
   },
   {
     id: "hs-2",
-    posClass: "top-[78%] left-[10%] sm:top-[73%] sm:left-[10%]",
+    posClass: "top-[80%] left-[36%] sm:top-[78%] sm:left-[44%]",
     kicker: "FIELD ACCESSIBILITY",
     label: "ENGLISH · తెలుగు · हिन्दी",
     detail: "Multilingual screening workflows and preventive recommendations built for regional growers.",
   },
   {
     id: "hs-3",
-    posClass: "top-[61%] left-[38%] sm:top-[56%] sm:left-[64%]",
+    posClass: "top-[66%] left-[64%] sm:top-[62%] sm:left-[68%]",
     kicker: "DATA GOVERNANCE",
     label: "PRIVATE RLS STORAGE",
     detail: "Signed private uploads and farmer-controlled report sharing under PostgreSQL RLS.",
@@ -429,11 +429,14 @@ export default function Home() {
                   CROP INTELLIGENCE
                 </div>
 
-                <h2 className="max-w-[540px] md:ml-auto text-[clamp(1.25rem,2.25vw,1.9rem)] font-normal leading-[1.24] tracking-[-0.02em] text-white [text-shadow:0_2px_20px_rgba(12,18,13,0.55)]">
-                  PhytoX screening workflows translate single leaf photographs
-                  into clear, uncertainty-aware findings—helping growers act early
-                  with verified insight, not guesswork.
-                </h2>
+                <div className="max-w-[500px] md:mr-8 md:ml-auto flex flex-col gap-2 text-left md:text-right">
+                  <h2 className="text-[clamp(1.35rem,2.3vw,1.95rem)] font-normal leading-[1.22] tracking-[-0.02em] text-white [text-shadow:0_2px_20px_rgba(12,18,13,0.7)]">
+                    From a single leaf to a clearer picture of crop health.
+                  </h2>
+                  <p className="text-[clamp(0.85rem,1.05vw,0.95rem)] font-light leading-[1.5] text-[#d6ded5] [text-shadow:0_1px_12px_rgba(12,18,13,0.65)]">
+                    AI-assisted diagnosis helps farmers recognize possible diseases and supports regional crop-health monitoring.
+                  </p>
+                </div>
               </div>
 
               {/* 3 Spatial Lime Target Hotspots matching reference composition */}

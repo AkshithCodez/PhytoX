@@ -98,11 +98,12 @@ export interface SurfaceAnchor {
 export function getTerrainHeight(worldX: number, worldZ: number, seed = 313): number {
   const localX = worldX - 3.5;
   const localZ = worldZ + 0.4;
-  const roll = fbm3(localX * 0.16, 0, localZ * 0.16, 3, seed) * 0.46;
-  const microRidges = ridged3(localX * 0.54, 0.8, localZ * 0.54, 3, seed + 17) * 0.14;
+  const scene3Mask = THREE.MathUtils.smoothstep(localX, -3.5, -0.8);
+  const roll = fbm3(localX * 0.16, 0, localZ * 0.16, 3, seed) * 0.46 * scene3Mask;
+  const microRidges = ridged3(localX * 0.54, 0.8, localZ * 0.54, 3, seed + 17) * 0.14 * scene3Mask;
   const stationRise = THREE.MathUtils.smoothstep(localX, 0.2, 6.2) * 0.72;
-  const horizonDrop = THREE.MathUtils.smoothstep(-localZ, 1.0, 6.5) * 0.28;
-  return roll + microRidges + stationRise + horizonDrop;
+  const horizonDrop = THREE.MathUtils.smoothstep(-localZ, 1.0, 6.5) * 0.38;
+  return roll + microRidges + stationRise - (1 - scene3Mask) * 0.18 - horizonDrop;
 }
 
 /**
@@ -122,9 +123,9 @@ export function createTerrainGeometry(
   const uvAttr = geo.attributes.uv as THREE.BufferAttribute;
   const colors = new Float32Array(posAttr.count * 3);
 
-  const drySoil = new THREE.Color("#cec4b4");
-  const dampSoil = new THREE.Color("#73685c");
-  const mossTint = new THREE.Color("#7d8b66");
+  const drySoil = new THREE.Color("#6b6354");
+  const dampSoil = new THREE.Color("#443e35");
+  const mossTint = new THREE.Color("#556242");
   const c = new THREE.Color();
 
   for (let i = 0; i < posAttr.count; i++) {
@@ -329,7 +330,9 @@ export function sampleRockMossAnchors(
 export interface MaterialTuneOptions {
   colorHex?: string;
   alphaTest?: number;
+  roughness?: number;
   roughnessScale?: number;
+  metalness?: number;
   envMapIntensity?: number;
   emissiveHex?: string;
   emissiveIntensity?: number;
@@ -359,8 +362,13 @@ export function cloneTunedMaterial(
     mat.transparent = false;
     mat.depthWrite = true;
   }
-  if (typeof options.roughnessScale === "number") {
+  if (typeof options.roughness === "number") {
+    mat.roughness = options.roughness;
+  } else if (typeof options.roughnessScale === "number") {
     mat.roughness = THREE.MathUtils.clamp(mat.roughness * options.roughnessScale, 0.25, 1);
+  }
+  if (typeof options.metalness === "number") {
+    mat.metalness = options.metalness;
   }
   if (typeof options.envMapIntensity === "number") {
     mat.envMapIntensity = options.envMapIntensity;
