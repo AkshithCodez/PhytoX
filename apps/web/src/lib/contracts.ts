@@ -15,6 +15,11 @@ export const resultSchema = z.object({
   review_recommended: z.boolean(),
   abstained: z.boolean(),
   uncertainty_note: z.string(),
+  selected_crop: z.string().nullable().optional(),
+  crop_mismatch_warning: z.boolean().optional().default(false),
+  crop_confidence: z.number().nullable().optional(),
+  detected_crop: z.string().nullable().optional(),
+  mismatch_message: z.string().nullable().optional(),
 });
 export const reportSchema = z
   .object({

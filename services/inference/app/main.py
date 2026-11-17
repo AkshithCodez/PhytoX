@@ -2,7 +2,7 @@ import asyncio
 import hmac
 import os
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, UploadFile, File, Header, HTTPException
+from fastapi import FastAPI, UploadFile, File, Header, HTTPException, Form, Query
 from fastapi.concurrency import run_in_threadpool
 from .model import ModelAdapter, decode_image, InvalidImage, MAX_BYTES
 from .schemas import PredictionResponse
@@ -29,7 +29,12 @@ def ready():
     return {'ready': adapter.ready and configured, 'reason': adapter.reason if configured else 'service_key_unconfigured'}
 
 @app.post('/v1/predict', response_model=PredictionResponse)
-async def predict(file: UploadFile = File(...), x_api_key: str | None = Header(default=None)):
+async def predict(
+    file: UploadFile = File(...),
+    selected_crop: str | None = Form(default=None),
+    crop: str | None = Query(default=None),
+    x_api_key: str | None = Header(default=None)
+):
     secret = os.getenv('INFERENCE_API_KEY')
     if not secret:
         raise HTTPException(503, detail={'code': 'service_unconfigured'})
@@ -47,6 +52,7 @@ async def predict(file: UploadFile = File(...), x_api_key: str | None = Header(d
         if not adapter.ready:
             raise HTTPException(503, detail={'code': adapter.reason})
         try:
-            return await run_in_threadpool(adapter.predict, image, quality)
+            chosen_crop = selected_crop or crop
+            return await run_in_threadpool(adapter.predict, image, quality, chosen_crop)
         except Exception as exc:
             raise HTTPException(502, detail={'code': 'inference_failed'}) from exc

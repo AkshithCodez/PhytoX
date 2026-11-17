@@ -175,7 +175,13 @@ export function OfficerWorkspace({ view }: { view: View }) {
       ) : (
         <>
           {view === "overview" && (
-            <div className="stats-grid">
+            <>
+              <div className="overview-banner">
+                <span className="overview-kicker">[ REGIONAL FIELD INTELLIGENCE ]</span>
+                <h3>Active Geospatial Surveillance &amp; Diagnostic Queue</h3>
+                <p>Observational telemetry and verified disease classification for authorized state agricultural districts.</p>
+              </div>
+              <div className="stats-grid">
               {[
                 ["Submitted reports", reports.length, "Within selected dates"],
                 [
@@ -203,6 +209,7 @@ export function OfficerWorkspace({ view }: { view: View }) {
                 </article>
               ))}
             </div>
+            </>
           )}
           {monitoring ? (
             <Monitoring reports={reports} region={region} />

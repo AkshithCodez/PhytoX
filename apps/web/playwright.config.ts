@@ -10,6 +10,9 @@ export default defineConfig({
     channel: "chrome",
     trace: "retain-on-failure",
     screenshot: "only-on-failure",
+    launchOptions: {
+      args: ["--host-resolver-rules=MAP *.supabase.co 172.64.149.246"],
+    },
   },
   webServer: [
     {

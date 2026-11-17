@@ -44,17 +44,102 @@ def decode_image(raw: bytes):
         quality.append('overexposed')
     return image, quality
 
-def postprocess(logits, manifest: Manifest, quality: list[str]):
+def find_matching_crop(selected: str | None, manifest: Manifest) -> str | None:
+    if not selected:
+        return None
+    s = selected.strip().lower()
+    if s in {"", "unknown", "not_sure", "not sure", "other", "none", "all", "i'm not sure", "i am not sure"}:
+        return None
+    unique_crops = list(dict.fromkeys(l.crop for l in manifest.labels))
+    for c in unique_crops:
+        if c.lower() == s:
+            return c
+    for c in unique_crops:
+        c_low = c.lower()
+        if s in c_low or c_low in s:
+            return c
+        if "corn" in s and "maize" in c_low:
+            return c
+        if "pepper" in s and "pepper" in c_low:
+            return c
+        if "cherry" in s and "cherry" in c_low:
+            return c
+    return None
+
+def postprocess(logits, manifest: Manifest, quality: list[str], selected_crop: str | None = None):
     values = np.asarray(logits, dtype=np.float64)
     if values.shape != (1, len(manifest.labels)) or not np.isfinite(values).all():
         raise ValueError('Invalid model output shape or values')
     values = values[0] - values[0].max()
     probs = np.exp(values) / np.exp(values).sum()
-    order = np.argsort(probs)[::-1]
+
+    unconditioned_order = np.argsort(probs)[::-1]
+    detected_crop = manifest.labels[int(unconditioned_order[0])].crop
+
+    matched_crop = find_matching_crop(selected_crop, manifest)
+
+    if matched_crop:
+        crop_indices = [i for i, l in enumerate(manifest.labels) if l.crop == matched_crop]
+        crop_evidence = float(sum(probs[i] for i in crop_indices))
+        mismatch = bool(detected_crop != matched_crop and crop_evidence < 0.25)
+        mismatch_msg = (
+            f"You selected {matched_crop}, but the visual model detected features typical of {detected_crop} "
+            f"with only {crop_evidence * 100:.1f}% crop match. Please check the leaf image or consult an expert."
+            if mismatch else None
+        )
+
+        denom = crop_evidence if crop_evidence > 1e-12 else 1.0
+        cond_probs = {i: probs[i] / denom for i in crop_indices}
+        sorted_crop_indices = sorted(crop_indices, key=lambda idx: cond_probs[idx], reverse=True)
+
+        top_idx = sorted_crop_indices[0]
+        top_conf = float(cond_probs[top_idx])
+        top_prediction = Prediction(**manifest.labels[top_idx].model_dump(), confidence=top_conf)
+        alternatives = [
+            Prediction(**manifest.labels[idx].model_dump(), confidence=float(cond_probs[idx]))
+            for idx in sorted_crop_indices[1:5]
+        ]
+
+        if mismatch:
+            uncertain = True
+        elif len(sorted_crop_indices) > 1:
+            margin = float(cond_probs[sorted_crop_indices[0]] - cond_probs[sorted_crop_indices[1]])
+            uncertain = top_conf < manifest.confidence_threshold or margin < manifest.margin_threshold
+        else:
+            uncertain = top_conf < manifest.confidence_threshold
+
+        return PredictionResponse(
+            model_version=manifest.version,
+            prediction=top_prediction,
+            alternatives=alternatives,
+            quality_warnings=quality,
+            review_recommended=True,
+            abstained=bool(uncertain or quality or mismatch),
+            selected_crop=matched_crop,
+            crop_mismatch_warning=mismatch,
+            crop_confidence=crop_evidence,
+            detected_crop=detected_crop,
+            mismatch_message=mismatch_msg,
+        )
+
+    order = unconditioned_order
     predictions = [Prediction(**manifest.labels[int(i)].model_dump(), confidence=float(probs[i])) for i in order[:5]]
     uncertain = predictions[0].confidence < manifest.confidence_threshold or float(probs[order[0]] - probs[order[1]]) < manifest.margin_threshold
-    return PredictionResponse(model_version=manifest.version, prediction=predictions[0], alternatives=predictions[1:],
-        quality_warnings=quality, review_recommended=True, abstained=bool(uncertain or quality))
+    top_crop_evidence = float(sum(probs[i] for i, l in enumerate(manifest.labels) if l.crop == detected_crop))
+
+    return PredictionResponse(
+        model_version=manifest.version,
+        prediction=predictions[0],
+        alternatives=predictions[1:],
+        quality_warnings=quality,
+        review_recommended=True,
+        abstained=bool(uncertain or quality),
+        selected_crop=None,
+        crop_mismatch_warning=False,
+        crop_confidence=top_crop_evidence,
+        detected_crop=detected_crop,
+        mismatch_message=None,
+    )
 
 class ModelAdapter:
     def __init__(self):
@@ -103,7 +188,7 @@ class ModelAdapter:
     def ready(self):
         return self.model is not None and self.manifest is not None
 
-    def predict(self, image, quality):
+    def predict(self, image, quality, selected_crop: str | None = None):
         if not self.ready:
             raise RuntimeError('Model unavailable')
         size = self.manifest.input_size
@@ -120,4 +205,4 @@ class ModelAdapter:
             if not isinstance(output, torch.Tensor):
                 raise ValueError('Expected one logits tensor')
             output = output.detach().cpu().numpy()
-        return postprocess(output, self.manifest, quality)
+        return postprocess(output, self.manifest, quality, selected_crop=selected_crop)

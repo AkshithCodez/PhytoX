@@ -64,7 +64,7 @@ const SKY_FRAGMENT_SHADER = `
   }
 
   void main() {
-    vec3 darkVoid = vec3(0.066, 0.114, 0.075); // #111D13
+    vec3 darkVoid = vec3(0.039, 0.059, 0.071); // #0A0F12 Midnight Oil
     vec2 cloudUv = vUv * vec2(3.1, 2.0) + vec2(uTime * 0.006, 0.0);
     float clouds = fbm(cloudUv + fbm(cloudUv * 0.65) * 0.55);
 
@@ -178,11 +178,11 @@ function EcoWorld({
     };
   }, [sceneAssets]);
 
-  const tmpVoidFog = useMemo(() => new THREE.Color("#111d13"), []);
+  const tmpVoidFog = useMemo(() => new THREE.Color("#0a0f12"), []);
   const tmpMistFog = useMemo(() => new THREE.Color("#7a8a80"), []);
   const tmpCurFog = useMemo(() => new THREE.Color(), []);
 
-  useFrame(({ clock }, rawDelta) => {
+  useFrame(({ gl, scene, camera, clock }, rawDelta) => {
     const dt = Math.min(rawDelta, 0.14);
     const time = clock.getElapsedTime();
     const targetP = scrollProgressRef.current;
@@ -194,8 +194,9 @@ function EcoWorld({
         : THREE.MathUtils.lerp(smoothedScroll.current, targetP, Math.min(1, dt * 11));
     const p = smoothedScroll.current;
 
-    // Suspend rendering updates when scrolled past the 3D diorama (Scenes 3-5 use cinematic plates)
-    if (p > 0.42) {
+    // Suspend rendering updates when covered by ground ecosystem (Scenes 3-4 plate)
+    const isCovered = p >= 0.38 && p <= 0.65;
+    if (reducedMotion && isCovered) {
       if (dioramaAGroupRef.current && dioramaAGroupRef.current.visible) {
         dioramaAGroupRef.current.visible = false;
       }
@@ -307,7 +308,7 @@ function EcoWorld({
 
   return (
     <>
-      <fogExp2 attach="fog" args={["#111d13", 0.028]} />
+      <fogExp2 attach="fog" args={["#0a0f12", 0.028]} />
 
       {/* Natural Overcast IBL HDRI for photorealistic reflections */}
       <Environment files="/hdri/belfast_open_field_1k.hdr" background={false} />
@@ -372,6 +373,7 @@ export function EcoTechScene(props: EcoTechSceneProps) {
   const [ready, setReady] = useState(false);
   const [webGLOk, setWebGLOk] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
+  const [isCovered, setIsCovered] = useState(false);
 
   useEffect(() => {
     setWebGLOk(checkWebGLSupport());
@@ -390,6 +392,7 @@ export function EcoTechScene(props: EcoTechSceneProps) {
         const alpha = p < 0.32 ? 1 : Math.max(0, 1 - (p - 0.32) / 0.10);
         containerRef.current.style.opacity = alpha.toFixed(3);
         containerRef.current.style.visibility = alpha > 0.01 ? "visible" : "hidden";
+        setIsCovered(p >= 0.40 && p <= 0.65);
       }
     };
 
@@ -412,14 +415,14 @@ export function EcoTechScene(props: EcoTechSceneProps) {
   if (!ready || !webGLOk) {
     return (
       <div
-        className="fixed inset-0 pointer-events-none z-0 bg-[#111d13]"
+        className="fixed inset-0 pointer-events-none z-0 bg-[#0a0f12]"
         aria-hidden="true"
       >
         <div
           className="absolute inset-0 opacity-35 bg-cover bg-center"
           style={{ backgroundImage: "url('/images/farmers-leaf.jpg')" }}
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-[#111d13]/85 via-[#111d13]/60 to-[#111d13]" />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#0a0f12]/85 via-[#0a0f12]/60 to-[#0a0f12]" />
       </div>
     );
   }
@@ -427,7 +430,7 @@ export function EcoTechScene(props: EcoTechSceneProps) {
   return (
     <div
       ref={containerRef}
-      className="fixed inset-0 pointer-events-none z-0 overflow-hidden bg-[#111d13] will-change-[opacity]"
+      className="fixed inset-0 pointer-events-none z-0 overflow-hidden bg-[#0a0f12] will-change-[opacity]"
       aria-hidden="true"
     >
       <Canvas
@@ -439,6 +442,23 @@ export function EcoTechScene(props: EcoTechSceneProps) {
           powerPreference: "high-performance",
           toneMapping: THREE.AgXToneMapping,
           toneMappingExposure: 1.02,
+        }}
+        onCreated={({ gl }) => {
+          if (typeof window !== "undefined") {
+            (window as unknown as { __threeRenderer: THREE.WebGLRenderer }).__threeRenderer = gl;
+            gl.domElement.addEventListener("webglcontextlost", (e) => {
+              e.preventDefault();
+              setWebGLOk(false);
+            });
+            const origRender = gl.render.bind(gl);
+            gl.render = (scene: THREE.Scene, camera: THREE.Camera) => {
+              const p = props.scrollProgressRef.current;
+              if (props.reducedMotion && p >= 0.38 && p <= 0.65) {
+                return;
+              }
+              origRender(scene, camera);
+            };
+          }
         }}
       >
         <Suspense fallback={null}>

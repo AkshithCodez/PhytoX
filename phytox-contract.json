@@ -1,16 +1,30 @@
-﻿{
-    "objective":  "Configure PhytoX Supabase environment and rotate inference key",
-    "allowed_write_scope":  [
-                                "PhytoX/apps/web/.env.local",
-                                "PhytoX/apps/web/.env.example",
-                                "PhytoX/services/inference/.env"
-                            ],
-    "acceptance_criteria":  [
-                                "Update web environment configuration",
-                                "Create safe environment example",
-                                "Rotate matching inference API keys",
-                                "Verify TypeScript and production build"
-                            ],
-    "budget":  "balanced",
-    "mode":  "implement"
+{
+  "objective": "PhytoX — Ultimate Full-Stack Development, AI Integration, Mobile Application, GIS Intelligence, Security & Deployment Master Prompt",
+  "allowed_write_scope": [
+    "PhytoX/apps/web/**",
+    "PhytoX/services/**",
+    "PhytoX/supabase/**",
+    "PhytoX/docs/**",
+    "PhytoX/scratch/**",
+    "PhytoX/.github/**",
+    "PhytoX/phytox-contract.json",
+    ".gravitas/**"
+  ],
+  "acceptance_criteria": [
+    "R01: High-fidelity cinematic post-hero images (ground-level ecosystem and regional intelligence) with responsive formats (AVIF/WebP) and zero visual discontinuity",
+    "R02: Strict separation of Farmer and Officer portals (distinct routes, layouts, navigation, auth redirects, server-side role gating)",
+    "R03: Premium dark agricultural auth image and refined login experience with mobile keyboard friendliness",
+    "R04: Real MobileNetV2 ONNX inference pipeline (14 crops / 38 classes, 224x224), quality validation, honest uncertainty calibration, and no mock inference",
+    "R05: Dedicated mobile-first Farmer Portal with PWA manifest, bottom navigation, camera/gallery upload, EN/TE/HI language onboarding before workflow, offline status indicator",
+    "R06: Exceptional responsive adaptability across 320px, 360px, 375px, 390px, 430px, 768px, 1024px, 1280px, 1440px, 1920px viewports with zero horizontal overflow",
+    "R07: Interactive Leaflet GIS map directly embedded in Officer dashboard with markers, clustering, disease/status/time filters, and district selection",
+    "R08: Data-driven visual Officer dashboard with real KPI metrics, disease distribution charts, reporting trend lines, and potential hotspot panels",
+    "R09: Deep interactivity across both portals (tooltips, legends, date/disease filters, drill-down modals, review dialogs, loading skeletons)",
+    "R10: Live Supabase backend integration with authentic Cloudflare DNS routing, private storage signed URLs (60s TTL), atomic RPCs, and real multi-tenant persistence",
+    "R11: Application, API, database, and storage security hardening (PostgreSQL RLS negative tests, cross-region gates, file signature validation, sanitized logs)",
+    "R12: Complete farmer-to-officer end-to-end reporting and human verification loop with immutable audit trails",
+    "R13: Production deployment readiness (Vercel evaluation, FastAPI Python hosting plan, CI/CD GitHub Actions workflow, environment variable audit)"
+  ],
+  "budget": "deep",
+  "mode": "implement"
 }

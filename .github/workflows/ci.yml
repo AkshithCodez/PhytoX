@@ -1,0 +1,67 @@
+name: PhytoX CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, master, release/*]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  typecheck-and-lint:
+    name: TypeScript Check & Web Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: PhytoX/package-lock.json
+
+      - name: Install Monorepo Dependencies
+        run: npm ci
+        working-directory: PhytoX
+
+      - name: TypeScript Typecheck
+        run: npm run typecheck -w apps/web
+        working-directory: PhytoX
+
+      - name: Run Vitest Unit & Database Tests
+        run: npm run test -w apps/web
+        working-directory: PhytoX
+
+      - name: Next.js Production Build
+        run: npm run build -w apps/web
+        working-directory: PhytoX
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL || 'https://lledzrjngfluuswrsumk.supabase.co' }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.dummy' }}
+
+  python-ml-tests:
+    name: Python ONNX Inference Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+          cache-dependency-path: PhytoX/services/inference/requirements.txt
+
+      - name: Install Python Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r services/inference/requirements.txt
+        working-directory: PhytoX
+
+      - name: Run Pytest ML Suite
+        run: pytest services/inference/tests
+        working-directory: PhytoX
+        env:
+          PYTHONPATH: services/inference

@@ -45,9 +45,9 @@ export function CinematicBackground({
         ecoLayerRef.current.style.opacity = ecoAlpha.toFixed(3);
         ecoLayerRef.current.style.visibility =
           ecoAlpha > 0.01 ? "visible" : "hidden";
-        ecoLayerRef.current.style.transform = `translate3d(0, ${ecoY.toFixed(
-          1
-        )}px, 0) scale(${ecoScale.toFixed(3)})`;
+        ecoLayerRef.current.style.transform = reducedMotion
+          ? "matrix(1, 0, 0, 1, 0, 0)"
+          : `translate3d(0, ${ecoY.toFixed(1)}px, 0) scale(${ecoScale.toFixed(3)})`;
       }
 
       // -----------------------------------------------------------------------
@@ -101,6 +101,7 @@ export function CinematicBackground({
       {/* ------------------------------------------------------------------- */}
       <div
         ref={ecoLayerRef}
+        data-ground-image
         className="absolute inset-[-12px] opacity-0 will-change-[opacity,transform] transition-none"
         style={{ visibility: "hidden" }}
       >
@@ -128,7 +129,7 @@ export function CinematicBackground({
           />
         </picture>
         {/* Subtle atmospheric vignette and top text scrim */}
-        <div className="absolute inset-0 bg-gradient-to-b from-[#111d13]/70 via-[#111d13]/15 to-[#111d13]/60 pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#0a0f12]/70 via-[#0a0f12]/15 to-[#0a0f12]/60 pointer-events-none" />
       </div>
 
       {/* ------------------------------------------------------------------- */}
@@ -163,7 +164,7 @@ export function CinematicBackground({
           />
         </picture>
         {/* Subtle depth vignette */}
-        <div className="absolute inset-0 bg-gradient-to-b from-[#111d13]/65 via-[#111d13]/20 to-[#111d13]/70 pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#0a0f12]/65 via-[#0a0f12]/20 to-[#0a0f12]/70 pointer-events-none" />
       </div>
     </div>
   );

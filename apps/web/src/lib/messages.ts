@@ -132,6 +132,15 @@ export const en = {
   clearLocation: "Remove location",
   serviceError:
     "The service could not complete this request. Please try again.",
+  selectCrop: "Select your crop first",
+  cropHelp:
+    "Choosing your crop restricts diagnosis to known conditions for that crop and verifies crop-leaf consistency.",
+  notSureCrop: "I'm not sure (Multi-crop AI)",
+  selectedCropLabel: "Farmer Selected Crop",
+  detectedCropLabel: "Detected Visual Crop",
+  cropMismatchWarning: "Crop Mismatch Advisory",
+  cropEvidenceLabel: "Crop Visual Evidence",
+  searchCrop: "Filter crop name…",
 } as const;
 export type MessageKey = keyof typeof en;
 export const te: Record<MessageKey, string> = {
@@ -262,6 +271,15 @@ export const te: Record<MessageKey, string> = {
   viewReport: "నివేదిక చూడండి",
   clearLocation: "స్థానం తొలగించండి",
   serviceError: "సేవ ఈ అభ్యర్థనను పూర్తి చేయలేకపోయింది. మళ్లీ ప్రయత్నించండి.",
+  selectCrop: "ముందుగా మీ పంటను ఎంచుకోండి",
+  cropHelp:
+    "పంటను ఎంచుకోవడం ద్వారా రోగ నిర్ధారణ ఆ పంటకు మాత్రమే పరిమితం చేయబడుతుంది మరియు తనిఖీ చేయబడుతుంది.",
+  notSureCrop: "నాకు ఖచ్చితంగా తెలియదు (బహుళ-పంట AI)",
+  selectedCropLabel: "రైతు ఎంచుకున్న పంట",
+  detectedCropLabel: "గుర్తించిన దృశ్య పంట",
+  cropMismatchWarning: "పంట సరిపోలలేదు హెచ్చరిక",
+  cropEvidenceLabel: "పంట దృశ్య సరిపోలిక",
+  searchCrop: "పంట పేరును వెతకండి…",
 };
 export const hi: Record<MessageKey, string> = {
   diagnosis: "रोग की जाँच",
@@ -394,4 +412,13 @@ export const hi: Record<MessageKey, string> = {
   viewReport: "रिपोर्ट देखें",
   clearLocation: "स्थान हटाएँ",
   serviceError: "सेवा अनुरोध पूरा नहीं कर सकी। फिर कोशिश करें।",
+  selectCrop: "पहले अपनी फसल चुनें",
+  cropHelp:
+    "अपनी फसल चुनने से निदान उस फसल की ज्ञात बीमारियों तक सीमित रहता है और बेमेल की जाँच होती है।",
+  notSureCrop: "मुझे पक्का नहीं पता (मल्टी-क्रॉप AI)",
+  selectedCropLabel: "किसान द्वारा चुनी गई फसल",
+  detectedCropLabel: "पहचानी गई दृश्य फसल",
+  cropMismatchWarning: "फसल बेमेल चेतावनी",
+  cropEvidenceLabel: "फसल दृश्य साक्ष्य",
+  searchCrop: "फसल का नाम खोजें…",
 };

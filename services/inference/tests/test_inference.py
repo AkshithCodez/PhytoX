@@ -65,3 +65,54 @@ def test_non_ascii_api_key_is_rejected_without_server_error(monkeypatch):
     response = TestClient(app).post('/v1/predict', headers={b'x-api-key': b'\xff'}, content=b'invalid body')
     assert response.status_code == 401
     assert response.json()['detail']['code'] == 'unauthorized'
+
+@pytest.fixture
+def multi_crop_manifest():
+    return Manifest(
+        version='multi-crop-fixture',
+        architecture='fixture',
+        input_size=224,
+        mean=[0, 0, 0],
+        std=[1, 1, 1],
+        labels=[
+            {'crop': 'Tomato', 'disease': 'Bacterial spot'},
+            {'crop': 'Tomato', 'disease': 'Early blight'},
+            {'crop': 'Grape', 'disease': 'Black rot'},
+            {'crop': 'Grape', 'disease': 'Esca'},
+        ],
+        confidence_threshold=0.7,
+        margin_threshold=0.15,
+        preprocessing='rgb_resize_bilinear',
+        output='logits',
+    )
+
+def test_crop_conditioning_restricts_to_selected_crop(multi_crop_manifest):
+    # Logits strongly favor Grape (classes 2 and 3)
+    logits = [[0.0, 0.0, 4.0, 3.0]]
+    res = postprocess(logits, multi_crop_manifest, [], selected_crop='Tomato')
+    assert res.prediction.crop == 'Tomato'
+    assert res.prediction.disease in {'Bacterial spot', 'Early blight'}
+    assert res.prediction.confidence == pytest.approx(0.5, abs=0.01)
+    assert res.selected_crop == 'Tomato'
+    assert res.detected_crop == 'Grape'
+    assert res.crop_mismatch_warning is True
+    assert res.abstained is True
+    assert 'detected features typical of Grape' in res.mismatch_message
+
+def test_crop_matching_without_mismatch(multi_crop_manifest):
+    # Logits strongly favor Tomato (classes 0 and 1)
+    logits = [[4.0, 1.0, 0.0, 0.0]]
+    res = postprocess(logits, multi_crop_manifest, [], selected_crop='Tomato')
+    assert res.prediction.crop == 'Tomato'
+    assert res.prediction.disease == 'Bacterial spot'
+    assert res.selected_crop == 'Tomato'
+    assert res.detected_crop == 'Tomato'
+    assert res.crop_mismatch_warning is False
+    assert res.crop_confidence > 0.9
+
+def test_unknown_or_empty_crop_defaults_to_unconditioned(multi_crop_manifest):
+    logits = [[0.0, 0.0, 4.0, 3.0]]
+    res = postprocess(logits, multi_crop_manifest, [], selected_crop='not_sure')
+    assert res.prediction.crop == 'Grape'
+    assert res.selected_crop is None
+    assert res.crop_mismatch_warning is False

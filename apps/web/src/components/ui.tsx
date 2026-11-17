@@ -6,7 +6,13 @@ export function Brand() {
   return (
     <Link href="/" className="brand" aria-label="PhytoX home">
       <span className="brand-icon">
-        <Sprout size={23} />
+        <img
+          src="/images/logo/logo-mark.png"
+          alt=""
+          width={22}
+          height={22}
+          className="brand-logo-img"
+        />
       </span>
       Phyto<span className="brand-x">X</span>
     </Link>

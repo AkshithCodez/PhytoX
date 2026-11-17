@@ -233,7 +233,7 @@ export default function Home() {
   return (
     <div
       ref={rootRef}
-      className="marketing-cinematic min-h-screen relative bg-[#111d13] text-[#f5f7f4] overflow-x-clip selection:bg-[#b7f36b] selection:text-[#111d13]"
+      className="marketing-cinematic min-h-screen relative bg-[#0a0f12] text-[#f5f7f4] overflow-x-clip selection:bg-[#a33715] selection:text-white"
     >
       {/* Interactive 3D WebGL Island (Hero & Vision Scene 1-2) */}
       <EcoTechScene
@@ -260,8 +260,12 @@ export default function Home() {
             className="inline-flex items-center gap-2.5 text-[18px] font-semibold tracking-tight whitespace-nowrap"
             aria-label="PhytoX home"
           >
-            <span className="hdr-brand-mark w-7 h-7 rounded-[6px] inline-flex items-center justify-center">
-              <Sprout size={15} strokeWidth={2.2} />
+            <span className="hdr-brand-mark w-7 h-7 rounded-[6px] inline-flex items-center justify-center overflow-hidden">
+              <img
+                src="/images/logo/logo-mark.png"
+                alt="PhytoX logo"
+                className="w-5 h-5 object-contain"
+              />
             </span>
             <span>PhytoX</span>
           </Link>
@@ -323,7 +327,7 @@ export default function Home() {
             {/* Subtle top sky contrast scrim active during overcast Scenes 3-4 */}
             <div
               ref={skyScrimRef}
-              className="absolute inset-x-0 top-0 h-[44vh] pointer-events-none bg-gradient-to-b from-[#111d13]/70 via-[#111d13]/25 to-transparent"
+              className="absolute inset-x-0 top-0 h-[44vh] pointer-events-none bg-gradient-to-b from-[#0a0f12]/70 via-[#0a0f12]/25 to-transparent"
               style={{ opacity: 0 }}
               aria-hidden="true"
             />
@@ -342,7 +346,7 @@ export default function Home() {
                 aria-hidden="true"
               >
                 <div className="translate-x-[52%] translate-y-2 flex flex-col items-start gap-1">
-                  <span className="px-1.5 py-0.5 rounded-[2px] bg-white/90 text-[#111d13] font-mono text-[8px] font-semibold tracking-[0.1em] uppercase whitespace-nowrap shadow-sm">
+                  <span className="px-1.5 py-0.5 rounded-[2px] bg-white/90 text-[#0a0f12] font-mono text-[8px] font-semibold tracking-[0.1em] uppercase whitespace-nowrap shadow-sm">
                     [PHYTOX AI]
                   </span>
                   <span className="font-mono text-[8px] tracking-[0.12em] uppercase text-white/60 leading-tight whitespace-nowrap [text-shadow:0_1px_6px_rgba(0,0,0,0.9)]">
@@ -366,10 +370,10 @@ export default function Home() {
                 <div className="mt-6 flex flex-wrap items-center gap-4">
                   <Link
                     href="/farmer"
-                    className="inline-flex items-center gap-3 pl-4 pr-2.5 py-2 rounded-[5px] border border-white/25 bg-[#111d13]/55 hover:border-white/55 hover:bg-[#111d13]/75 transition-all text-[11px] font-mono tracking-[0.12em] uppercase text-white group"
+                    className="inline-flex items-center gap-3 pl-4 pr-2.5 py-2 rounded-[5px] border border-white/25 bg-[#0a0f12]/55 hover:border-white/55 hover:bg-[#0a0f12]/75 transition-all text-[11px] font-mono tracking-[0.12em] uppercase text-white group"
                   >
                     <span>Open Scanner</span>
-                    <span className="w-[20px] h-[20px] rounded-[3px] bg-[#b7f36b] text-[#111d13] inline-flex items-center justify-center transition-transform group-hover:translate-x-0.5">
+                    <span className="w-[20px] h-[20px] rounded-[3px] bg-[#a33715] text-white inline-flex items-center justify-center transition-transform group-hover:translate-x-0.5">
                       <ChevronRight size={13} strokeWidth={2.5} />
                     </span>
                   </Link>
@@ -410,7 +414,7 @@ export default function Home() {
               style={{ opacity: 0, visibility: "hidden" }}
             >
               <div className="max-w-[680px] flex flex-col items-center">
-                <span className="inline-block px-2.5 py-1 rounded-[3px] bg-[#b7f36b] text-[#111d13] font-mono text-[10px] font-medium tracking-[0.14em] uppercase shadow-sm">
+                <span className="inline-block px-2.5 py-1 rounded-[3px] bg-[#a33715] text-white font-mono text-[10px] font-medium tracking-[0.14em] uppercase shadow-sm">
                   OUR VISION
                 </span>
 
@@ -492,10 +496,10 @@ export default function Home() {
                         aria-expanded={isOpen}
                         aria-controls={`${spot.id}-detail`}
                         aria-label={`${spot.label}: ${spot.detail}`}
-                        className="w-11 h-11 sm:w-7 sm:h-7 rounded-full text-[#111d13] inline-flex items-center justify-center shrink-0 focus-visible:outline-2 focus-visible:outline-white cursor-pointer group"
+                        className="w-11 h-11 sm:w-7 sm:h-7 rounded-full text-white inline-flex items-center justify-center shrink-0 focus-visible:outline-2 focus-visible:outline-white cursor-pointer group"
                       >
                         <svg
-                          className="w-6 h-6 p-[6.5px] rounded-full bg-[#b7f36b] shadow-lg transition-transform duration-200 group-hover:scale-110"
+                          className="w-6 h-6 p-[6.5px] rounded-full bg-[#a33715] text-white shadow-lg transition-transform duration-200 group-hover:scale-110"
                           width="10"
                           height="10"
                           viewBox="0 0 10 10"
@@ -517,7 +521,7 @@ export default function Home() {
                         }`}
                       >
                         <div className="font-mono text-[8.5px] sm:text-[9.5px] tracking-[0.11em] uppercase leading-tight text-white [text-shadow:0_1px_10px_rgba(8,14,9,0.95),0_0_3px_rgba(8,14,9,0.9)]">
-                          <span className="block text-[#b7f36b]">
+                          <span className="block text-[#a33715]">
                             {spot.kicker}
                           </span>
                           <span>{spot.label}</span>
@@ -525,7 +529,7 @@ export default function Home() {
                         {isOpen && (
                           <div
                             id={`${spot.id}-detail`}
-                            className="mt-1.5 max-w-[220px] px-2.5 py-1.5 rounded-[6px] bg-[#111d13]/90 backdrop-blur-md border border-white/20 text-[11px] leading-snug text-white shadow-xl animate-in fade-in"
+                            className="mt-1.5 max-w-[220px] px-2.5 py-1.5 rounded-[6px] bg-[#0a0f12]/90 backdrop-blur-md border border-white/20 text-[11px] leading-snug text-white shadow-xl animate-in fade-in"
                           >
                             {spot.detail}
                           </div>
@@ -626,7 +630,7 @@ export default function Home() {
           className="relative z-20 bg-white text-[#111813] pt-24 pb-20 md:pt-28 md:pb-28 px-6 md:px-12 shadow-[0_-24px_60px_rgba(0,0,0,0.18)]"
         >
           <div className="max-w-[1360px] mx-auto">
-            <span className="inline-block px-2.5 py-1 rounded-[3px] bg-[#b7f36b] text-[#111d13] font-mono text-[10px] font-medium tracking-[0.14em] uppercase">
+            <span className="inline-block px-2.5 py-1 rounded-[3px] bg-[#a33715] text-white font-mono text-[10px] font-medium tracking-[0.14em] uppercase">
               OUR SOLUTIONS
             </span>
 
@@ -641,7 +645,7 @@ export default function Home() {
               {/* Left Card: Farmer Portal */}
               <Link
                 href="/farmer"
-                className="group relative block h-[340px] sm:h-[390px] md:h-[440px] rounded-[12px] overflow-hidden bg-[#101811]"
+                className="group relative block h-[340px] sm:h-[390px] md:h-[440px] rounded-[12px] overflow-hidden bg-[#20292d]"
               >
                 <img
                   src="/images/farmers-leaf.jpg"
@@ -658,7 +662,7 @@ export default function Home() {
                     <span className="font-mono text-[10px] tracking-[0.14em] uppercase text-white">
                       [ FARMER PORTAL ]
                     </span>
-                    <span className="w-8 h-8 rounded-full bg-[#b7f36b] text-[#111d13] inline-flex items-center justify-center transition-transform duration-300 group-hover:translate-x-0.5">
+                    <span className="w-8 h-8 rounded-full bg-[#a33715] text-white inline-flex items-center justify-center transition-transform duration-300 group-hover:translate-x-0.5">
                       <ArrowRight size={15} strokeWidth={2.2} />
                     </span>
                   </div>
@@ -679,7 +683,7 @@ export default function Home() {
               {/* Right Card: Officer Portal */}
               <Link
                 href="/auth/login?portal=officer"
-                className="group relative block h-[340px] sm:h-[390px] md:h-[440px] rounded-[12px] overflow-hidden bg-[#162317]"
+                className="group relative block h-[340px] sm:h-[390px] md:h-[440px] rounded-[12px] overflow-hidden bg-[#20292d]"
               >
                 <img
                   src="/images/officer-fields.jpg"
@@ -696,7 +700,7 @@ export default function Home() {
                     <span className="font-mono text-[10px] tracking-[0.14em] uppercase text-white">
                       [ OFFICER PORTAL ]
                     </span>
-                    <span className="w-8 h-8 rounded-full bg-[#b7f36b] text-[#111d13] inline-flex items-center justify-center transition-transform duration-300 group-hover:translate-x-0.5">
+                    <span className="w-8 h-8 rounded-full bg-[#a33715] text-white inline-flex items-center justify-center transition-transform duration-300 group-hover:translate-x-0.5">
                       <ArrowRight size={15} strokeWidth={2.2} />
                     </span>
                   </div>
@@ -747,11 +751,15 @@ export default function Home() {
       </main>
 
       {/* Clean Minimal Footer */}
-      <footer className="relative z-20 bg-[#111d13] text-[#d0d8ce] border-t border-white/10 px-6 md:px-12 py-10">
+      <footer className="relative z-20 bg-[#0a0f12] text-[#d0d8ce] border-t border-white/10 px-6 md:px-12 py-10">
         <div className="max-w-[1360px] mx-auto flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
           <div className="flex items-center gap-2.5 text-white font-semibold">
-            <span className="w-6 h-6 rounded-[5px] bg-white/10 text-[#b7f36b] inline-flex items-center justify-center">
-              <Sprout size={14} />
+            <span className="w-6 h-6 rounded-[5px] bg-white/10 inline-flex items-center justify-center overflow-hidden">
+              <img
+                src="/images/logo/logo-mark.png"
+                alt="PhytoX logo"
+                className="w-4 h-4 object-contain"
+              />
             </span>
             <span>PhytoX</span>
           </div>

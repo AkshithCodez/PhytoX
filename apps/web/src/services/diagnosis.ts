@@ -19,6 +19,8 @@ export async function analyze(request: Request) {
     }).formData(),
     file = form.get("file");
   const key = z.uuid().parse(form.get("request_key"));
+  const selectedCropRaw = form.get("selected_crop")?.toString()?.trim();
+  const selectedCrop = selectedCropRaw && selectedCropRaw !== "not_sure" ? selectedCropRaw : null;
   if (
     !(file instanceof File) ||
     !["image/jpeg", "image/png", "image/webp"].includes(file.type) ||
@@ -92,6 +94,9 @@ export async function analyze(request: Request) {
       new Blob([new Uint8Array(bytes)], { type: "image/jpeg" }),
       "crop.jpg",
     );
+    if (selectedCrop) {
+      body.set("selected_crop", selectedCrop);
+    }
     const response = await fetch(`${process.env.INFERENCE_URL}/v1/predict`, {
       method: "POST",
       headers: { "X-API-Key": process.env.INFERENCE_API_KEY },

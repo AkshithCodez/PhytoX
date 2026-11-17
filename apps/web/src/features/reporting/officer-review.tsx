@@ -79,6 +79,20 @@ export function OfficerReview({ id }: { id: string }) {
               </dd>
             </div>
             <div>
+              <dt>Farmer Selected Crop</dt>
+              <dd>{r.diagnoses?.result?.selected_crop || r.crop}</dd>
+            </div>
+            <div>
+              <dt>Model Detected Crop</dt>
+              <dd>
+                {r.diagnoses?.result?.detected_crop || r.crop}
+                {r.diagnoses?.result?.crop_confidence !== undefined &&
+                r.diagnoses?.result?.crop_confidence !== null
+                  ? ` (${((r.diagnoses.result.crop_confidence ?? 0) * 100).toFixed(1)}%)`
+                  : ""}
+              </dd>
+            </div>
+            <div>
               <dt>Location shared with officers</dt>
               <dd>
                 {r.latitude !== null && r.longitude !== null
@@ -87,6 +101,16 @@ export function OfficerReview({ id }: { id: string }) {
               </dd>
             </div>
           </dl>
+          {r.diagnoses?.result?.crop_mismatch_warning && (
+            <Notice tone="warning">
+              <strong>Crop Mismatch Flagged:</strong> Farmer selected{" "}
+              <em>{r.diagnoses.result.selected_crop}</em>, but visual
+              classification detected <em>{r.diagnoses.result.detected_crop}</em>{" "}
+              with only{" "}
+              {((r.diagnoses.result.crop_confidence ?? 0) * 100).toFixed(1)}%
+              consistency.
+            </Notice>
+          )}
           <h3 style={{ fontSize: 20 }}>Farmer’s observation</h3>
           <p style={{ fontSize: 13, whiteSpace: "pre-wrap", marginTop: 14 }}>
             {r.notes || "No notes supplied."}

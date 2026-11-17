@@ -62,8 +62,16 @@ export function LanguagePicker({ onDone }: { onDone?: () => void }) {
   return (
     <main id="main" className="language-page">
       <a href="/" className="brand">
-        <Sprout />
-        Phyto<span>X</span>
+        <span className="brand-icon">
+          <img
+            src="/images/logo/logo-mark.png"
+            alt=""
+            width={24}
+            height={24}
+            className="brand-logo-img"
+          />
+        </span>
+        Phyto<span className="brand-x">X</span>
       </a>
       <div className="language-card">
         <Globe2 size={36} />

@@ -28,6 +28,22 @@ export function PredictionSummary({ result }: { result: PredictionResult }) {
   const { t } = useLocale();
   return (
     <>
+      {result.selected_crop && (
+        <div className="crop-selected-pill" style={{ marginBottom: 12 }}>
+          <span>
+            {t("selectedCropLabel")}: <strong>{result.selected_crop}</strong>
+          </span>
+        </div>
+      )}
+      {result.crop_mismatch_warning && (
+        <Notice tone="warning">
+          <strong>{t("cropMismatchWarning")}</strong>
+          <p style={{ marginTop: 4 }}>
+            {result.mismatch_message ||
+              `Visual cues match ${result.detected_crop || "another crop"} with ${((result.crop_confidence ?? 0) * 100).toFixed(1)}% evidence. Review advised.`}
+          </p>
+        </Notice>
+      )}
       <p className="result-crop">{result.prediction.crop}</p>
       <h2 className="result-title">{result.prediction.disease}</h2>
       <Notice tone="warning">
@@ -56,6 +72,21 @@ export function PredictionSummary({ result }: { result: PredictionResult }) {
       )}
       <QualityWarnings warnings={result.quality_warnings} />
       <dl className="detail-grid">
+        {result.selected_crop && (
+          <div>
+            <dt>{t("selectedCropLabel")}</dt>
+            <dd>{result.selected_crop}</dd>
+          </div>
+        )}
+        {result.detected_crop && (
+          <div>
+            <dt>{t("detectedCropLabel")}</dt>
+            <dd>
+              {result.detected_crop} (
+              {((result.crop_confidence ?? 0) * 100).toFixed(1)}%)
+            </dd>
+          </div>
+        )}
         <div>
           <dt>{t("modelVersion")}</dt>
           <dd>{result.model_version}</dd>

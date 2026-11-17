@@ -1,0 +1,99 @@
+{
+  "projectIdentity": {
+    "url": "https://lledzrjngfluuswrsumk.supabase.co",
+    "regionsCount": 4,
+    "regions": [
+      {
+        "id": "0242ca91-48ef-4438-8e9e-afc799a5f6d9",
+        "name": "Guntur"
+      },
+      {
+        "id": "18ee7f65-3b23-4962-a1d5-95aaec85f411",
+        "name": "Krishna"
+      },
+      {
+        "id": "68e878c5-550a-4cee-961a-d29881b90b45",
+        "name": "Prakasam"
+      },
+      {
+        "id": "c65b6084-887e-49e5-8b5b-b29892dbb7bc",
+        "name": "Chittoor"
+      }
+    ]
+  },
+  "farmer1Auth": {
+    "userId": "dd6e7a85-2291-47ab-9e33-2800f560b039",
+    "sessionOk": true
+  },
+  "farmer2Auth": {
+    "userId": "145b60c9-c055-41c3-a9f7-e0231f0a2070",
+    "sessionOk": true
+  },
+  "officer1Auth": {
+    "userId": "94dbee18-2504-457b-a284-005bfecabbc8",
+    "sessionOk": true
+  },
+  "officer2Auth": {
+    "userId": "9daaec47-f08a-4032-8d02-7f0479f73cfe",
+    "sessionOk": true
+  },
+  "inferenceExecution": {
+    "status": 200,
+    "prediction": {
+      "crop": "Strawberry",
+      "disease": "healthy",
+      "confidence": 0.884070814624097
+    },
+    "topAlternativesCount": 4
+  },
+  "diagnosisPersistence": {
+    "id": "5e70b9ca-adc6-42ff-9385-56dac12c77e5",
+    "status": "complete",
+    "crop": "Strawberry",
+    "disease": "healthy",
+    "confidence": 0.884070814624097
+  },
+  "farmerHistoryVisibility": null,
+  "reportSubmission": {
+    "reportId": "aa0e9e54-201f-477a-b100-e7176e5906fc",
+    "regionId": "0242ca91-48ef-4438-8e9e-afc799a5f6d9"
+  },
+  "officerQueueVisibility": {
+    "visibleInQueue": true,
+    "reportId": "aa0e9e54-201f-477a-b100-e7176e5906fc",
+    "status": "pending",
+    "crop": "Strawberry",
+    "disease": "healthy",
+    "version": 1
+  },
+  "officerVerificationDecision": {
+    "newStatus": "verified",
+    "newVersion": 2
+  },
+  "auditLogVerified": {
+    "count": 1,
+    "action": "report.review",
+    "actorId": "94dbee18-2504-457b-a284-005bfecabbc8",
+    "details": {
+      "to": "verified",
+      "from": "pending",
+      "notes": "Scientific assessment: verified Early Blight (Alternaria solani). Apply copper oxychloride spray (2.5g/L) at 7-day intervals."
+    }
+  },
+  "farmerIsolationVerified": {
+    "f2DiagDenied": true,
+    "f2ReportDenied": true,
+    "f2StorageDenied": true,
+    "storageErrorCode": "Object not found"
+  },
+  "crossRegionOfficerIsolationVerified": {
+    "o2ReadDenied": true,
+    "o2ReviewDenied": true,
+    "reviewErrorCode": "Forbidden"
+  },
+  "storagePrivacyVerified": {
+    "anonStorageDenied": true,
+    "signedUrlGenerated": true,
+    "signedUrlTtl": 60
+  }
+}

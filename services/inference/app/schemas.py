@@ -43,3 +43,8 @@ class PredictionResponse(BaseModel):
     review_recommended: bool
     abstained: bool
     uncertainty_note: str = 'Model confidence is not proven accuracy. Unknown-image detection has not been validated.'
+    selected_crop: str | None = None
+    crop_mismatch_warning: bool = False
+    crop_confidence: float | None = None
+    detected_crop: str | None = None
+    mismatch_message: str | None = None
