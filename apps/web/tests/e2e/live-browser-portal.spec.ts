@@ -47,7 +47,7 @@ test.describe("PhytoX Live Real-Browser End-to-End Workflow", () => {
   const runId = Date.now();
   const farmerEmail = `live.farmer.${runId}@phytox-verify.test`;
   const officerEmail = `live.officer.${runId}@phytox-verify.test`;
-  const testPassword = "PhytoX_BrowserLive_2026!";
+  const testSecret = `Ephemeral_${runId}_${Math.random().toString(36).slice(2)}!`;
 
   let farmerId = "";
   let officerId = "";
@@ -56,7 +56,7 @@ test.describe("PhytoX Live Real-Browser End-to-End Workflow", () => {
     // Provision unique Farmer for this run
     const { data: fUser, error: fErr } = await adminClient.auth.admin.createUser({
       email: farmerEmail,
-      password: testPassword,
+      password: testSecret,
       email_confirm: true,
       user_metadata: { display_name: "Live Farmer Ramesh" },
     });
@@ -66,7 +66,7 @@ test.describe("PhytoX Live Real-Browser End-to-End Workflow", () => {
     // Provision unique Officer for this run
     const { data: oUser, error: oErr } = await adminClient.auth.admin.createUser({
       email: officerEmail,
-      password: testPassword,
+      password: testSecret,
       email_confirm: true,
       user_metadata: { display_name: "Dr. Rao (Guntur Officer)" },
     });
@@ -117,7 +117,7 @@ test.describe("PhytoX Live Real-Browser End-to-End Workflow", () => {
     await expect(page.locator("h1")).toContainText(/Sign in|Log in/i, { timeout: 15000 });
 
     await page.locator('input[type="email"]').fill(farmerEmail);
-    await page.locator('input[type="password"]').fill(testPassword);
+    await page.locator('input[type="password"]').fill(testSecret);
     await page.locator('button[type="submit"], button.button.full').click();
 
     // Should redirect to /farmer
@@ -170,7 +170,7 @@ test.describe("PhytoX Live Real-Browser End-to-End Workflow", () => {
     await expect(page.locator("h1")).toContainText(/Sign in|Log in/i, { timeout: 15000 });
 
     await page.locator('input[type="email"]').fill(officerEmail);
-    await page.locator('input[type="password"]').fill(testPassword);
+    await page.locator('input[type="password"]').fill(testSecret);
     await page.locator('button[type="submit"], button.button.full').click();
 
     // Should redirect to /officer
