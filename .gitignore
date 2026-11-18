@@ -13,6 +13,7 @@ services/inference/models/*
 !services/inference/models/README.md
 !services/inference/models/manifest.example.json
 !services/inference/models/supplied.manifest.json
+!services/inference/models/supplied.onnx
 
 # Large original Meshy and Blender source assets
 /3d models/

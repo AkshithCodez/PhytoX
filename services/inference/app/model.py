@@ -153,8 +153,23 @@ class ModelAdapter:
         self.manifest = None
         self.reason = 'model_unconfigured'
         path, manifest_path = os.getenv('MODEL_PATH'), os.getenv('MODEL_MANIFEST')
-        if not path or not manifest_path:
+
+        # Robust path resolution: if env vars are unset or point to non-existent paths, look in models directory
+        default_dir = Path(__file__).resolve().parent.parent / 'models'
+        if not path or not Path(path).exists():
+            candidate = default_dir / 'supplied.onnx'
+            if candidate.exists():
+                path = str(candidate)
+
+        if not manifest_path or not Path(manifest_path).exists():
+            candidate_m = default_dir / 'supplied.manifest.json'
+            if candidate_m.exists():
+                manifest_path = str(candidate_m)
+
+        if not path or not manifest_path or not Path(path).exists() or not Path(manifest_path).exists():
+            self.reason = f'model_file_not_found: path={path}, manifest={manifest_path}'
             return
+
         try:
             with open(manifest_path, encoding='utf-8') as file:
                 self.manifest = Manifest.model_validate(json.load(file))
@@ -180,7 +195,9 @@ class ModelAdapter:
                 # Only trusted operator-supplied TorchScript artifacts, never user uploads.
                 self.model = torch.jit.load(path, map_location='cpu').eval()
             self.reason = 'ready'
-        except Exception:
+        except Exception as exc:
+            import logging
+            logging.getLogger("uvicorn.error").error("Model loading failed: %s: %s", type(exc).__name__, exc)
             self.model = None
             self.reason = 'model_load_failed'
 
