@@ -23,3 +23,6 @@ services/inference/models/*
 
 # 8K model backups
 apps/web/public/models/*_backup.glb
+
+# Local scratch and tooling
+scratch/

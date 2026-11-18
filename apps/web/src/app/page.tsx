@@ -6,15 +6,12 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import {
   ArrowRight,
-  ArrowUpRight,
   ChevronRight,
   Minus,
   Plus,
-  Sprout,
 } from "lucide-react";
 import { EcoTechScene } from "@/components/eco-tech-scene";
 import { CinematicBackground } from "@/components/cinematic-background";
-import { RegionalIntelligenceViz } from "@/components/regional-intelligence-viz";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -38,42 +35,30 @@ function smoothRange(
 const REGIONAL_INTELLIGENCE_PILLARS = [
   {
     id: "01",
-    title: "FARMER DISEASE REPORTS",
+    title: "Regional Reports",
     detail:
-      "Mobile leaf photos screened via FastAPI ONNX service, capturing foliar symptoms with calibrated uncertainty metrics and native language guidance.",
+      "Field leaf photographs screened via MobileNetV2 ONNX, capturing foliar symptoms with calibrated uncertainty metrics and native language guidance.",
   },
   {
     id: "02",
-    title: "GEOGRAPHIC DISEASE PATTERNS",
+    title: "Disease Patterns",
     detail:
-      "Spatial clustering aggregates anonymized farmer submissions across districts to distinguish isolated field blights from spreading vectors.",
+      "Spatial clustering aggregates anonymized observations across agricultural zones to distinguish isolated field blights from spreading vectors.",
   },
   {
     id: "03",
-    title: "POTENTIAL HOTSPOT MONITORING",
+    title: "Officer Review",
     detail:
-      "Anomaly detection triggers early warnings when localized report density for rusts, blights, or viruses exceeds historical seasonal baselines.",
-  },
-  {
-    id: "04",
-    title: "AGRICULTURAL OFFICER REVIEW",
-    detail:
-      "Designated agricultural officers inspect flagged clusters, verify diagnostic confidence scores, and formulate targeted regional advisories.",
-  },
-  {
-    id: "05",
-    title: "REGIONAL CROP-HEALTH INSIGHTS",
-    detail:
-      "Longitudinal pathology data informs regional planting cycles, input distribution, and proactive crop disease management.",
+      "Designated agricultural officers inspect verified clusters, evaluate diagnostic confidence scores, and formulate targeted regional advisories.",
   },
 ] as const;
 
 const SPATIAL_HOTSPOTS = [
   {
     id: "hs-1",
-    desktopStyle: { left: "19%", top: "67%" },
+    desktopStyle: { left: "20%", top: "67%" },
     mobileStyle: { left: "12%", top: "62%" },
-    kicker: "DIAGNOSTIC ENGINE",
+    kicker: "AI DIAGNOSIS",
     label: "38 CROP DISEASE CLASSES",
     detail:
       "MobileNetV2 ONNX screening across foliar blights, rusts, spots, and healthy leaves.",
@@ -82,19 +67,19 @@ const SPATIAL_HOTSPOTS = [
     id: "hs-2",
     desktopStyle: { left: "48%", top: "76%" },
     mobileStyle: { left: "34%", top: "74%" },
-    kicker: "FIELD ACCESSIBILITY",
+    kicker: "MULTILINGUAL ACCESS",
     label: "ENGLISH · తెలుగు · हिन्दी",
     detail:
-      "Multilingual screening workflows and preventive recommendations built for regional growers.",
+      "Screening workflows and preventive recommendations localized for regional growers.",
   },
   {
     id: "hs-3",
     desktopStyle: { left: "74%", top: "66%" },
     mobileStyle: { left: "58%", top: "84%" },
-    kicker: "DATA GOVERNANCE",
-    label: "PRIVATE RLS STORAGE",
+    kicker: "SECURE REPORTING",
+    label: "PRIVATE POSTGRESQL RLS",
     detail:
-      "Signed private uploads and farmer-controlled report sharing under PostgreSQL RLS.",
+      "Signed private uploads and farmer-controlled report sharing with strict row-level security.",
   },
 ] as const;
 
@@ -105,7 +90,6 @@ export default function Home() {
   const headerRef = useRef<HTMLElement>(null);
 
   const scene1Ref = useRef<HTMLDivElement>(null);
-  const reticleRef = useRef<HTMLDivElement>(null);
   const scene2Ref = useRef<HTMLDivElement>(null);
   const scene3Ref = useRef<HTMLDivElement>(null);
   const scene4Ref = useRef<HTMLDivElement>(null);
@@ -152,7 +136,6 @@ export default function Home() {
       };
 
       updateLayer(scene1Ref.current, s1, (1 - s1) * -18);
-      updateLayer(reticleRef.current, s1, 0);
       updateLayer(scene2Ref.current, s2, (1 - s2) * 16);
       updateLayer(scene3Ref.current, s3, (1 - s3) * 16);
       updateLayer(scene4Ref.current, s4, p > 0.75 ? (1 - s4) * -24 : (1 - s4) * 16);
@@ -339,27 +322,16 @@ export default function Home() {
               ref={scene1Ref}
               className="absolute inset-0 max-w-[1440px] mx-auto px-6 md:px-12 pt-[88px] pb-8 md:pb-10 flex flex-col justify-between"
             >
-              {/* Reference-matched HUD reticle with verified PhytoX capability badge */}
-              <div
-                ref={reticleRef}
-                className="hidden md:flex flex-col justify-end items-end pointer-events-none absolute top-[48%] left-[52%] -translate-x-1/2 -translate-y-1/2 w-[164px] h-[164px] border border-white/20 bg-white/[0.015]"
-                aria-hidden="true"
-              >
-                <div className="translate-x-[52%] translate-y-2 flex flex-col items-start gap-1">
-                  <span className="px-1.5 py-0.5 rounded-[2px] bg-white/90 text-[#0a0f12] font-mono text-[8px] font-semibold tracking-[0.1em] uppercase whitespace-nowrap shadow-sm">
-                    [PHYTOX AI]
-                  </span>
-                  <span className="font-mono text-[8px] tracking-[0.12em] uppercase text-white/60 leading-tight whitespace-nowrap [text-shadow:0_1px_6px_rgba(0,0,0,0.9)]">
-                    DIAGNOSTIC ENGINE
-                    <br />
-                    38 CROP DISEASE CLASSES
+              {/* Left Hero Group: Badge + Headline + Subtext + CTAs */}
+              <div className="relative z-10 max-w-[520px] mt-[4vh] md:mt-[6vh] flex flex-col gap-4">
+                <div className="inline-flex items-center gap-2 self-start px-2.5 py-1 rounded-[3px] bg-white/[0.08] border border-white/15 backdrop-blur-sm">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#a33715]" />
+                  <span className="font-mono text-[9px] tracking-[0.14em] uppercase text-[#b5a295]">
+                    AI Crop Pathology &amp; Regional Intelligence
                   </span>
                 </div>
-              </div>
 
-              {/* Top-Left Hero Headline & Action */}
-              <div className="relative z-10 max-w-[500px] mt-[3vh] md:mt-[4vh]">
-                <h1 className="text-[clamp(2.1rem,3.4vw,3.15rem)] font-medium leading-[1.08] tracking-[-0.035em] text-[#f5f7f4] [text-shadow:0_2px_20px_rgba(8,16,10,0.6)]">
+                <h1 className="text-[clamp(2.2rem,3.6vw,3.3rem)] font-medium leading-[1.08] tracking-[-0.035em] text-[#f5f7f4] [text-shadow:0_2px_24px_rgba(8,16,10,0.7)]">
                   Where Crop Science
                   <br />
                   and Field Intelligence
@@ -367,10 +339,14 @@ export default function Home() {
                   Meet
                 </h1>
 
-                <div className="mt-6 flex flex-wrap items-center gap-4">
+                <p className="text-[13.5px] md:text-[14.5px] leading-[1.5] text-[#dce2da] max-w-[430px] [text-shadow:0_1px_12px_rgba(8,14,9,0.8)]">
+                  Identify possible crop diseases from leaf photographs and turn field observations into actionable regional intelligence.
+                </p>
+
+                <div className="pt-2 flex flex-wrap items-center gap-4">
                   <Link
                     href="/farmer"
-                    className="inline-flex items-center gap-3 pl-4 pr-2.5 py-2 rounded-[5px] border border-white/25 bg-[#0a0f12]/55 hover:border-white/55 hover:bg-[#0a0f12]/75 transition-all text-[11px] font-mono tracking-[0.12em] uppercase text-white group"
+                    className="inline-flex items-center gap-3 pl-4 pr-2.5 py-2.5 rounded-[5px] border border-white/25 bg-[#0a0f12]/70 hover:border-white/55 hover:bg-[#0a0f12]/90 transition-all text-[11px] font-mono tracking-[0.12em] uppercase text-white group shadow-lg"
                   >
                     <span>Open Scanner</span>
                     <span className="w-[20px] h-[20px] rounded-[3px] bg-[#a33715] text-white inline-flex items-center justify-center transition-transform group-hover:translate-x-0.5">
@@ -379,7 +355,7 @@ export default function Home() {
                   </Link>
                   <Link
                     href="/auth/login?portal=officer"
-                    className="inline-flex items-center gap-1.5 px-2 py-2 text-[11px] font-mono tracking-[0.12em] uppercase text-white/75 hover:text-white transition-colors"
+                    className="inline-flex items-center gap-1.5 px-3 py-2.5 text-[11px] font-mono tracking-[0.12em] uppercase text-white/80 hover:text-white transition-colors"
                   >
                     <span>Officer Portal</span>
                     <ChevronRight size={13} />
@@ -387,18 +363,11 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* Bottom Strip */}
-              <div className="relative z-10 flex items-end justify-between gap-6">
-                <p className="max-w-[330px] text-[12.5px] md:text-[13px] leading-[1.45] text-[#dce2da] [text-shadow:0_1px_12px_rgba(8,14,9,0.75)]">
-                  Screen leaf symptoms early.
-                  <br />
-                  AI-assisted crop disease intelligence paired with multilingual
-                  farmer guidance and verified regional tracking.
-                </p>
-
-                <div className="hidden sm:flex items-center gap-2 text-[10.5px] font-mono tracking-[0.08em] text-white/80">
-                  <span className="w-3.5 h-5 rounded-full border border-white/40 inline-flex justify-center pt-1">
-                    <span className="w-0.5 h-1 rounded-full bg-[#b7f36b]" />
+              {/* Bottom Strip: minimal scroll indicator pinned right */}
+              <div className="relative z-10 flex items-end justify-end pb-2">
+                <div className="hidden sm:flex items-center gap-2 text-[10.5px] font-mono tracking-[0.08em] text-white/70">
+                  <span className="w-3.5 h-5 rounded-full border border-white/30 inline-flex justify-center pt-1">
+                    <span className="w-0.5 h-1 rounded-full bg-white/80" />
                   </span>
                   <span>Scroll to discover</span>
                 </div>
@@ -496,40 +465,36 @@ export default function Home() {
                         aria-expanded={isOpen}
                         aria-controls={`${spot.id}-detail`}
                         aria-label={`${spot.label}: ${spot.detail}`}
-                        className="w-11 h-11 sm:w-7 sm:h-7 rounded-full text-white inline-flex items-center justify-center shrink-0 focus-visible:outline-2 focus-visible:outline-white cursor-pointer group"
+                        className={`group h-7 px-2.5 rounded-full backdrop-blur-md border text-white inline-flex items-center gap-1.5 shrink-0 transition-all cursor-pointer focus-visible:outline-2 focus-visible:outline-white ${
+                          isOpen
+                            ? "bg-[#a33715] border-[#a33715] shadow-lg shadow-[#a33715]/25"
+                            : "bg-[#0a0f12]/75 border-white/20 hover:border-white/50 hover:bg-[#20292d]/85 shadow-md"
+                        }`}
                       >
-                        <svg
-                          className="w-6 h-6 p-[6.5px] rounded-full bg-[#a33715] text-white shadow-lg transition-transform duration-200 group-hover:scale-110"
-                          width="10"
-                          height="10"
-                          viewBox="0 0 10 10"
-                          fill="currentColor"
-                          aria-hidden="true"
-                        >
-                          <circle cx="5" cy="1.8" r="1.15" />
-                          <circle cx="8.2" cy="5" r="1.15" />
-                          <circle cx="5" cy="8.2" r="1.15" />
-                          <circle cx="1.8" cy="5" r="1.15" />
-                        </svg>
+                        <span
+                          className={`w-1.5 h-1.5 rounded-full transition-colors ${
+                            isOpen ? "bg-white" : "bg-[#b5a295]"
+                          }`}
+                        />
+                        <span className="font-mono text-[9px] tracking-[0.1em] uppercase font-medium">
+                          {spot.kicker}
+                        </span>
                       </button>
 
                       <div
                         className={`text-left ${
                           index === 2
-                            ? "max-lg:absolute max-lg:right-full max-lg:mr-2 max-lg:w-[130px]"
-                            : "max-sm:max-w-[140px]"
+                            ? "max-lg:absolute max-lg:right-full max-lg:mr-2 max-lg:w-[150px]"
+                            : "max-sm:max-w-[150px]"
                         }`}
                       >
-                        <div className="font-mono text-[8.5px] sm:text-[9.5px] tracking-[0.11em] uppercase leading-tight text-white [text-shadow:0_1px_10px_rgba(8,14,9,0.95),0_0_3px_rgba(8,14,9,0.9)]">
-                          <span className="block text-[#a33715]">
-                            {spot.kicker}
-                          </span>
-                          <span>{spot.label}</span>
+                        <div className="font-mono text-[9px] sm:text-[9.5px] tracking-[0.08em] uppercase leading-tight text-white/90 [text-shadow:0_1px_8px_rgba(0,0,0,0.9)]">
+                          {spot.label}
                         </div>
                         {isOpen && (
                           <div
                             id={`${spot.id}-detail`}
-                            className="mt-1.5 max-w-[220px] px-2.5 py-1.5 rounded-[6px] bg-[#0a0f12]/90 backdrop-blur-md border border-white/20 text-[11px] leading-snug text-white shadow-xl animate-in fade-in"
+                            className="mt-1.5 max-w-[240px] px-3 py-2 rounded-[8px] bg-[#0a0f12]/90 backdrop-blur-md border border-white/20 text-[11.5px] leading-relaxed text-[#f5f7f4] shadow-2xl animate-in fade-in"
                           >
                             {spot.detail}
                           </div>
@@ -546,42 +511,75 @@ export default function Home() {
             {/* ------------------------------------------------------------- */}
             <div
               ref={scene4Ref}
-              className="absolute inset-0 max-w-[1440px] mx-auto px-5 sm:px-6 md:px-12 pt-[78px] sm:pt-[86px] pb-4 sm:pb-8 overflow-y-auto lg:overflow-visible flex flex-col justify-between pointer-events-none"
+              className="absolute inset-0 max-w-[1440px] mx-auto px-5 sm:px-6 md:px-12 pt-[78px] sm:pt-[86px] pb-6 sm:pb-10 overflow-y-auto lg:overflow-visible flex flex-col justify-between pointer-events-none"
               style={{ opacity: 0, visibility: "hidden" }}
             >
               {/* Top-Left Section Title */}
-              <div className="flex items-start gap-2.5 max-w-[480px] pt-1 sm:pt-2">
-                <ArrowUpRight
-                  size={16}
-                  className="text-[#b7f36b] mt-1 shrink-0"
-                  aria-hidden="true"
-                />
-                <div>
-                  <span className="font-mono text-[9px] tracking-[0.14em] uppercase text-[#b7f36b] block">
-                    REGIONAL SURVEILLANCE ARCHITECTURE
-                  </span>
-                  <h2 className="text-[clamp(1.2rem,2.2vw,1.75rem)] font-normal leading-[1.2] tracking-[-0.02em] text-white [text-shadow:0_2px_18px_rgba(12,18,13,0.8)] mt-0.5">
-                    From Individual Observations to
-                    <br />
-                    Regional Crop Intelligence
-                  </h2>
-                  <p className="mt-1 text-[12px] sm:text-[13px] leading-relaxed text-[#dbe2da] [text-shadow:0_1px_10px_rgba(12,18,13,0.8)]">
-                    Farmer-submitted observations help reveal crop-health
-                    patterns and support agricultural officer review.
-                  </p>
-                </div>
+              <div className="max-w-[540px] pt-1 sm:pt-2">
+                <span className="font-mono text-[9px] tracking-[0.14em] uppercase text-[#b5a295] block">
+                  REGIONAL SURVEILLANCE ARCHITECTURE
+                </span>
+                <h2 className="text-[clamp(1.3rem,2.4vw,1.9rem)] font-normal leading-[1.2] tracking-[-0.02em] text-white [text-shadow:0_2px_18px_rgba(12,18,13,0.9)] mt-1">
+                  Regional Crop Intelligence
+                </h2>
+                <p className="mt-1.5 text-[13px] leading-relaxed text-[#dbe2da] [text-shadow:0_1px_12px_rgba(12,18,13,0.9)]">
+                  Connecting farmer observations with regional disease monitoring and expert review.
+                </p>
               </div>
 
-              {/* Mid-Viewport: Left Regional Intelligence Map + Right 5 Accordion Strips */}
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-8 items-center my-auto py-2">
-                {/* Left: Interactive Regional Intelligence Map / Node Viz */}
-                <div className="lg:col-span-5 flex lg:justify-end pointer-events-auto">
-                  <RegionalIntelligenceViz />
+              {/* Lower Section: Telemetry Summary Card on Left + 3 Pillars on Right */}
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-end mt-auto pb-4">
+                {/* Left: Compact, translucent summary telemetry card */}
+                <div className="lg:col-span-5 pointer-events-auto">
+                  <div className="max-w-[380px] rounded-[10px] bg-[#20292d]/60 backdrop-blur-md border border-white/10 p-4 text-white shadow-xl">
+                    <div className="flex items-center justify-between pb-2.5 border-b border-white/10">
+                      <span className="font-mono text-[9px] tracking-[0.12em] uppercase text-[#b5a295]">
+                        SURVEILLANCE TELEMETRY
+                      </span>
+                      <span className="font-mono text-[8.5px] px-2 py-0.5 rounded bg-white/10 text-white/80">
+                        14 CROPS MONITORED
+                      </span>
+                    </div>
+                    <div className="mt-3 grid grid-cols-2 gap-3 text-left">
+                      <div>
+                        <div className="font-mono text-[8.5px] uppercase tracking-wider text-white/50">
+                          Model Engine
+                        </div>
+                        <div className="text-[12px] font-medium text-white/90 mt-0.5">
+                          MobileNetV2 ONNX
+                        </div>
+                      </div>
+                      <div>
+                        <div className="font-mono text-[8.5px] uppercase tracking-wider text-white/50">
+                          Disease Classes
+                        </div>
+                        <div className="text-[12px] font-medium text-white/90 mt-0.5">
+                          38 Calibrated
+                        </div>
+                      </div>
+                      <div>
+                        <div className="font-mono text-[8.5px] uppercase tracking-wider text-white/50">
+                          Data Governance
+                        </div>
+                        <div className="text-[12px] font-medium text-white/90 mt-0.5">
+                          PostgreSQL RLS
+                        </div>
+                      </div>
+                      <div>
+                        <div className="font-mono text-[8.5px] uppercase tracking-wider text-white/50">
+                          Advisory Review
+                        </div>
+                        <div className="text-[12px] font-medium text-white/90 mt-0.5">
+                          Officer Verified
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
-                {/* Right: 5 Stacked Interactive Capability Strips */}
-                <div className="lg:col-span-7 flex lg:justify-start pointer-events-auto">
-                  <div className="w-full max-w-[450px] rounded-[10px] overflow-hidden border border-white/15 bg-[#1b221c]/75 backdrop-blur-md divide-y divide-white/15 shadow-xl">
+                {/* Right: 3 Clean, translucent feature rows */}
+                <div className="lg:col-span-7 flex lg:justify-end pointer-events-auto">
+                  <div className="w-full max-w-[460px] rounded-[10px] overflow-hidden border border-white/10 bg-[#20292d]/60 backdrop-blur-md divide-y divide-white/10 shadow-xl">
                     {REGIONAL_INTELLIGENCE_PILLARS.map((pillar) => {
                       const expanded = openPillar === pillar.id;
                       return (
@@ -594,18 +592,18 @@ export default function Home() {
                               )
                             }
                             aria-expanded={expanded}
-                            className="w-full px-3.5 sm:px-4 py-2.5 sm:py-3 flex items-center justify-between gap-3 text-left hover:bg-white/10 transition-colors focus-visible:outline-2 focus-visible:outline-white cursor-pointer"
+                            className="w-full px-4 py-3 flex items-center justify-between gap-3 text-left hover:bg-white/5 transition-colors focus-visible:outline-2 focus-visible:outline-white cursor-pointer"
                           >
-                            <span className="flex items-center gap-3 font-mono text-[9.5px] sm:text-[10.5px] tracking-[0.08em] text-white">
-                              <span className="text-[#b7f36b]">{pillar.id}</span>
-                              <span>{pillar.title}</span>
+                            <span className="flex items-center gap-3 font-mono text-[10.5px] tracking-[0.08em] text-white">
+                              <span className="text-[#a33715] font-semibold">{pillar.id}</span>
+                              <span className="uppercase">{pillar.title}</span>
                             </span>
-                            <span className="text-white/80 shrink-0">
+                            <span className="text-white/70 shrink-0">
                               {expanded ? <Minus size={13} /> : <Plus size={13} />}
                             </span>
                           </button>
                           {expanded && (
-                            <p className="px-3.5 sm:px-4 pb-2.5 sm:pb-3 pl-9 sm:pl-10 text-[12px] leading-relaxed text-[#e2e8e0]">
+                            <p className="px-4 pb-3 pl-10 text-[12px] leading-relaxed text-[#dce2da]">
                               {pillar.detail}
                             </p>
                           )}
@@ -616,7 +614,7 @@ export default function Home() {
                 </div>
               </div>
 
-              <div className="h-2 sm:h-4" aria-hidden="true" />
+              <div className="h-1 sm:h-2" aria-hidden="true" />
             </div>
           </div>
         </div>

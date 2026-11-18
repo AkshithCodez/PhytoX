@@ -1533,7 +1533,9 @@
 }
 
 .auth-aside {
-  background: linear-gradient(135deg, rgba(32, 41, 45, 0.94), rgba(10, 15, 18, 0.96)), url('/images/officer-fields.jpg') center/cover no-repeat;
+  background: linear-gradient(135deg, rgba(10, 15, 18, 0.72) 0%, rgba(32, 41, 45, 0.58) 50%, rgba(10, 15, 18, 0.85) 100%),
+              url('/images/auth-field.webp') center/cover no-repeat,
+              url('/images/auth-field.jpg') center/cover no-repeat;
   color: var(--ink);
   padding: 55px 9%;
   display: flex;
@@ -1552,8 +1554,9 @@
 }
 
 .auth-aside .auth-headline {
-  margin-top: 120px;
-  font-size: 48px;
+  margin-top: 100px;
+  font-size: 44px;
+  line-height: 1.15;
   position: relative;
   z-index: 1;
 }
@@ -1566,12 +1569,25 @@
   z-index: 1;
 }
 
+.auth-aside .auth-sub {
+  color: #d6ded5;
+  font-size: 14px;
+  line-height: 1.6;
+  margin-top: 18px;
+  position: relative;
+  z-index: 1;
+  max-width: 440px;
+}
+
+.auth-portal-sub {
+  color: var(--net-worker);
+  font-size: 13px;
+  margin-top: 2px;
+  margin-bottom: 18px;
+}
+
 .auth-aside .botanical {
-  height: 60%;
-  top: auto;
-  bottom: -80px;
-  opacity: 0.25;
-  left: 15%;
+  display: none;
 }
 
 .auth-content {

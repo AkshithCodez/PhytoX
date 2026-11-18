@@ -47,9 +47,13 @@ export function Scanner() {
     [busy, setBusy] = useState(false);
   const upload = useRef<HTMLInputElement>(null),
     camera = useRef<HTMLInputElement>(null);
-  const readiness = useResource<{ database: boolean; model: boolean }>(
-    "/api/status",
-  );
+  const readiness = useResource<{
+    database: boolean;
+    model: boolean;
+    configured?: boolean;
+    status?: string;
+    reason?: string;
+  }>("/api/status");
 
   useEffect(() => {
     if (!file) {
@@ -136,9 +140,27 @@ export function Scanner() {
           </div>
           {error && <Notice tone="error">{error}</Notice>}
           {readiness.data && !readiness.data.model && (
-            <Notice tone="warning">
-              <strong>{t("unavailable")}</strong>
-              <p>{t("modelNote")}</p>
+            <Notice tone={readiness.data.configured ? "info" : "warning"}>
+              <strong>
+                {readiness.data.status === "unconfigured"
+                  ? t("unavailable")
+                  : "Crop analysis service is connecting"}
+              </strong>
+              <p>
+                {readiness.data.status === "unconfigured"
+                  ? t("modelNote")
+                  : "The AI inference engine is spinning up from idle. You can select your crop and prepare your leaf image below."}
+              </p>
+              {readiness.data.configured && (
+                <button
+                  type="button"
+                  className="button secondary"
+                  style={{ marginTop: 10, fontSize: 12, padding: "5px 12px" }}
+                  onClick={() => readiness.reload()}
+                >
+                  Check status again
+                </button>
+              )}
             </Notice>
           )}
           {busy ? (
@@ -311,7 +333,7 @@ export function Scanner() {
                 <button
                   className="button"
                   type="button"
-                  disabled={!file || !readiness.data?.model}
+                  disabled={!file}
                   onClick={analyze}
                 >
                   <ScanLine size={18} />
@@ -322,10 +344,23 @@ export function Scanner() {
           )}
         </section>
         <aside className="panel tips-panel">
-          <div className="tip-visual">
-            <Botanical />
+          <div className="tip-photo-wrap relative rounded-[10px] overflow-hidden border border-white/10 shadow-lg">
+            <picture>
+              <source srcSet="/images/guidance-leaf-sample.webp" type="image/webp" />
+              <img
+                src="/images/guidance-leaf-sample.jpg"
+                alt="Field diagnostics macro photograph of a tomato leaf showing symptomatic disease lesions in natural light"
+                className="w-full aspect-[16/9] object-cover"
+                loading="lazy"
+                width={480}
+                height={270}
+              />
+            </picture>
+            <div className="absolute bottom-2 left-2 px-2 py-0.5 rounded-[4px] bg-[#0A0F12]/80 backdrop-blur-sm text-[9.5px] font-mono tracking-wider uppercase text-[#B5A295] border border-white/10">
+              FIELD REFERENCE SAMPLE
+            </div>
           </div>
-          <h2 style={{ fontSize: 21, marginTop: 24 }}>{t("photoTips")}</h2>
+          <h2 style={{ fontSize: 20, marginTop: 22, fontWeight: 600 }}>{t("photoTips")}</h2>
           <ol className="tips">
             {(["tip1", "tip2", "tip3"] as const).map((key, i) => (
               <li key={key}>
@@ -334,7 +369,7 @@ export function Scanner() {
               </li>
             ))}
           </ol>
-          <Notice>{t("review")}</Notice>
+          <Notice tone="info">{t("review")}</Notice>
         </aside>
       </div>
     </>

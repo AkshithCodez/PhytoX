@@ -1,5 +1,8 @@
+import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { AuthForm } from "@/features/auth/auth-form";
+import { Loading } from "@/components/ui";
+
 export default async function Page({
   params,
 }: {
@@ -13,5 +16,9 @@ export default async function Page({
     mode !== "update-password"
   )
     notFound();
-  return <AuthForm mode={mode} />;
+  return (
+    <Suspense fallback={<Loading />}>
+      <AuthForm mode={mode} />
+    </Suspense>
+  );
 }
