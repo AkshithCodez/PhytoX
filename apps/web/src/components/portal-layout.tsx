@@ -22,6 +22,19 @@ export async function PortalLayout({
     const { profile } = await context(officer);
     name = profile.display_name;
   } catch (error) {
+    if (error instanceof ApiError && error.code === "account_suspended")
+      return (
+        <main className="setup">
+          <h1>Account Suspended</h1>
+          <p>
+            Your account access has been suspended by agricultural administration.
+            Please contact your regional extension office or platform administrator.
+          </p>
+          <a className="button" href="/auth/login">
+            Sign In with Another Account
+          </a>
+        </main>
+      );
     if (error instanceof ApiError && error.status === 403)
       return (
         <main className="setup">

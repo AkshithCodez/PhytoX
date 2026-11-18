@@ -76,9 +76,9 @@ export async function analyze(request: Request) {
       "This analysis failed. Start a new analysis to retry.",
     );
   const path = `${user.id}/${d.id}/image`;
-  const upload = await db.storage
+  const upload = await trusted.storage
     .from("crop-images")
-    .upload(path, bytes, { contentType: "image/jpeg", upsert: false });
+    .upload(path, bytes, { contentType: "image/jpeg", upsert: true });
   if (upload.error) {
     // A duplicate in-flight request must not finalize or delete another request's upload.
     throw new ApiError(
@@ -139,7 +139,7 @@ export async function analyze(request: Request) {
       p_result: null,
       p_error: failure.code,
     });
-    await db.storage.from("crop-images").remove([path]);
+    await trusted.storage.from("crop-images").remove([path]);
     throw failure;
   }
 }

@@ -13,26 +13,26 @@ export interface SupportedCrop {
   id: string;
   name: string;
   aliases: string[];
-  emoji: string;
+  image: string;
   te: string;
   hi: string;
 }
 
 export const SUPPORTED_CROPS: SupportedCrop[] = [
-  { id: "Tomato", name: "Tomato", aliases: ["tamata", "tamatar"], emoji: "🍅", te: "టమోటా", hi: "टमाटर" },
-  { id: "Potato", name: "Potato", aliases: ["aloo", "bangaladumpa"], emoji: "🥔", te: "బంగాళాదుంప", hi: "आलू" },
-  { id: "Corn (maize)", name: "Corn (Maize)", aliases: ["corn", "maize", "makka", "mokkajonna"], emoji: "🌽", te: "మొక్కజొన్న", hi: "मक्का" },
-  { id: "Pepper, bell", name: "Bell Pepper", aliases: ["capsicum", "pepper", "mirapa", "shimla mirch"], emoji: "🫑", te: "బెల్ పెప్పర్", hi: "शिमला मिर्च" },
-  { id: "Grape", name: "Grape", aliases: ["grapes", "draksha", "angoor"], emoji: "🍇", te: "ద్రాక్ష", hi: "अंगूर" },
-  { id: "Apple", name: "Apple", aliases: ["seb"], emoji: "🍎", te: "ఆపిల్", hi: "सेब" },
-  { id: "Orange", name: "Orange", aliases: ["citrus", "narinja", "santara"], emoji: "🍊", te: "నారింజ", hi: "संतरा" },
-  { id: "Strawberry", name: "Strawberry", aliases: ["strawberries"], emoji: "🍓", te: "స్ట్రాబెర్రీ", hi: "स्ट्रॉबेरी" },
-  { id: "Peach", name: "Peach", aliases: ["aadu"], emoji: "🍑", te: "పీచ్", hi: "आड़ू" },
-  { id: "Cherry (including sour)", name: "Cherry", aliases: ["cherries"], emoji: "🍒", te: "చెర్రీ", hi: "चेरी" },
-  { id: "Blueberry", name: "Blueberry", aliases: ["blueberries"], emoji: "🫐", te: "బ్లూబెర్రీ", hi: "नीलबदरी" },
-  { id: "Squash", name: "Squash", aliases: ["gummadi", "kaddu"], emoji: "🎃", te: "స్క్వాష్", hi: "चप्पन कद्दू" },
-  { id: "Soybean", name: "Soybean", aliases: ["soya", "soy"], emoji: "🌱", te: "సోయాబీన్", hi: "सोयाबीन" },
-  { id: "Raspberry", name: "Raspberry", aliases: ["rasbhari"], emoji: "🫐", te: "రాస్ప్బెర్రీ", hi: "रसभरी" },
+  { id: "Tomato", name: "Tomato", aliases: ["tamata", "tamatar"], image: "/images/crops/tomato.webp", te: "టమోటా", hi: "टमाटर" },
+  { id: "Potato", name: "Potato", aliases: ["aloo", "bangaladumpa"], image: "/images/crops/potato.webp", te: "బంగాళాదుంప", hi: "आलू" },
+  { id: "Corn (maize)", name: "Corn (Maize)", aliases: ["corn", "maize", "makka", "mokkajonna"], image: "/images/crops/corn.webp", te: "మొక్కజొన్న", hi: "मक्का" },
+  { id: "Pepper, bell", name: "Bell Pepper", aliases: ["capsicum", "pepper", "mirapa", "shimla mirch"], image: "/images/crops/bell-pepper.webp", te: "బెల్ పెప్పర్", hi: "शिमला मिर्च" },
+  { id: "Grape", name: "Grape", aliases: ["grapes", "draksha", "angoor"], image: "/images/crops/grape.webp", te: "ద్రాక్ష", hi: "अंगूर" },
+  { id: "Apple", name: "Apple", aliases: ["seb"], image: "/images/crops/apple.webp", te: "ఆపిల్", hi: "सेब" },
+  { id: "Orange", name: "Orange", aliases: ["citrus", "narinja", "santara"], image: "/images/crops/orange.webp", te: "నారింజ", hi: "संतरा" },
+  { id: "Strawberry", name: "Strawberry", aliases: ["strawberries"], image: "/images/crops/strawberry.webp", te: "స్ట్రాబెర్రీ", hi: "स्ट्रॉबेरी" },
+  { id: "Peach", name: "Peach", aliases: ["aadu"], image: "/images/crops/peach.webp", te: "పీచ్", hi: "आड़ू" },
+  { id: "Cherry (including sour)", name: "Cherry", aliases: ["cherries"], image: "/images/crops/cherry.webp", te: "చెర్రీ", hi: "चेरी" },
+  { id: "Blueberry", name: "Blueberry", aliases: ["blueberries"], image: "/images/crops/blueberry.webp", te: "బ్లూబెర్రీ", hi: "नीलबदरी" },
+  { id: "Squash", name: "Squash", aliases: ["gummadi", "kaddu"], image: "/images/crops/squash.webp", te: "స్క్వాష్", hi: "चप्पन कद्दू" },
+  { id: "Soybean", name: "Soybean", aliases: ["soya", "soy"], image: "/images/crops/soybean.webp", te: "సోయాబీన్", hi: "सोयाबीन" },
+  { id: "Raspberry", name: "Raspberry", aliases: ["rasbhari"], image: "/images/crops/raspberry.webp", te: "రాస్ప్బెర్రీ", hi: "रसभरी" },
 ];
 
 export function Scanner() {
@@ -44,7 +44,8 @@ export function Scanner() {
     [selectedCrop, setSelectedCrop] = useState<string>("Tomato"),
     [cropSearch, setCropSearch] = useState(""),
     [error, setError] = useState(""),
-    [busy, setBusy] = useState(false);
+    [busy, setBusy] = useState(false),
+    [analysisStepText, setAnalysisStepText] = useState("Validating leaf resolution and orientation...");
   const upload = useRef<HTMLInputElement>(null),
     camera = useRef<HTMLInputElement>(null);
   const readiness = useResource<{
@@ -106,6 +107,14 @@ export function Scanner() {
     if (!file) return;
     setBusy(true);
     setError("");
+    setAnalysisStepText("Validating leaf resolution and orientation...");
+
+    const stepTimers = [
+      setTimeout(() => setAnalysisStepText(`Scanning ${selectedCropDisplay} foliar tissue for pathological lesions...`), 700),
+      setTimeout(() => setAnalysisStepText("Evaluating 38 disease classes against crop priors..."), 1800),
+      setTimeout(() => setAnalysisStepText("Finalizing diagnostic assessment and treatment guidance..."), 3200),
+    ];
+
     const body = new FormData();
     body.set("file", file);
     body.set("request_key", crypto.randomUUID());
@@ -117,8 +126,10 @@ export function Scanner() {
         method: "POST",
         body,
       });
+      stepTimers.forEach(clearTimeout);
       router.push(`/farmer/diagnosis/${result.id}`);
     } catch {
+      stepTimers.forEach(clearTimeout);
       setError(t("serviceError"));
       setBusy(false);
       readiness.reload();
@@ -165,15 +176,31 @@ export function Scanner() {
           )}
           {busy ? (
             <div className="progress-panel" role="status" aria-live="polite">
-              <motion.div
-                className="botanical-wrap"
-                animate={reduced ? {} : { opacity: [0.6, 1, 0.6] }}
-                transition={{ repeat: Infinity, duration: 2.5 }}
-              >
-                <Botanical />
-              </motion.div>
-              <h3>{t("analyzing")}</h3>
-              <p>{t("processing")}</p>
+              <div className="relative w-full max-w-sm mx-auto overflow-hidden rounded-[10px] border border-[#565A5C] bg-black shadow-2xl mb-4 aspect-[4/3]">
+                {preview ? (
+                  <img
+                    src={preview}
+                    alt="Uploaded crop leaf under analysis"
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-[#20292D] text-[#B5A295]">
+                    Leaf Image
+                  </div>
+                )}
+                {/* Active Scanning Beam */}
+                <motion.div
+                  className="absolute left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[#A33715] to-transparent shadow-[0_0_12px_#A33715]"
+                  animate={reduced ? {} : { top: ["0%", "100%", "0%"] }}
+                  transition={{ repeat: Infinity, duration: 2.2, ease: "linear" }}
+                />
+                <div className="absolute top-2 left-2 px-2 py-0.5 rounded bg-black/75 backdrop-blur-sm text-[11px] font-mono text-white flex items-center gap-1.5 border border-white/10">
+                  <span className="w-2 h-2 rounded-full bg-[#A33715] animate-pulse" />
+                  <span>ANALYZING FOLIAR SYMPTOMS</span>
+                </div>
+              </div>
+              <h3 className="text-[17px] font-semibold text-white mb-1">{t("analyzing")}</h3>
+              <p className="text-[13px] text-[#B5A295]">{analysisStepText || t("processing")}</p>
             </div>
           ) : (
             <>
@@ -212,7 +239,9 @@ export function Scanner() {
                   role="radio"
                   aria-checked={selectedCrop === "not_sure"}
                 >
-                  <span className="crop-card-emoji">🔍</span>
+                  <div className="crop-card-img-placeholder flex items-center justify-center w-7 h-7 rounded-[6px] bg-[#394045] text-[#B5A295]">
+                    <Search size={15} />
+                  </div>
                   <span className="crop-card-title">{t("notSureCrop")}</span>
                   <span className="crop-card-sub">All 14 crops</span>
                 </button>
@@ -233,7 +262,12 @@ export function Scanner() {
                       role="radio"
                       aria-checked={isSelected}
                     >
-                      <span className="crop-card-emoji">{crop.emoji}</span>
+                      <img
+                        src={crop.image}
+                        alt={crop.name}
+                        className="crop-card-img w-7 h-7 rounded-[6px] object-cover border border-[#565A5C]/60"
+                        loading="lazy"
+                      />
                       <span className="crop-card-title">{localizedTitle}</span>
                       {language !== "en" && (
                         <span className="crop-card-sub">{crop.name}</span>

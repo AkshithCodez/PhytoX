@@ -38,6 +38,18 @@ export async function context(officer = false) {
       "profile_unavailable",
       "Your profile could not be loaded.",
     );
+  if (profile.status === "suspended")
+    throw new ApiError(
+      403,
+      "account_suspended",
+      "Your account has been suspended by agricultural administration.",
+    );
+  if (profile.status === "deactivated")
+    throw new ApiError(
+      403,
+      "account_deactivated",
+      "Your account is inactive.",
+    );
   if (officer && !["officer", "admin"].includes(profile.role))
     throw new ApiError(
       403,

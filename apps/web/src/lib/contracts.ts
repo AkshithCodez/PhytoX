@@ -75,7 +75,54 @@ export type Profile = {
   role: "farmer" | "officer" | "admin";
   language: "en" | "te" | "hi";
   region_id: string | null;
+  status?: "invited" | "pending_activation" | "active" | "suspended" | "deactivated";
+  invited_by?: string | null;
+  phone?: string | null;
+  village?: string | null;
+  farm_size?: string | null;
+  created_at?: string;
+  email?: string;
 };
+
+export const inviteFarmerSchema = z.object({
+  display_name: z.string().trim().min(2).max(100),
+  email: z.string().email(),
+  region_id: z.string().uuid(),
+  village: z.string().trim().max(100).optional().default(""),
+  language: z.enum(["en", "te", "hi"]).optional().default("en"),
+  phone: z.string().trim().max(20).optional().default(""),
+  farm_size: z.string().trim().max(50).optional().default(""),
+});
+
+export const updateFarmerStatusSchema = z.object({
+  status: z.enum(["active", "suspended", "deactivated"]),
+  notes: z.string().max(1000).optional(),
+});
+
+export const monitoredPlotSchema = z.object({
+  name: z.string().trim().min(1).max(100),
+  crop: z.string().trim().min(1).max(50),
+  region_id: z.string().uuid(),
+  planting_date: z.string().optional(),
+  plot_area: z.string().trim().max(50).optional().default(""),
+});
+
+export const observationSchema = z.object({
+  plot_id: z.string().uuid(),
+  observation_date: z.string().optional(),
+  symptoms: z.array(z.string()).default([]),
+  notes: z.string().max(2000).optional().default(""),
+  image_path: z.string().min(1),
+  ai_assessment: z.record(z.string(), z.any()).optional().default({}),
+});
+
+export const advisorySchema = z.object({
+  signal_id: z.string().uuid().optional().nullable(),
+  plot_id: z.string().uuid(),
+  farmer_id: z.string().uuid(),
+  advisory_text: z.string().trim().min(5).max(3000),
+  recommendations: z.array(z.string()).optional().default([]),
+});
 export type Region = {
   id: string;
   name: string;

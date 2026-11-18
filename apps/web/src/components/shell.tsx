@@ -13,10 +13,12 @@ import {
   ScanLine,
   Settings,
   ShieldCheck,
+  Users,
 } from "lucide-react";
 import { Brand } from "./ui";
 import { LanguageGate, LanguageSelect, useLocale } from "./locale";
 import { browserClient } from "@/lib/supabase/browser";
+import { PwaInstaller } from "./pwa-installer";
 import { useState } from "react";
 export function Shell({
   children,
@@ -37,14 +39,16 @@ export function Shell({
   const links = officer
     ? ([
         ["/officer", "Overview", LayoutDashboard],
-        ["/officer/map", "Disease map", Map],
+        ["/officer/farmers", "Farmer Management", Users],
+        ["/officer/monitoring", "Crop Monitoring", Activity],
         ["/officer/reports", "Reports", ClipboardList],
-        ["/officer/monitoring", "Monitoring", Activity],
+        ["/officer/map", "Disease map", Map],
         ["/officer/analytics", "Analytics", ChartNoAxesCombined],
         ["/officer/settings", "Settings", Settings],
       ] as const)
     : ([
         ["/farmer", t("diagnosis"), ScanLine],
+        ["/farmer/monitoring", "Crop Monitoring", Activity],
         ["/farmer/history", t("history"), History],
         ["/farmer/insights", t("insights"), Map],
         ["/farmer/settings", t("settings"), Settings],
@@ -108,6 +112,7 @@ export function Shell({
           </header>
           {error && <p role="alert">{error}</p>}
           <main id="main" className="workspace-main">
+            {!officer && <PwaInstaller />}
             {children}
           </main>
         </div>

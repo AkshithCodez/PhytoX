@@ -74,10 +74,12 @@ test.describe("PhytoX Live Real-Browser End-to-End Workflow", () => {
     officerId = oUser.user.id;
 
     // Promote officer in user_profiles and assign to Guntur
+    const { data: gunturRegion } = await adminClient.from("regions").select("id").eq("name", "Guntur").single();
+    const gunturId = gunturRegion?.id || GUNTUR_REGION_ID;
     await adminClient.from("user_profiles").update({ role: "officer" }).eq("id", officerId);
     await adminClient.from("officer_regions").insert({
       officer_id: officerId,
-      region_id: GUNTUR_REGION_ID,
+      region_id: gunturId,
     });
   });
 

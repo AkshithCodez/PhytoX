@@ -111,17 +111,17 @@ export function AuthForm({ mode }: { mode: Mode }) {
   return (
     <LanguageGate>
       <main id="main" className="auth-page">
-        <aside className="auth-aside">
+        <aside className={`auth-aside ${isOfficer ? "officer-auth" : "farmer-auth"}`}>
           <Brand />
           <h2 className="auth-headline">
             {isOfficer
-              ? "Regional intelligence. Verified crop protection."
-              : t("authIntro")}
+              ? "Regional Crop Intelligence."
+              : "Your Fields. Better Informed."}
           </h2>
           <p className="auth-sub">
             {isOfficer
-              ? "Secure access for authorized agricultural officers to review field observations, track disease clusters, and coordinate regional advisories."
-              : t("aiNote")}
+              ? "Secure access to agricultural observations, regional monitoring and field verification."
+              : "Scan crops, monitor their health and keep your field records together."}
           </p>
 
           <div className="auth-aside-badge mt-auto pt-8 flex items-center gap-2 text-[11px] font-mono tracking-widest uppercase text-[#B5A295]/80">
@@ -129,7 +129,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
             <span>
               {isOfficer
                 ? "DISTRICT SURVEILLANCE & RLS AUDIT VERIFIED"
-                : "END-TO-END VERIFIED AGRICULTURAL INTELLIGENCE"}
+                : "FARMER DIAGNOSTICS & FIELD MONITORING"}
             </span>
           </div>
         </aside>
@@ -143,7 +143,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
           >
             <p className="eyebrow">
               {isOfficer
-                ? "REGIONAL AGRICULTURAL INTELLIGENCE"
+                ? "OFFICER ACCESS"
                 : "YOUR FIELD. A CLEARER PICTURE."}
             </p>
             <h1>{title}</h1>
@@ -243,12 +243,15 @@ export function AuthForm({ mode }: { mode: Mode }) {
                       <Link href="/auth/register">{t("register")}</Link>
                     </span>
                   ) : (
-                    <span className="text-[12px] text-[#B5A295]">
-                      Need farmer access?{" "}
-                      <Link href="/auth/login?portal=farmer">
-                        Farmer Portal
-                      </Link>
-                    </span>
+                    <div className="flex flex-col gap-1.5 text-[11.5px] text-[#B5A295]">
+                      <span>Authorized officer accounts are provisioned by regional administration.</span>
+                      <span>
+                        Need farmer access?{" "}
+                        <Link href="/auth/login?portal=farmer" className="text-white hover:underline">
+                          Farmer Portal
+                        </Link>
+                      </span>
+                    </div>
                   )}
                 </>
               ) : (
