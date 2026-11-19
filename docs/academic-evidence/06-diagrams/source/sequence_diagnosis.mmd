@@ -1,0 +1,21 @@
+sequenceDiagram
+    autonumber
+    actor Farmer as Farmer (PWA)
+    participant Web as Next.js BFF (Vercel)
+    participant DB as PostgreSQL (Supabase)
+    participant Storage as Supabase Storage
+    participant ML as FastAPI / ONNX (Render)
+
+    Farmer->>Web: Selects Crop & Uploads Leaf Image
+    Note over Web: Verify Origin & Auth Session
+    Web->>DB: RPC reserve_diagnosis(request_key)
+    DB-->>Web: Reservation ID (status: processing)
+    Web->>Storage: Upload Image to crop-images/<owner>/<id>/image
+    Storage-->>Web: 200 OK
+    Web->>ML: POST /predict (Multipart Image, Crop Name, API Key)
+    Note over ML: Decode, Resize 224x224, Normalize<br/>Run ONNX Inference (MobileNetV2)<br/>Crop-Conditioning & Mismatch Check
+    ML-->>Web: 200 OK (Prediction, Top-5, Conditioned Probabilities, Warnings)
+    Web->>DB: RPC finish_diagnosis(id, owner, result)
+    DB->>DB: Verify Image Exists in Storage<br/>Update status: complete<br/>Insert top-5 into diagnosis_predictions
+    DB-->>Web: 200 OK
+    Web-->>Farmer: Render Diagnosis, Confidence Score & Multilingual Guidance

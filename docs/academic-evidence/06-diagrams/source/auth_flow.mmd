@@ -1,0 +1,27 @@
+flowchart TD
+    Start(["User Lands on PhytoX"]) --> CheckLang{"Language Selected?"}
+    CheckLang -- No --> LangPage["Language Selector Screen<br/>(/language)"]
+    LangPage -->|Selects en / te / hi| SetCookie["Set Language Cookie & Redirect"]
+    CheckLang -- Yes --> PickPortal{"Select Target Portal"}
+
+    PickPortal -- Farmer --> FarmerAuth["Farmer Workspace Sign In<br/>(/auth/login)"]
+    PickPortal -- Officer --> OfficerAuth["Officer Portal Sign In<br/>(/auth/login?portal=officer)"]
+
+    FarmerAuth --> SubmitFarmer["Enter Credentials"]
+    OfficerAuth --> SubmitOfficer["Enter Officer Credentials"]
+
+    SubmitFarmer --> SupaAuth["Supabase Auth Verification"]
+    SubmitOfficer --> SupaAuth
+
+    SupaAuth --> QueryProfile["Fetch user_profiles Role"]
+    QueryProfile --> CheckRole{"Evaluate Role"}
+
+    CheckRole -- "role == 'farmer'" --> CheckPortalA{"Accessed /officer?"}
+    CheckPortalA -- Yes --> DenyRedirectA["Access Denied -> Redirect to /farmer"]
+    CheckPortalA -- No --> FarmerHome["Farmer Workspace Dashboard<br/>(/farmer)"]
+
+    CheckRole -- "role == 'officer'" --> CheckPortalB{"Accessed /farmer?"}
+    CheckPortalB -- Yes --> AllowOfficerToFarmer["Permitted (Administrative Inspection)"]
+    CheckPortalB -- No --> OfficerHome["Officer Command Dashboard<br/>(/officer)"]
+
+    CheckRole -- "Account Suspended" --> ShowSuspended["Account Suspended Error<br/>Contact Local Agricultural Officer"]

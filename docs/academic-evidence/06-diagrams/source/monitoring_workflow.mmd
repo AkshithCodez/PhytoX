@@ -1,0 +1,24 @@
+flowchart TD
+    PlotReg["Farmer Registers Monitored Plot<br/>(monitored_plots)"] --> SchedGen["Initialize Twice-Weekly Schedule<br/>(Monday & Thursday Cadence)"]
+    SchedGen --> Notif["Push Observation Due Notice to Farmer PWA"]
+
+    Notif --> UploadObs["Farmer Submits Field Leaf Photo & Symptoms<br/>(crop_observations)"]
+    UploadObs --> AIProcess["Run Automatic In-Surveillance Assessment"]
+    AIProcess --> SaveObs["Persist Observation Time-Series"]
+
+    SaveObs --> RuleCheck{"Evaluate Outbreak Heuristic Rules"}
+
+    RuleCheck -- ">= 2 Consecutive Identical Diseases on Plot" --> TrigRecurrent["Trigger: recurrent_disease Signal<br/>(Severity: Medium)"]
+    RuleCheck -- ">= 3 Plots with Same Disease in Region over 7 Days" --> TrigCluster["Trigger: regional_cluster Signal<br/>(Severity: High)"]
+    RuleCheck -- "Normal / Healthy" --> CloseObs["Surveillance Logged (Status: Submitted)"]
+
+    TrigRecurrent --> SignalQueue["Surveillance Alert Queue (monitoring_signals)"]
+    TrigCluster --> SignalQueue
+
+    SignalQueue --> OfficerReview["Agricultural Officer Reviews Signal Dashboard"]
+    OfficerReview --> Decision{"Officer Action"}
+
+    Decision -- Dismiss --> DismissSignal["Status: dismissed"]
+    Decision -- Issue Advisory --> CreateAdv["Draft Field Advisory & Chemical Guidelines<br/>(monitoring_advisories)"]
+
+    CreateAdv --> PushAdv["Deliver Advisory to Farmer PWA Inbox & SMS/Call"]

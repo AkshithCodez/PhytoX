@@ -27,3 +27,4 @@ apps/web/public/models/*_backup.glb
 
 # Local scratch and tooling
 scratch/
+Dataset/

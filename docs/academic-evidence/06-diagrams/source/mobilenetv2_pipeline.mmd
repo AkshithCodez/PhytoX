@@ -1,0 +1,39 @@
+flowchart TD
+    RawImage["Raw Leaf Image Upload<br/>(JPEG / PNG, <= 10MB)"] --> Decode["PIL Image Decode & RGB Conversion"]
+    Decode --> QualityCheck{"Image Pre-Flight Checks"}
+
+    QualityCheck -- "Resolution < 64px or Invalid Magic Bytes" --> ErrReject["Reject Upload (HTTP 400 Bad Request)"]
+    QualityCheck -- "Resolution < 224px" --> WarnRes["Add Warning: image_low_resolution"]
+    QualityCheck -- "Mean Brightness < 0.15" --> WarnUnder["Add Warning: image_underexposed"]
+    QualityCheck -- "Mean Brightness > 0.85" --> WarnOver["Add Warning: image_overexposed"]
+
+    WarnRes --> Preprocess["Resize to 224x224 (Bilinear)"]
+    WarnUnder --> Preprocess
+    WarnOver --> Preprocess
+    QualityCheck -- "Acceptable Exposure & Size" --> Preprocess
+
+    Preprocess --> Normalize["Float Scaling / 255.0<br/>ImageNet Mean: [0.485, 0.456, 0.406]<br/>ImageNet Std: [0.229, 0.224, 0.225]"]
+    Normalize --> Transpose["NCHW Transposition<br/>Tensor Shape: [1, 3, 224, 224] (float32)"]
+
+    Transpose --> ONNX["ONNX Runtime Engine<br/>(MobileNetV2, supplied.onnx)"]
+    ONNX --> Logits["Raw Logits Output Vector<br/>[1, 38] (float32)"]
+
+    Logits --> GlobalSoftmax["Compute Global Softmax Probabilities"]
+    GlobalSoftmax --> ConditionLogic{"Farmer Selected Specific Crop?"}
+
+    ConditionLogic -- "Crop Selected" --> PriorFilter["Calculate Crop Evidence Ratio Ek<br/>Filter to Classes for Selected Crop"]
+    ConditionLogic -- "Not Sure / Multi-Crop" --> Unconditioned["Use Global Top Prediction"]
+
+    PriorFilter --> MismatchCheck{"Evidence Ratio Ek >= 0.25?"}
+    MismatchCheck -- Yes --> NormProb["Normalize Conditioned Probabilities"]
+    MismatchCheck -- No --> FlagMismatch["Flag: crop_mismatch_warning = True<br/>Selected crop does not match leaf symptoms"]
+
+    NormProb --> UncertaintyCheck{"Top Prob >= 0.70 & Margin >= 0.15?"}
+    Unconditioned --> UncertaintyCheck
+
+    UncertaintyCheck -- Yes --> DefPred["Definitive Suggestion Formatted"]
+    UncertaintyCheck -- No --> MarkUncert["Mark: is_uncertain = True"]
+    FlagMismatch --> MarkUncert
+
+    DefPred --> ReturnJSON["Return JSON Contract v1.0<br/>(Prediction, Top-5 Alternatives, Guidance)"]
+    MarkUncert --> ReturnJSON

@@ -1,0 +1,38 @@
+flowchart TD
+    Farmer(("Farmer"))
+    Officer(("Agricultural Officer"))
+
+    subgraph Processes ["PhytoX Subsystem Processes"]
+        P1["1.0<br/>Authentication & Role Verification"]
+        P2["2.0<br/>Image Preprocessing & Quality Validation"]
+        P3["3.0<br/>Crop-Conditioned AI Inference Engine"]
+        P4["4.0<br/>Diagnosis Persistence & Storage Reservation"]
+        P5["5.0<br/>Longitudinal Surveillance & Outbreak Rules"]
+        P6["6.0<br/>Officer Report Review & Advisory Dispatch"]
+    end
+
+    subgraph DataStores ["Database Stores"]
+        D1[("D1: User Profiles & Regions")]
+        D2[("D2: Diagnoses & Image Storage")]
+        D3[("D3: Monitored Plots & Observations")]
+        D4[("D4: Signals & Field Advisories")]
+    end
+
+    Farmer -->|Credentials & Language| P1
+    Officer -->|Officer Credentials| P1
+    P1 <-->|Verify Role & District| D1
+
+    Farmer -->|Leaf Image & Crop Choice| P2
+    P2 -->|Validated 224x224 RGB Array| P3
+    P3 -->|Raw Probabilities & Mismatch Checks| P4
+    P4 <-->|Reserve & Finalize Record| D2
+    P4 -->|Diagnosis & Guidance| Farmer
+
+    Farmer -->|Bi-Weekly Observations| P5
+    P5 <-->|Plots & Observations| D3
+    P5 -->|Recurrent / Regional Clusters| D4
+    D4 -->|Alerts & Outbreak Signals| P6
+
+    Officer -->|Review Notes & Advisory Guidance| P6
+    P6 <-->|Update Status & Dispatch| D4
+    P6 -->|Advisory Guidance Delivery| Farmer

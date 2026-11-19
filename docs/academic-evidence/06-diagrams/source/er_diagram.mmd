@@ -1,0 +1,110 @@
+erDiagram
+    regions ||--o{ user_profiles : "assigned_to"
+    regions ||--o{ officer_regions : "governs"
+    user_profiles ||--o{ officer_regions : "assigned"
+    user_profiles ||--o{ diagnoses : "owns"
+    diagnoses ||--o{ diagnosis_predictions : "contains"
+    user_profiles ||--o{ farmer_reports : "submits"
+    diagnoses ||--|| farmer_reports : "promoted_to"
+    regions ||--o{ farmer_reports : "located_in"
+    farmer_reports ||--o{ officer_reviews : "evaluated_by"
+    user_profiles ||--o{ officer_reviews : "reviews"
+    user_profiles ||--o{ monitored_plots : "registers"
+    regions ||--o{ monitored_plots : "contains"
+    monitored_plots ||--|| monitoring_schedules : "scheduled_at"
+    monitored_plots ||--o{ crop_observations : "monitored_via"
+    user_profiles ||--o{ crop_observations : "records"
+    monitored_plots ||--o{ monitoring_signals : "triggers"
+    regions ||--o{ monitoring_signals : "regional_scope"
+    monitoring_signals ||--o{ monitoring_advisories : "generates"
+    monitored_plots ||--o{ monitoring_advisories : "targeted_at"
+    user_profiles ||--o{ monitoring_advisories : "dispatched_by"
+    user_profiles ||--o{ monitoring_advisories : "received_by"
+    user_profiles ||--o{ audit_logs : "performed_by"
+    regions ||--o{ audit_logs : "applies_to"
+
+    regions {
+        uuid id PK
+        text name UK
+        float latitude
+        float longitude
+    }
+    user_profiles {
+        uuid id PK,FK
+        text display_name
+        text role
+        text language
+        uuid region_id FK
+        text status
+        uuid invited_by FK
+        text phone
+        text village
+        text farm_size
+        timestamptz created_at
+    }
+    diagnoses {
+        uuid id PK
+        uuid owner_id FK
+        uuid request_key
+        text status
+        text image_path
+        jsonb result
+        text error_code
+        timestamptz created_at
+    }
+    farmer_reports {
+        uuid id PK
+        uuid owner_id FK
+        uuid diagnosis_id FK,UK
+        uuid region_id FK
+        text crop
+        text disease
+        text notes
+        timestamptz consent_at
+        text status
+        integer version
+        timestamptz created_at
+    }
+    monitored_plots {
+        uuid id PK
+        uuid owner_id FK
+        text name
+        text crop
+        uuid region_id FK
+        date planting_date
+        text status
+        timestamptz created_at
+    }
+    crop_observations {
+        uuid id PK
+        uuid plot_id FK
+        uuid owner_id FK
+        date observation_date
+        text image_path
+        text[] symptoms
+        text notes
+        jsonb ai_assessment
+        text status
+        timestamptz created_at
+    }
+    monitoring_signals {
+        uuid id PK
+        uuid plot_id FK
+        uuid region_id FK
+        text signal_type
+        text severity
+        text suspected_condition
+        text notes
+        text status
+        timestamptz created_at
+    }
+    monitoring_advisories {
+        uuid id PK
+        uuid signal_id FK
+        uuid plot_id FK
+        uuid officer_id FK
+        uuid farmer_id FK
+        text advisory_text
+        jsonb recommendations
+        timestamptz created_at
+    }

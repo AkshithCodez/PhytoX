@@ -255,7 +255,7 @@ export default function Home() {
 
           <nav
             aria-label="Primary navigation"
-            className="hidden md:flex items-center gap-7 text-[11px] font-mono tracking-[0.12em] uppercase"
+            className="hidden lg:flex items-center gap-7 text-[11px] font-mono tracking-[0.12em] uppercase"
           >
             <a href="#vision" className="hdr-nav-link">
               Vision
@@ -323,7 +323,7 @@ export default function Home() {
               className="absolute inset-0 max-w-[1440px] mx-auto px-6 md:px-12 pt-[88px] pb-8 md:pb-10 flex flex-col justify-between"
             >
               {/* Left Hero Group: Badge + Headline + Subtext + CTAs */}
-              <div className="relative z-10 max-w-[520px] mt-[4vh] md:mt-[6vh] flex flex-col gap-4">
+              <div className="relative z-10 max-w-[520px] mt-[1.5vh] sm:mt-[3vh] md:mt-[6vh] flex flex-col gap-3 sm:gap-4">
                 <div className="inline-flex items-center gap-2 self-start px-2.5 py-1 rounded-[3px] bg-white/[0.08] border border-white/15 backdrop-blur-sm">
                   <span className="w-1.5 h-1.5 rounded-full bg-[#a33715]" />
                   <span className="font-mono text-[9px] tracking-[0.14em] uppercase text-[#b5a295]">
@@ -331,7 +331,7 @@ export default function Home() {
                   </span>
                 </div>
 
-                <h1 className="text-[clamp(2.2rem,3.6vw,3.3rem)] font-medium leading-[1.08] tracking-[-0.035em] text-[#f5f7f4] [text-shadow:0_2px_24px_rgba(8,16,10,0.7)]">
+                <h1 className="text-[clamp(1.75rem,5vw,3.3rem)] font-medium leading-[1.08] tracking-[-0.035em] text-[#f5f7f4] [text-shadow:0_2px_24px_rgba(8,16,10,0.7)]">
                   Where Crop Science
                   <br />
                   and Field Intelligence
@@ -339,7 +339,7 @@ export default function Home() {
                   Meet
                 </h1>
 
-                <p className="text-[13.5px] md:text-[14.5px] leading-[1.5] text-[#dce2da] max-w-[430px] [text-shadow:0_1px_12px_rgba(8,14,9,0.8)]">
+                <p className="text-[12.5px] sm:text-[13.5px] md:text-[14.5px] leading-[1.5] text-[#dce2da] max-w-[430px] [text-shadow:0_1px_12px_rgba(8,14,9,0.8)]">
                   Identify possible crop diseases from leaf photographs and turn field observations into actionable regional intelligence.
                 </p>
 

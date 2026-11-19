@@ -1,0 +1,16 @@
+flowchart LR
+    Farmer(("Farmer"))
+    Officer(("Agricultural Officer"))
+    System["0.0<br/>PhytoX Platform<br/>(AI Crop Diagnosis & Surveillance)"]
+    AdminStore[("PhytoX Central Database")]
+
+    Farmer -->|Leaf Photo & Selected Crop| System
+    System -->|Diagnosis, Confidence & Disease Guidance| Farmer
+    Farmer -->|Bi-Weekly Plot Observations & Reports| System
+    System -->|Officer Advisories & Early Warning Alerts| Farmer
+
+    Officer -->|Jurisdiction Credentials & Status Toggles| System
+    System -->|Regional Disease Map, Report Queue & Outbreak Signals| Officer
+    Officer -->|Verified Diagnosis & Targeted Advisories| System
+
+    System <-->|Secure CRUD & RLS Queries| AdminStore

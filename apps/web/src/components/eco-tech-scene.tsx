@@ -222,10 +222,21 @@ function EcoWorld({
     const mx = smoothedMouse.current.x;
     const my = smoothedMouse.current.y;
 
-    const portraitBoost =
-      camera instanceof THREE.PerspectiveCamera && camera.aspect < 1
-        ? (1 - camera.aspect) * 3.15
-        : 0;
+    // Continuous responsive factor: 0.0 on wide desktop (aspect >= 1.35), 1.0 on mobile portrait (aspect <= 0.60)
+    const aspect = camera instanceof THREE.PerspectiveCamera ? camera.aspect : 1;
+    const mobileT = THREE.MathUtils.clamp((1.35 - aspect) / (1.35 - 0.58), 0, 1);
+
+    // Responsive Island Framing Parameters:
+    // Desktop: rock at X=0.32, Y=-0.16, scale=1.0 (relative to 1.82 base)
+    // Mobile Portrait: rock centered at X=0.0, lowered to Y=-1.65 (cleanly below hero text & buttons), scaled to 0.62x
+    const heroRockX = THREE.MathUtils.lerp(0.32, 0.0, mobileT);
+    const heroRockY = THREE.MathUtils.lerp(-0.16, -1.65, mobileT);
+    const heroRockScale = THREE.MathUtils.lerp(1.0, 0.62, mobileT);
+
+    // Camera distance & look target dynamically fitted to aspect ratio to guarantee zero clipping on mobile
+    const baseCamZ = THREE.MathUtils.lerp(6.15, 7.30, mobileT);
+    const baseLookX = THREE.MathUtils.lerp(0.14, 0.0, mobileT);
+    const baseLookY = THREE.MathUtils.lerp(0.02, -0.15, mobileT);
 
     // Mist Atmosphere & HDRI Environment Intensity
     const mistBlend = THREE.MathUtils.smoothstep(p, 0.22, 0.38);
@@ -262,8 +273,8 @@ function EcoWorld({
       const idleRot = reducedMotion ? 0 : Math.sin(time * 0.25) * 0.035;
 
       mainRockRef.current.position.set(
-        THREE.MathUtils.lerp(0.32, 0.0, visionT),
-        THREE.MathUtils.lerp(-0.16, 0.04, visionT) + idleFloat + exitT * 3.2,
+        THREE.MathUtils.lerp(heroRockX, 0.0, visionT),
+        THREE.MathUtils.lerp(heroRockY, 0.04, visionT) + idleFloat + exitT * 3.2,
         THREE.MathUtils.lerp(0.0, 0.25, visionT) - exitT * 1.6
       );
       mainRockRef.current.rotation.set(
@@ -271,31 +282,33 @@ function EcoWorld({
         visionT * 0.42 + idleRot,
         visionT * 0.04
       );
-      const baseScale = THREE.MathUtils.lerp(1.0, 1.14, visionT) * (1 - exitT * 0.3);
+      const baseScale =
+        THREE.MathUtils.lerp(heroRockScale, 1.14 * Math.min(1.0, heroRockScale * 1.1), visionT) *
+        (1 - exitT * 0.3);
       mainRockRef.current.scale.setScalar(baseScale);
     }
 
     // Camera Flight Path (Scene 1 Hero -> Scene 2 Vision)
     let camX = 0;
     let camY = 0.06;
-    let camZ = 6.15 + portraitBoost;
-    let lookX = 0.14;
-    let lookY = 0.02;
+    let camZ = baseCamZ;
+    let lookX = baseLookX;
+    let lookY = baseLookY;
     let lookZ = 0;
 
     if (p < 0.24) {
       const t = THREE.MathUtils.smoothstep(p, 0.0, 0.20);
       camX = 0.0;
       camY = THREE.MathUtils.lerp(0.06, 0.04, t);
-      camZ = THREE.MathUtils.lerp(6.15, 5.45, t) + portraitBoost;
-      lookX = THREE.MathUtils.lerp(0.14, 0.0, t);
-      lookY = 0.02;
+      camZ = THREE.MathUtils.lerp(baseCamZ, baseCamZ - 0.70, t);
+      lookX = THREE.MathUtils.lerp(baseLookX, 0.0, t);
+      lookY = THREE.MathUtils.lerp(baseLookY, 0.02, t);
       lookZ = 0;
     } else {
       const t = THREE.MathUtils.smoothstep(p, 0.24, 0.40);
       camX = THREE.MathUtils.lerp(0.0, -0.25, t);
       camY = THREE.MathUtils.lerp(0.04, -0.4, t);
-      camZ = THREE.MathUtils.lerp(5.45, 5.85 + portraitBoost, t);
+      camZ = THREE.MathUtils.lerp(baseCamZ - 0.70, baseCamZ - 0.30, t);
       lookX = THREE.MathUtils.lerp(0.0, 0.15, t);
       lookY = 0.02;
       lookZ = 0;
@@ -419,10 +432,10 @@ export function EcoTechScene(props: EcoTechSceneProps) {
         aria-hidden="true"
       >
         <div
-          className="absolute inset-0 opacity-35 bg-cover bg-center"
-          style={{ backgroundImage: "url('/images/farmers-leaf.jpg')" }}
+          className="absolute inset-0 opacity-45 bg-contain bg-no-repeat bg-center"
+          style={{ backgroundImage: "url('/images/hero-island-fallback.png')" }}
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-[#0a0f12]/85 via-[#0a0f12]/60 to-[#0a0f12]" />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#0a0f12]/80 via-transparent to-[#0a0f12]" />
       </div>
     );
   }

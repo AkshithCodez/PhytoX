@@ -1,0 +1,40 @@
+flowchart TD
+    subgraph ClientLayer ["Client Presentation Layer"]
+        FarmerApp["Farmer Progressive Web App (PWA)<br/>(Mobile Viewport / Camera / Scanner)"]
+        OfficerApp["Agricultural Officer Portal<br/>(Desktop Command / Leaflet GIS / Recharts)"]
+    end
+
+    subgraph EdgeLayer ["Edge & CDN Layer (Vercel)"]
+        EdgeDNS["Global Anycast DNS / CDN"]
+        NextRouting["Next.js 16 App Router & Edge Middleware"]
+    end
+
+    subgraph BackendLayer ["Backend-for-Frontend (BFF) Layer"]
+        AuthGating["Supabase Auth Gating (JWT Validation)"]
+        RouteHandlers["Protected API Route Handlers<br/>(/api/diagnoses, /api/officer, /api/monitoring)"]
+    end
+
+    subgraph InferenceLayer ["Machine Learning Inference Service (Render)"]
+        FastAPI["FastAPI Python Microservice (Uvicorn)"]
+        Preprocess["Image Preprocessing & Normalization"]
+        ONNXRuntime["ONNX Runtime Engine (MobileNetV2, 38 Classes)"]
+        CropCondition["Crop-Conditioning Defense & Mismatch Shield"]
+    end
+
+    subgraph PersistenceLayer ["Cloud Persistence Layer (Supabase)"]
+        PostgreSQL[("PostgreSQL 15 Relational DB<br/>(13 Tables with 100% RLS Enforcement)")]
+        SecureStorage[("Private Object Storage<br/>(Bucket: crop-images)")]
+    end
+
+    FarmerApp -->|HTTPS / PWA| EdgeDNS
+    OfficerApp -->|HTTPS / Desktop| EdgeDNS
+    EdgeDNS --> NextRouting
+    NextRouting --> AuthGating
+    AuthGating --> RouteHandlers
+    RouteHandlers -->|Internal API Key| FastAPI
+    FastAPI --> Preprocess
+    Preprocess --> ONNXRuntime
+    ONNXRuntime --> CropCondition
+    CropCondition -->|Diagnosis Result| RouteHandlers
+    RouteHandlers -->|Service Role RPC| PostgreSQL
+    RouteHandlers -->|Private Storage API| SecureStorage
