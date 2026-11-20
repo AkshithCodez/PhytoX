@@ -83,7 +83,23 @@ export function PwaInstaller() {
           </div>
         </div>
 
-        <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
+        <div className="flex items-center gap-2 self-end sm:self-auto shrink-0 flex-wrap">
+          <a
+            href="/downloads/PhytoX.apk"
+            download="PhytoX.apk"
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-[6px] bg-white/10 hover:bg-white/20 text-white text-[12px] font-medium transition-all border border-white/15"
+          >
+            <Download size={13} />
+            <span>Download APK</span>
+          </a>
+          <button
+            type="button"
+            onClick={handleInstallClick}
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-[6px] bg-[#A33715] hover:bg-[#8e2e10] text-white text-[12.5px] font-medium transition-all shadow-md cursor-pointer"
+          >
+            <Smartphone size={14} />
+            <span>Install App</span>
+          </button>
           <button
             type="button"
             onClick={() => setDismissed(true)}
@@ -91,14 +107,6 @@ export function PwaInstaller() {
             aria-label="Dismiss banner"
           >
             <X size={16} />
-          </button>
-          <button
-            type="button"
-            onClick={handleInstallClick}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-[6px] bg-[#A33715] hover:bg-[#8e2e10] text-white text-[12.5px] font-medium transition-all shadow-md cursor-pointer"
-          >
-            <Download size={14} />
-            <span>Install App</span>
           </button>
         </div>
       </div>

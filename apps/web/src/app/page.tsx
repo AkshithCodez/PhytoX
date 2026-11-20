@@ -343,7 +343,7 @@ export default function Home() {
                   Identify possible crop diseases from leaf photographs and turn field observations into actionable regional intelligence.
                 </p>
 
-                <div className="pt-2 flex flex-wrap items-center gap-4">
+                <div className="pt-2 flex flex-wrap items-center gap-3 sm:gap-4">
                   <Link
                     href="/farmer"
                     className="inline-flex items-center gap-3 pl-4 pr-2.5 py-2.5 rounded-[5px] border border-white/25 bg-[#0a0f12]/70 hover:border-white/55 hover:bg-[#0a0f12]/90 transition-all text-[11px] font-mono tracking-[0.12em] uppercase text-white group shadow-lg"
@@ -353,6 +353,13 @@ export default function Home() {
                       <ChevronRight size={13} strokeWidth={2.5} />
                     </span>
                   </Link>
+                  <a
+                    href="/downloads/PhytoX.apk"
+                    download="PhytoX.apk"
+                    className="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-[5px] bg-[#a33715] hover:bg-[#8e2e10] text-white transition-all text-[11px] font-mono tracking-[0.12em] uppercase shadow-lg"
+                  >
+                    <span>Download APK</span>
+                  </a>
                   <Link
                     href="/auth/login?portal=officer"
                     className="inline-flex items-center gap-1.5 px-3 py-2.5 text-[11px] font-mono tracking-[0.12em] uppercase text-white/80 hover:text-white transition-colors"
@@ -742,6 +749,13 @@ export default function Home() {
             <Link href="/farmer" className="text-white/80 hover:text-white transition-colors">
               Farmer Portal
             </Link>
+            <a
+              href="/downloads/PhytoX.apk"
+              download="PhytoX.apk"
+              className="text-[#a33715] hover:text-[#d3532f] transition-colors font-semibold"
+            >
+              Download APK
+            </a>
             <Link
               href="/auth/login?portal=officer"
               className="text-white/80 hover:text-white transition-colors"
