@@ -171,13 +171,6 @@ function EcoWorld({
     };
   }, [mainIslandGltf]);
 
-  useEffect(() => {
-    return () => {
-      sceneAssets.mainIslandPart.geometry.dispose();
-      sceneAssets.mainIslandMat.dispose();
-    };
-  }, [sceneAssets]);
-
   const tmpVoidFog = useMemo(() => new THREE.Color("#0a0f12"), []);
   const tmpMistFog = useMemo(() => new THREE.Color("#7a8a80"), []);
   const tmpCurFog = useMemo(() => new THREE.Color(), []);

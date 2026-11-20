@@ -1,0 +1,1 @@
+Checkpoint: ../ml/models/best_model.pt; serving manifest: services/inference/models/supplied.manifest.json; monitoring: apps/web/src/services/monitoring.ts; local test verification and screenshot provenance: docs/final-academic-report/verification and screenshots/screenshot_manifest.md.

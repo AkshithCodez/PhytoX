@@ -11,7 +11,7 @@ import {
   Plus,
 } from "lucide-react";
 import { EcoTechScene } from "@/components/eco-tech-scene";
-import { CinematicBackground } from "@/components/cinematic-background";
+import { LivingDataLandscape, OBSERVATION_NODES } from "@/components/living-data-landscape";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -225,8 +225,8 @@ export default function Home() {
         reducedMotion={reducedMotion}
       />
 
-      {/* Photorealistic Cinematic Background Plates (Scenes 3-4) */}
-      <CinematicBackground
+      {/* Living Data Landscape - Topographic Contours & Observation Network (Scenes 3-4) */}
+      <LivingDataLandscape
         progressRef={scrollProgressRef}
         reducedMotion={reducedMotion}
       />
@@ -403,106 +403,76 @@ export default function Home() {
             </div>
 
             {/* ------------------------------------------------------------- */}
-            {/* SCENE 3: GROUND-LEVEL BOTANICAL ECOSYSTEM                     */}
+            {/* SCENE 3: LIVING DATA LANDSCAPE — TERRAIN MEMORY & FIELD NODES */}
             {/* ------------------------------------------------------------- */}
             <div
               ref={scene3Ref}
-              className="absolute inset-0 px-6 md:px-12 pt-[88px] pb-10 pointer-events-none"
+              className="absolute inset-0 px-6 md:px-12 pt-[88px] pb-10 flex flex-col justify-between pointer-events-none"
               style={{ opacity: 0, visibility: "hidden" }}
             >
               {/* Top Row: Left Micro Stack + Right Editorial Statement */}
-              <div className="flex flex-col md:flex-row justify-between items-start gap-6">
-                <div className="font-mono text-[9.5px] tracking-[0.14em] uppercase leading-[1.45] text-white [text-shadow:0_1px_10px_rgba(12,18,13,0.8)]">
-                  REAL-TIME
+              <div className="flex flex-col md:flex-row justify-between items-start gap-4">
+                <div className="font-mono text-[9.5px] tracking-[0.14em] uppercase leading-[1.45] text-[#b5a295]">
+                  TOPOGRAPHIC DATA MEMORY
                   <br />
-                  MULTILINGUAL
+                  FIELD OBSERVATION SIGNALS
                   <br />
-                  CROP INTELLIGENCE
+                  SYNTHETIC GEODEMO
                 </div>
 
-                <div className="max-w-[520px] md:mr-8 md:ml-auto flex flex-col gap-2 text-left md:text-right">
-                  <h2 className="text-[clamp(1.35rem,2.3vw,1.95rem)] font-normal leading-[1.22] tracking-[-0.02em] text-white [text-shadow:0_2px_22px_rgba(12,18,13,0.85)]">
-                    From a Single Leaf to a Clearer Picture of Crop Health.
+                <div className="max-w-[540px] md:mr-8 md:ml-auto flex flex-col gap-2 text-left md:text-right">
+                  <span className="font-mono text-[9px] tracking-[0.14em] uppercase text-[#a33715] font-semibold">
+                    VISUAL PHASE A · TERRAIN MEMORY
+                  </span>
+                  <h2 className="text-[clamp(1.4rem,2.4vw,2.1rem)] font-normal leading-[1.2] tracking-[-0.02em] text-white">
+                    Every Observation Has a Place.
                   </h2>
-                  <p className="text-[clamp(0.85rem,1.05vw,0.95rem)] font-light leading-[1.5] text-[#d6ded5] [text-shadow:0_1px_14px_rgba(12,18,13,0.85)]">
-                    AI-assisted diagnosis helps farmers recognize possible
-                    diseases while supporting broader regional monitoring.
+                  <p className="text-[clamp(0.85rem,1.05vw,0.95rem)] font-light leading-[1.5] text-[#b5a295]">
+                    One crop-health observation can become part of a clearer regional picture.
                   </p>
                 </div>
               </div>
 
-              {/* 3 Interactive Spatial Lime Target Hotspots over Image Plate */}
-              <div className="absolute inset-0 pointer-events-none" data-ground-hotspots>
-                {SPATIAL_HOTSPOTS.map((spot, index) => {
-                  const isPinned = activeHotspot === spot.id;
-                  const isOpen = isPinned || hoveredHotspot === spot.id;
-                  const pos = isMobile ? spot.mobileStyle : spot.desktopStyle;
+              {/* Conceptual Observation Nodes Overlay over Contours */}
+              <div className="relative z-10 w-full max-w-[1360px] mx-auto pointer-events-auto mt-auto pb-4">
+                <div className="flex items-center justify-between pb-2 mb-3 border-b border-white/10">
+                  <span className="font-mono text-[9px] tracking-[0.12em] uppercase text-[#b5a295] flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#a33715] animate-pulse" />
+                    CONCEPTUAL OBSERVATION NODES · 8 MONITORED SECTORS
+                  </span>
+                  <span className="font-mono text-[8.5px] tracking-[0.08em] uppercase text-white/50">
+                    ILLUSTRATIVE REGIONAL SAMPLING
+                  </span>
+                </div>
 
-                  return (
-                    <div
-                      key={spot.id}
-                      style={{ left: pos.left, top: pos.top }}
-                      className={`absolute ${
-                        isOpen ? "z-30" : "z-10"
-                      } flex items-start gap-2.5 pointer-events-auto transition-all`}
-                    >
+                {/* Responsive Node Cards Grid */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2.5">
+                  {OBSERVATION_NODES.map((node) => {
+                    const isSelected = activeHotspot === node.id;
+                    return (
                       <button
+                        key={node.id}
                         type="button"
-                        onClick={() => {
-                          if (isPinned) {
-                            setActiveHotspot(null);
-                            setHoveredHotspot(null);
-                          } else {
-                            setActiveHotspot(spot.id);
-                          }
-                        }}
-                        onMouseEnter={() => setHoveredHotspot(spot.id)}
-                        onMouseLeave={() =>
-                          setHoveredHotspot((prev) =>
-                            prev === spot.id ? null : prev
-                          )
-                        }
-                        aria-expanded={isOpen}
-                        aria-controls={`${spot.id}-detail`}
-                        aria-label={`${spot.label}: ${spot.detail}`}
-                        className={`group h-7 px-2.5 rounded-full backdrop-blur-md border text-white inline-flex items-center gap-1.5 shrink-0 transition-all cursor-pointer focus-visible:outline-2 focus-visible:outline-white ${
-                          isOpen
-                            ? "bg-[#a33715] border-[#a33715] shadow-lg shadow-[#a33715]/25"
-                            : "bg-[#0a0f12]/75 border-white/20 hover:border-white/50 hover:bg-[#20292d]/85 shadow-md"
+                        onClick={() => setActiveHotspot(isSelected ? null : node.id)}
+                        className={`p-2.5 rounded-[8px] border text-left transition-all cursor-pointer ${
+                          isSelected
+                            ? "bg-[#20292d] border-[#a33715] shadow-lg shadow-[#a33715]/20"
+                            : "bg-[#20292d]/75 border-[#565a5c]/40 hover:border-[#907768] hover:bg-[#394045]/80"
                         }`}
                       >
-                        <span
-                          className={`w-1.5 h-1.5 rounded-full transition-colors ${
-                            isOpen ? "bg-white" : "bg-[#b5a295]"
-                          }`}
-                        />
-                        <span className="font-mono text-[9px] tracking-[0.1em] uppercase font-medium">
-                          {spot.kicker}
-                        </span>
-                      </button>
-
-                      <div
-                        className={`text-left ${
-                          index === 2
-                            ? "max-lg:absolute max-lg:right-full max-lg:mr-2 max-lg:w-[150px]"
-                            : "max-sm:max-w-[150px]"
-                        }`}
-                      >
-                        <div className="font-mono text-[9px] sm:text-[9.5px] tracking-[0.08em] uppercase leading-tight text-white/90 [text-shadow:0_1px_8px_rgba(0,0,0,0.9)]">
-                          {spot.label}
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="font-mono text-[8.5px] text-[#b5a295]">{node.code}</span>
+                          <span className={`w-1.5 h-1.5 rounded-full ${isSelected ? "bg-[#a33715]" : "bg-[#907768]"}`} />
                         </div>
-                        {isOpen && (
-                          <div
-                            id={`${spot.id}-detail`}
-                            className="mt-1.5 max-w-[240px] px-3 py-2 rounded-[8px] bg-[#0a0f12]/90 backdrop-blur-md border border-white/20 text-[11.5px] leading-relaxed text-[#f5f7f4] shadow-2xl animate-in fade-in"
-                          >
-                            {spot.detail}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
+                        <div className="text-[11.5px] font-medium text-white truncate">{node.crop}</div>
+                        <div className="text-[9.5px] text-[#dce2da] truncate mt-0.5">{node.signal}</div>
+                        <div className="font-mono text-[8px] text-[#b5a295] uppercase tracking-wider mt-1.5">
+                          {node.status}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             </div>
 
@@ -517,13 +487,13 @@ export default function Home() {
               {/* Top-Left Section Title */}
               <div className="max-w-[540px] pt-1 sm:pt-2">
                 <span className="font-mono text-[9px] tracking-[0.14em] uppercase text-[#b5a295] block">
-                  REGIONAL SURVEILLANCE ARCHITECTURE
+                  VISUAL PHASE C · REGIONAL INTELLIGENCE NETWORK
                 </span>
-                <h2 className="text-[clamp(1.3rem,2.4vw,1.9rem)] font-normal leading-[1.2] tracking-[-0.02em] text-white [text-shadow:0_2px_18px_rgba(12,18,13,0.9)] mt-1">
-                  Regional Crop Intelligence
+                <h2 className="text-[clamp(1.3rem,2.4vw,2rem)] font-normal leading-[1.2] tracking-[-0.02em] text-white mt-1">
+                  From Field Signals to Regional Awareness.
                 </h2>
-                <p className="mt-1.5 text-[13px] leading-relaxed text-[#dbe2da] [text-shadow:0_1px_12px_rgba(12,18,13,0.9)]">
-                  Connecting farmer observations with regional disease monitoring and expert review.
+                <p className="mt-1.5 text-[13px] leading-relaxed text-[#b5a295]">
+                  Combine repeated crop observations with geographic reporting to support timely agricultural review.
                 </p>
               </div>
 
@@ -633,10 +603,13 @@ export default function Home() {
             </span>
 
             <h2 className="mt-6 text-[clamp(2.1rem,3.8vw,3.3rem)] font-medium leading-[1.06] tracking-[-0.03em] text-[#111813] max-w-[540px]">
-              Validating What Your
+              Better Decisions Begin
               <br />
-              Fields Show Naturally
+              in the Field.
             </h2>
+            <p className="mt-3 text-[14.5px] leading-relaxed text-[#565a5c] max-w-[480px]">
+              Turn crop observations into useful insight for farmers and agricultural officers.
+            </p>
 
             {/* 2-Column Editorial Photo Cards */}
             <div className="mt-10 md:mt-12 grid grid-cols-1 md:grid-cols-2 gap-4">

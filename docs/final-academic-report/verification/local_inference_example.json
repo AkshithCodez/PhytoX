@@ -1,0 +1,123 @@
+{
+  "input": "AppleScab1.JPG",
+  "runs": {
+    "None": {
+      "schema_version": "1.0",
+      "status": "success",
+      "model_version": "local-onnx-fde9536ff18a",
+      "prediction": {
+        "crop": "Apple",
+        "disease": "Apple scab",
+        "confidence": 0.9902192139970151
+      },
+      "alternatives": [
+        {
+          "crop": "Cherry (including sour)",
+          "disease": "Powdery mildew",
+          "confidence": 0.00429928331104247
+        },
+        {
+          "crop": "Apple",
+          "disease": "healthy",
+          "confidence": 0.003800648408728749
+        },
+        {
+          "crop": "Apple",
+          "disease": "Cedar apple rust",
+          "confidence": 0.0005844361809534871
+        },
+        {
+          "crop": "Soybean",
+          "disease": "healthy",
+          "confidence": 0.0004742603516113132
+        }
+      ],
+      "quality_warnings": [],
+      "review_recommended": true,
+      "abstained": false,
+      "uncertainty_note": "Model confidence is not proven accuracy. Unknown-image detection has not been validated.",
+      "selected_crop": null,
+      "crop_mismatch_warning": false,
+      "crop_confidence": 0.9946069770959935,
+      "detected_crop": "Apple",
+      "mismatch_message": null
+    },
+    "Apple": {
+      "schema_version": "1.0",
+      "status": "success",
+      "model_version": "local-onnx-fde9536ff18a",
+      "prediction": {
+        "crop": "Apple",
+        "disease": "Apple scab",
+        "confidence": 0.9955884452854035
+      },
+      "alternatives": [
+        {
+          "crop": "Apple",
+          "disease": "healthy",
+          "confidence": 0.0038212565327318563
+        },
+        {
+          "crop": "Apple",
+          "disease": "Cedar apple rust",
+          "confidence": 0.0005876051489804509
+        },
+        {
+          "crop": "Apple",
+          "disease": "Black rot",
+          "confidence": 2.6930328842262833e-06
+        }
+      ],
+      "quality_warnings": [],
+      "review_recommended": true,
+      "abstained": false,
+      "uncertainty_note": "Model confidence is not proven accuracy. Unknown-image detection has not been validated.",
+      "selected_crop": "Apple",
+      "crop_mismatch_warning": false,
+      "crop_confidence": 0.9946069770959935,
+      "detected_crop": "Apple",
+      "mismatch_message": null
+    },
+    "Tomato": {
+      "schema_version": "1.0",
+      "status": "success",
+      "model_version": "local-onnx-fde9536ff18a",
+      "prediction": {
+        "crop": "Tomato",
+        "disease": "Early blight",
+        "confidence": 0.4031643011616838
+      },
+      "alternatives": [
+        {
+          "crop": "Tomato",
+          "disease": "Septoria leaf spot",
+          "confidence": 0.2789895677390474
+        },
+        {
+          "crop": "Tomato",
+          "disease": "Late blight",
+          "confidence": 0.22143955157342513
+        },
+        {
+          "crop": "Tomato",
+          "disease": "Bacterial spot",
+          "confidence": 0.060880025995164753
+        },
+        {
+          "crop": "Tomato",
+          "disease": "Tomato Yellow Leaf Curl Virus",
+          "confidence": 0.020141159963905888
+        }
+      ],
+      "quality_warnings": [],
+      "review_recommended": true,
+      "abstained": true,
+      "uncertainty_note": "Model confidence is not proven accuracy. Unknown-image detection has not been validated.",
+      "selected_crop": "Tomato",
+      "crop_mismatch_warning": true,
+      "crop_confidence": 0.00020217690182019736,
+      "detected_crop": "Apple",
+      "mismatch_message": "You selected Tomato, but the visual model detected features typical of Apple with only 0.0% crop match. Please check the leaf image or consult an expert."
+    }
+  }
+}

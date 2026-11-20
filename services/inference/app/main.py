@@ -2,6 +2,10 @@ import asyncio
 import hmac
 import os
 from contextlib import asynccontextmanager
+from dotenv import load_dotenv
+
+load_dotenv()
+
 from fastapi import FastAPI, UploadFile, File, Header, HTTPException, Form, Query
 from fastapi.concurrency import run_in_threadpool
 from .model import ModelAdapter, decode_image, InvalidImage, MAX_BYTES
